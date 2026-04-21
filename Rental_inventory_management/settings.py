@@ -1,32 +1,21 @@
-"""
-Django settings for Rental_inventory_management project.
-"""
-
 import os
 from pathlib import Path
-import cloudinary
 import dj_database_url
+import cloudinary
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-!u1(+cionufj+$8fdnd#)&c^!yncrrp3pt0w($+pr-elonhwfe'
-DEBUG = True
-ALLOWED_HOSTS = []
+SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key")
+DEBUG = "True"
 
-# Cloudinary direct SDK config
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", ".herokuapp.com"]
+
 cloudinary.config(
-    cloud_name="dvemtlkjh",
-    api_key="679749273824336",
-    api_secret="t4LpyFrIjqUPJ2stsBvDwHbLcA0",
+    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME", "dvemtlkjh"),
+    api_key=os.environ.get("CLOUDINARY_API_KEY", ""),
+    api_secret=os.environ.get("CLOUDINARY_API_SECRET", ""),
     secure=True,
 )
-
-# Optional: keep this only if you also use django-cloudinary-storage elsewhere
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': "dvemtlkjh",
-    'API_KEY': "679749273824336",
-    'API_SECRET': "t4LpyFrIjqUPJ2stsBvDwHbLcA0",
-}
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -36,12 +25,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'inventory',
-    # optional, only if installed:
-    # 'cloudinary',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -93,7 +81,6 @@ else:
         }
     }
 
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -114,7 +101,23 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = '/static/'
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+STATICFILES_DIRS = [
+    BASE_DIR / "inventory" / "static"
+]
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
