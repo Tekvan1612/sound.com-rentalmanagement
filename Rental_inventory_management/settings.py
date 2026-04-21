@@ -8,23 +8,30 @@ import cloudinary
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-!u1(+cionufj+$8fdnd#)&c^!yncrrp3pt0w($+pr-elonhwfe'
-DEBUG = True
-ALLOWED_HOSTS = []
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY",
+    "django-insecure-dev-only-key"
+)
 
-# Cloudinary direct SDK config
+DEBUG = os.environ.get("DEBUG", "False") == "True"
+
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    ".herokuapp.com",
+]
+
 cloudinary.config(
-    cloud_name="dvemtlkjh",
-    api_key="679749273824336",
-    api_secret="t4LpyFrIjqUPJ2stsBvDwHbLcA0",
+    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME", "dvemtlkjh"),
+    api_key=os.environ.get("CLOUDINARY_API_KEY", ""),
+    api_secret=os.environ.get("CLOUDINARY_API_SECRET", ""),
     secure=True,
 )
 
-# Optional: keep this only if you also use django-cloudinary-storage elsewhere
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': "dvemtlkjh",
-    'API_KEY': "679749273824336",
-    'API_SECRET': "t4LpyFrIjqUPJ2stsBvDwHbLcA0",
+    "CLOUD_NAME": os.environ.get("CLOUDINARY_CLOUD_NAME", "dvemtlkjh"),
+    "API_KEY": os.environ.get("CLOUDINARY_API_KEY", ""),
+    "API_SECRET": os.environ.get("CLOUDINARY_API_SECRET", ""),
 }
 
 INSTALLED_APPS = [
@@ -35,8 +42,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'inventory',
-    # optional, only if installed:
-    # 'cloudinary',
 ]
 
 MIDDLEWARE = [
@@ -71,11 +76,11 @@ WSGI_APPLICATION = 'Rental_inventory_management.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'rental_inventory_sound',
-        'USER': 'postgres',
-        'PASSWORD': 'kvan',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': os.environ.get('DB_NAME', 'rental_inventory_sound'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 
@@ -100,6 +105,9 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = BASE_DIR / 'media'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
