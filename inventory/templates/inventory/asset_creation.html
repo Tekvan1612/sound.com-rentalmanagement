@@ -1,0 +1,2191 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'inventory/includes/head.html' %}
+</head>
+
+<body class="main-bg main-bg-opac main-bg-blur roundedui adminuiux-header-standard adminuiux-sidebar-standard adminuiux-mobile-footer-fill-theme adminuiux-header-transparent theme-pista bg-r-gradient adminuiux-sidebar-fill-none scrollup"
+      data-theme="theme-pista"
+      data-sidebarfill="adminuiux-sidebar-fill-none"
+      data-sidebarlayout="adminuiux-sidebar-standard"
+      data-headerlayout="adminuiux-header-standard"
+      data-headerfill="adminuiux-header-transparent"
+      data-bggradient="bg-r-gradient">
+
+<div class="pageloader">
+    <div class="container h-100">
+        <div class="row justify-content-center align-items-center text-center h-100 pb-ios">
+            <div class="col-12 mb-auto pt-4"></div>
+            <div class="col-auto">
+                <img src="{% static 'inventory/assets/img/tekvan_logo_hd.png' %}" alt="" class="height-80 mb-3">
+                <p class="h2 mb-0 text-theme-accent-1">Rental</p>
+                <p class="display-3 text-theme-1 fw-bold mb-4">Management</p>
+                <div class="loader12 mb-2 mx-auto"></div>
+            </div>
+            <div class="col-12 mt-auto pb-4">
+                <p class="small text-secondary">Please wait we are preparing awesome things...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'inventory/includes/header.html' %}
+
+<div class="adminuiux-wrap">
+    {% include 'inventory/includes/sidebar.html' %}
+
+    <main class="adminuiux-content has-sidebar" onclick="contentClick()">
+        <div class="container mt-3">
+            <div class="row gx-3 align-items-center">
+                <div class="col">
+                    <nav aria-label="breadcrumb" class="mb-1 asset-breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item">
+                                <a href="#">
+                                    <i class="bi bi-house-door"></i> Dashboard
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item active" aria-current="page">Asset Masters</li>
+                        </ol>
+                    </nav>
+                    <h4 class="asset-page-title mb-0">Asset Masters</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="container mt-3 mt-lg-4 mt-xl-4">
+            <div class="card asset-master-card">
+                <div class="card-body">
+
+                    <ul class="nav nav-tabs asset-master-tabs" id="assetMasterTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active"
+                                    id="equipment-tab"
+                                    data-bs-toggle="tab"
+                                    data-bs-target="#equipment-tab-pane"
+                                    type="button"
+                                    role="tab"
+                                    aria-controls="equipment-tab-pane"
+                                    aria-selected="true">
+                                Equipment Details
+                            </button>
+                        </li>
+
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link"
+                                    id="subcategory-tab"
+                                    data-bs-toggle="tab"
+                                    data-bs-target="#subcategory-tab-pane"
+                                    type="button"
+                                    role="tab"
+                                    aria-controls="subcategory-tab-pane"
+                                    aria-selected="false">
+                                Subcategory
+                            </button>
+                        </li>
+
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link"
+                                    id="mastercategory-tab"
+                                    data-bs-toggle="tab"
+                                    data-bs-target="#mastercategory-tab-pane"
+                                    type="button"
+                                    role="tab"
+                                    aria-controls="mastercategory-tab-pane"
+                                    aria-selected="false">
+                                Master Category
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content pt-3" id="assetMasterTabContent">
+
+                        <!-- Equipment Details -->
+                        <div class="tab-pane fade show active"
+                             id="equipment-tab-pane"
+                             role="tabpanel"
+                             aria-labelledby="equipment-tab"
+                             tabindex="0">
+
+                            <div class="asset-toolbar asset-toolbar-inline mb-3">
+                                <div class="asset-search-wrap flex-grow-1">
+                                    <input type="text"
+                                           class="form-control asset-search"
+                                           id="equipmentSearch"
+                                           placeholder="Search equipment...">
+                                </div>
+
+                                <button class="btn btn-theme collapsed asset-add-btn"
+                                        type="button"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#addEquipmentCollapse"
+                                        aria-expanded="false"
+                                        aria-controls="addEquipmentCollapse">
+                                    New Equipment
+                                </button>
+                            </div>
+
+                            <div class="collapse mt-4" id="addEquipmentCollapse">
+                                <div class="card border-0 bg-theme-1-subtle">
+                                    <div class="card-body">
+
+                                        <p class="h6 mb-3" id="equipmentFormTitle">New Equipment Details</p>
+
+                                        <form id="equipmentForm" method="POST"
+                                              action="{% url 'inventory:add_equipment' %}"
+                                              enctype="multipart/form-data">
+                                            {% csrf_token %}
+
+                                            <input type="hidden" id="edit_equipment_id" name="edit_equipment_id">
+
+                                            <div class="row mb-1">
+                                                <div class="col-lg-4">
+                                                    <div class="form-floating mb-3">
+                                                        <input type="text"
+                                                               class="form-control"
+                                                               id="equipment_name"
+                                                               name="equipment_name"
+                                                               placeholder="Equipment Name"
+                                                               required>
+                                                        <label for="equipment_name">Equipment Name</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-lg-4">
+                                                    <div class="mb-3 asset-tomselect-field">
+                                                        <select id="subcategory_id" name="subcategory_id"
+                                                                placeholder="Select Subcategory">
+                                                            <option value="">Select Subcategory</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-lg-4">
+                                                    <div class="form-floating mb-3">
+                                                        <input type="text"
+                                                               class="form-control"
+                                                               id="category_name"
+                                                               name="category_name"
+                                                               placeholder="Category Name"
+                                                               readonly
+                                                               required>
+                                                        <label for="category_name">Category Name</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-lg-3">
+                                                    <div class="form-floating mb-3">
+                                                        <input type="text"
+                                                               class="form-control"
+                                                               id="type"
+                                                               name="type"
+                                                               placeholder="Type">
+                                                        <label for="type">Type</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-lg-3">
+                                                    <div class="form-floating mb-3">
+                                                        <input type="text"
+                                                               class="form-control"
+                                                               id="dimension_h"
+                                                               name="dimension_h"
+                                                               placeholder="Dimension Height">
+                                                        <label for="dimension_h">Dimension Height (Inch)</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-lg-3">
+                                                    <div class="form-floating mb-3">
+                                                        <input type="text"
+                                                               class="form-control"
+                                                               id="dimension_w"
+                                                               name="dimension_w"
+                                                               placeholder="Dimension Width">
+                                                        <label for="dimension_w">Dimension Width (Inch)</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-lg-3">
+                                                    <div class="form-floating mb-3">
+                                                        <input type="text"
+                                                               class="form-control"
+                                                               id="dimension_l"
+                                                               name="dimension_l"
+                                                               placeholder="Dimension Length">
+                                                        <label for="dimension_l">Dimension Length (Inch)</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-lg-3">
+                                                    <div class="form-floating mb-3">
+                                                        <input type="text"
+                                                               class="form-control"
+                                                               id="weight"
+                                                               name="weight"
+                                                               placeholder="Weight">
+                                                        <label for="weight">Weight</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-lg-3">
+                                                    <div class="form-floating mb-3">
+                                                        <input type="text"
+                                                               class="form-control"
+                                                               id="volume"
+                                                               name="volume"
+                                                               placeholder="Volume">
+                                                        <label for="volume">Volume</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-lg-3">
+                                                    <div class="form-floating mb-3">
+                                                        <input type="text"
+                                                               class="form-control"
+                                                               id="hsn_no"
+                                                               name="hsn_no"
+                                                               placeholder="HSN No">
+                                                        <label for="hsn_no">HSN No</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-lg-3">
+                                                    <div class="form-floating mb-3">
+                                                        <input type="text"
+                                                               class="form-control"
+                                                               id="country_origin"
+                                                               name="country_origin"
+                                                               placeholder="Country Origin">
+                                                        <label for="country_origin">Country Origin</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-lg-4">
+                                                    <div class="mb-3">
+                                                        <label for="attachment_1" class="form-label">Image 1</label>
+                                                        <input type="file" class="form-control" id="attachment_1"
+                                                               name="attachment_1">
+                                                        <img id="preview_attachment_1" src="" alt="Image 1 Preview"
+                                                             style="max-width:120px; margin-top:10px; display:none; border-radius:8px;">
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-lg-4">
+                                                    <div class="mb-3">
+                                                        <label for="attachment_2" class="form-label">Image 2</label>
+                                                        <input type="file" class="form-control" id="attachment_2"
+                                                               name="attachment_2">
+                                                        <img id="preview_attachment_2" src="" alt="Image 2 Preview"
+                                                             style="max-width:120px; margin-top:10px; display:none; border-radius:8px;">
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-lg-4">
+                                                    <div class="mb-3">
+                                                        <label for="attachment_3" class="form-label">Image 3</label>
+                                                        <input type="file" class="form-control" id="attachment_3"
+                                                               name="attachment_3">
+                                                        <img id="preview_attachment_3" src="" alt="Image 3 Preview"
+                                                             style="max-width:120px; margin-top:10px; display:none; border-radius:8px;">
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-lg-3">
+                                                    <div class="form-floating mb-3">
+                                                        <select class="form-select"
+                                                                id="status"
+                                                                name="status"
+                                                                required>
+                                                            <option value="Active">Active</option>
+                                                            <option value="Inactive">Inactive</option>
+                                                        </select>
+                                                        <label for="status">Status</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <button type="submit" class="btn btn-theme">
+                                                Save Equipment
+                                            </button>
+
+                                            <button type="button"
+                                                    class="btn btn-outline-theme ms-2"
+                                                    onclick="cancelEquipmentForm()">
+                                                Cancel
+                                            </button>
+                                        </form>
+
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="collapse mt-4" id="addStockCollapse">
+                                <div class="card border-0 bg-theme-1-subtle">
+                                    <div class="card-body">
+
+                                        <p class="h6 mb-3">Add Stock Details</p>
+
+                                        <form id="stockForm" method="POST" action="{% url 'inventory:insert_vendor' %}"
+                                              enctype="multipart/form-data">
+                                            {% csrf_token %}
+
+                                            <input type="hidden" id="stock_equipment_id" name="equipmentId">
+
+                                            <div class="row mb-1">
+                                                <div class="col-lg-4">
+                                                    <div class="form-floating mb-3">
+                                                        <input type="text"
+                                                               class="form-control"
+                                                               id="stock_equipment_name"
+                                                               placeholder="Equipment Name"
+                                                               readonly>
+                                                        <label for="stock_equipment_name">Equipment Name</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-lg-4">
+                                                    <div class="form-floating mb-3">
+                                                        <input type="text"
+                                                               class="form-control"
+                                                               name="vendor_name"
+                                                               placeholder="Vendor Name"
+                                                               required>
+                                                        <label>Vendor Name</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-lg-4">
+                                                    <div class="form-floating mb-3">
+                                                        <input type="date"
+                                                               class="form-control"
+                                                               name="purchase_date"
+                                                               placeholder="Purchase Date"
+                                                               required>
+                                                        <label>Purchase Date</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-lg-3">
+                                                    <div class="form-floating mb-3">
+                                                        <input type="number"
+                                                               step="0.01"
+                                                               min="0"
+                                                               class="form-control"
+                                                               name="unit_price"
+                                                               placeholder="Unit Price"
+                                                               required>
+                                                        <label>Unit Price</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-lg-3">
+                                                    <div class="form-floating mb-3">
+                                                        <input type="number"
+                                                               step="0.01"
+                                                               min="0"
+                                                               class="form-control"
+                                                               name="rental_price"
+                                                               placeholder="Rental Price"
+                                                               required>
+                                                        <label>Rental Price</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-lg-3">
+                                                    <div class="form-floating mb-3">
+                                                        <input type="text"
+                                                               class="form-control"
+                                                               name="reference_no"
+                                                               placeholder="Reference No">
+                                                        <label>Reference No</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-lg-3">
+                                                    <div class="form-floating mb-3">
+                                                        <input type="number"
+                                                               class="form-control"
+                                                               id="unitValue"
+                                                               name="unitValue"
+                                                               min="1"
+                                                               placeholder="Units"
+                                                               required>
+                                                        <label for="unitValue">Units</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-lg-6">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Attachment</label>
+                                                        <input type="file" class="form-control" name="attachment">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div id="serialBarcodeContainer"></div>
+
+                                            <button type="submit" class="btn btn-theme">
+                                                Save Stock
+                                            </button>
+
+                                            <button type="button"
+                                                    class="btn btn-outline-theme ms-2"
+                                                    onclick="cancelStockForm()">
+                                                Cancel
+                                            </button>
+                                        </form>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table asset-table align-middle w-100 nowrap" id="equipmentDataTable">
+                                    <thead>
+                                    <tr>
+                                        <th style="width:120px;">Action</th>
+                                        <th>Name</th>
+                                        <th>Subcategory</th>
+                                        <th>Category</th>
+                                        <th>Created By</th>
+                                        <th>Created Date</th>
+
+                                    </tr>
+                                    </thead>
+                                    <tbody id="equipmentTableBody">
+                                    {% for item in equipment_listing %}
+                                        <tr>
+                                            <td>
+                                                <button type="button"
+                                                        class="btn btn-success btn-sm me-1"
+                                                        title="Add Stock"
+                                                        onclick="openStockForm('{{ item.id }}', '{{ item.equipment_name|escapejs }}')">
+                                                    <i class="bi bi-box-seam"></i>
+                                                </button>
+
+                                                <button type="button"
+                                                        class="btn btn-primary btn-sm me-1"
+                                                        onclick="openEquipmentEditForm('{{ item.id }}')">
+                                                    <i class="bi bi-pencil-fill"></i>
+                                                </button>
+
+                                                <button type="button"
+                                                        class="btn btn-danger btn-sm"
+                                                        onclick="deleteEquipment('{{ item.id }}', '{{ item.equipment_name|escapejs }}')">
+                                                    <i class="bi bi-trash-fill"></i>
+                                                </button>
+                                                <button type="button"
+                                                        class="btn btn-info btn-sm me-1"
+                                                        title="View Details"
+                                                        onclick="viewEquipmentDetails(
+                                                                '{{ item.equipment_name|escapejs }}',
+                                                                '{{ item.dimension_height|default_if_none:""|escapejs }}',
+                                                                '{{ item.dimension_width|default_if_none:""|escapejs }}',
+                                                                '{{ item.dimension_length|default_if_none:""|escapejs }}',
+                                                                '{{ item.hsn_no|default_if_none:""|escapejs }}',
+                                                                '{{ item.image_1|default_if_none:""|escapejs }}',
+                                                                '{{ item.image_2|default_if_none:""|escapejs }}',
+                                                                '{{ item.image_3|default_if_none:""|escapejs }}'
+                                                                )">
+                                                    <i class="bi bi-eye-fill"></i>
+                                                </button>
+                                            </td>
+                                            <td>
+                                                <a href="javascript:void(0);"
+                                                   class="text-decoration-none fw-semibold"
+                                                   onclick="viewStockDetails({{ item.id }}, '{{ item.equipment_name|escapejs }}')">
+                                                    {{ item.equipment_name }}
+                                                </a>
+                                            </td>
+                                            <td>{{ item.sub_category_name }}</td>
+                                            <td>{{ item.category_type }}</td>
+                                            <td>{{ item.created_by }}</td>
+                                            <td>{{ item.created_date }}</td>
+
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="8" class="table-empty">No equipment found.</td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Subcategory -->
+                        <div class="tab-pane fade"
+                             id="subcategory-tab-pane"
+                             role="tabpanel"
+                             aria-labelledby="subcategory-tab"
+                             tabindex="0">
+
+                            <div class="asset-toolbar asset-toolbar-inline mb-3">
+                                <div class="asset-search-wrap flex-grow-1">
+                                    <input type="text"
+                                           class="form-control asset-search"
+                                           id="subcategorySearch"
+                                           placeholder="Search subcategory...">
+                                </div>
+
+                                <select id="subcategoryCategoryFilter" class="form-select" style="max-width: 260px;">
+                                    <option value="">All Categories</option>
+                                </select>
+
+                                <button class="btn btn-theme collapsed asset-add-btn"
+                                        type="button"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#addSubcategoryCollapse">
+                                    New Subcategory
+                                </button>
+                            </div>
+
+                            <div class="collapse mt-4" id="addSubcategoryCollapse">
+                                <div class="card border-0 bg-theme-1-subtle">
+                                    <div class="card-body">
+
+                                        <p class="h6 mb-3" id="subcategoryFormTitle">New Subcategory Details</p>
+
+                                        <input type="hidden" id="edit_subcategory_id">
+
+                                        <div class="row mb-1">
+                                            <div class="col-lg-4">
+                                                <div class="form-floating mb-3">
+                                                    <select class="form-select" id="subcategory_category">
+                                                        <option value="">Select Master Category</option>
+                                                    </select>
+                                                    <label>Master Category</label>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-lg-4">
+                                                <div class="form-floating mb-3">
+                                                    <input class="form-control"
+                                                           id="subcategory_name"
+                                                           placeholder="Subcategory name">
+                                                    <label>Subcategory Name</label>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-lg-2">
+                                                <div class="form-floating mb-3">
+                                                    <input class="form-control"
+                                                           id="subcategory_type"
+                                                           placeholder="Type">
+                                                    <label>Type</label>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-lg-2">
+                                                <div class="form-floating mb-3">
+                                                    <select class="form-select" id="subcategory_status">
+                                                        <option value="1">Active</option>
+                                                        <option value="0">Inactive</option>
+                                                    </select>
+                                                    <label>Status</label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <button type="button" class="btn btn-theme" onclick="submitSubcategoryForm()">
+                                            <span id="subcategoryBtnText">Save Subcategory</span>
+                                        </button>
+
+                                        <button type="button" class="btn btn-outline-theme ms-2"
+                                                onclick="cancelSubcategoryForm()">
+                                            Cancel
+                                        </button>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table asset-table w-100 nowrap" id="subcategoryDataTable">
+                                    <thead>
+                                    <tr>
+                                        <th style="width:120px;">Action</th>
+                                        <th>Name</th>
+                                        <th>Category</th>
+                                        <th>Type</th>
+                                        <th>Created By</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="subcategoryTable">
+                                    <tr>
+                                        <td colspan="7" class="table-empty">Loading subcategories...</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Master Category -->
+                        <div class="tab-pane fade"
+                             id="mastercategory-tab-pane"
+                             role="tabpanel"
+                             aria-labelledby="mastercategory-tab"
+                             tabindex="0">
+
+                            <div class="asset-toolbar asset-toolbar-inline mb-3">
+                                <div class="asset-search-wrap flex-grow-1">
+                                    <input type="text"
+                                           class="form-control asset-search"
+                                           id="masterCategorySearch"
+                                           placeholder="Search master category...">
+                                </div>
+
+                                <button class="btn btn-theme collapsed asset-add-btn"
+                                        type="button"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#addCategoryCollapse"
+                                        aria-expanded="false"
+                                        aria-controls="addCategoryCollapse">
+                                    New Category
+                                </button>
+                            </div>
+
+                            <div class="collapse mt-4" id="addCategoryCollapse">
+                                <div class="card border-0 bg-theme-1-subtle">
+                                    <div class="card-body">
+                                        <p class="h6 mb-3" id="categoryFormTitle">New Category Details</p>
+                                        <input type="hidden" id="edit_mode_category_id" value="">
+
+                                        <div class="row mb-1">
+                                            <div class="col-12 col-lg-4">
+                                                <div class="form-floating mb-3">
+                                                    <input class="form-control"
+                                                           id="category_name_master"
+                                                           placeholder="Enter category name">
+                                                    <label for="category_name_master">Category Name</label>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 col-lg-5">
+                                                <div class="form-floating mb-3">
+                                                    <input class="form-control"
+                                                           id="category_description"
+                                                           placeholder="Enter description">
+                                                    <label for="category_description">Description</label>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 col-lg-3">
+                                                <div class="form-floating mb-3">
+                                                    <select class="form-select" id="category_status_master">
+                                                        <option value="1" selected>Active</option>
+                                                        <option value="0">Inactive</option>
+                                                    </select>
+                                                    <label for="category_status_master">Status</label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col">
+                                                <button type="button" class="btn btn-theme" id="categorySubmitBtn"
+                                                        onclick="submitCategoryForm()">
+                                                    <i class="bi bi-floppy me-2"></i><span id="categorySubmitBtnText">Save Category</span>
+                                                </button>
+
+                                                <button type="button"
+                                                        class="btn btn-outline-theme ms-2"
+                                                        onclick="cancelCategoryForm()">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table asset-table align-middle w-100 nowrap" id="masterCategoryDataTable">
+                                    <thead>
+                                    <tr>
+                                        <th style="width:140px;">Action</th>
+                                        <th>Name</th>
+                                        <th>Description</th>
+                                        <th>Created By</th>
+                                        <th>Created Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="masterCategoryTable">
+                                    <tr>
+                                        <td colspan="6" class="table-empty">Loading master categories...</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div class="modal fade" id="stockDetailsModal" tabindex="-1" aria-labelledby="stockDetailsModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+        <div class="modal-content adminuiux-card">
+            <div class="modal-header">
+                <p class="modal-title h5 mb-0" id="stockDetailsModalLabel">
+                    Stock Details - <span id="stockDetailsEquipmentName"></span>
+                </p>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table asset-table align-middle w-100 mb-0">
+                        <thead>
+                        <tr>
+                            <th style="width: 70px;">#</th>
+                            <th>Serial No</th>
+                            <th>Barcode No
+                            <th style="width:140px;">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody id="stockDetailsTableBody">
+                        <tr>
+                            <td colspan="3" class="table-empty">Loading stock details...</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-theme" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="equipmentViewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:24px; overflow:hidden;">
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+                <h4 class="modal-title fw-bold mb-0">Equipment Details</h4>
+                <button type="button" class="btn-close fs-4" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body px-4 pb-4">
+                <div class="row g-4 align-items-start">
+                    <div class="col-lg-5">
+                        <div class="bg-light d-flex align-items-center justify-content-center mb-3"
+                             style="height:320px; border-radius:20px; overflow:hidden; border:1px solid #e9ecef;">
+                            <img id="viewEquipmentMainImage"
+                                 src=""
+                                 alt="Equipment Image"
+                                 style="max-width:100%; max-height:100%; object-fit:contain; display:none;">
+                            <div id="viewNoImage"
+                                 class="text-muted fw-semibold"
+                                 style="display:none;">
+                                No Image Available
+                            </div>
+                        </div>
+
+                        <div id="viewThumbnailWrap" class="d-flex gap-2 flex-wrap"></div>
+                    </div>
+
+                    <div class="col-lg-7">
+                        <h2 id="viewEquipmentName" class="fw-bold mb-4" style="font-size:2rem;"></h2>
+
+                        <div class="d-grid gap-3">
+                            <div class="p-3 bg-light rounded-4 border">
+                                <div class="text-muted small mb-1">Dimension</div>
+                                <div id="viewDimension" class="fw-semibold fs-5"></div>
+                            </div>
+
+                            <div class="p-3 bg-light rounded-4 border">
+                                <div class="text-muted small mb-1">HSN No</div>
+                                <div id="viewHSN" class="fw-semibold fs-5"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+
+{% include 'inventory/includes/footer.html' %}
+
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<style>
+    .asset-field-label {
+        display: block;
+        margin-bottom: 10px;
+        font-size: 16px;
+        font-weight: 500;
+        color: #3a3f3a;
+    }
+
+    .asset-tomselect-field .ts-wrapper {
+        width: 100%;
+    }
+
+    .asset-tomselect-field .ts-control {
+        min-height: 58px;
+        border-radius: 28px;
+        border: 1px solid #c9d0c9;
+        background: #ffffff;
+        box-shadow: none;
+        padding: 0 22px;
+        display: flex;
+        align-items: center;
+        font-size: 18px;
+        color: #444;
+    }
+
+    .asset-tomselect-field .ts-control,
+    .asset-tomselect-field .ts-control input {
+        font-size: 18px;
+        line-height: 1.2;
+    }
+
+    .asset-tomselect-field .ts-control > input {
+        margin: 0;
+        padding: 0;
+        min-width: 120px;
+    }
+
+    .asset-tomselect-field .ts-control .item {
+        color: #444;
+    }
+
+    .asset-tomselect-field .ts-control .item,
+    .asset-tomselect-field .ts-control input::placeholder {
+        font-size: 18px;
+    }
+
+    .asset-tomselect-field .ts-control.focus {
+        border-color: #89a96b;
+        box-shadow: 0 0 0 0.18rem rgba(137, 169, 107, 0.14);
+    }
+
+    .asset-tomselect-field .ts-wrapper.single .ts-control:after {
+        border-color: #7d847d transparent transparent transparent;
+        right: 22px;
+        margin-top: -3px;
+    }
+
+    .asset-tomselect-field .ts-dropdown {
+        margin-top: 8px;
+        border: 1px solid #c9d0c9;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+        background: #fff;
+    }
+
+    .asset-tomselect-field .ts-dropdown .ts-dropdown-content {
+        max-height: 240px;
+        overflow-y: auto;
+        padding: 6px 0;
+    }
+
+    .asset-tomselect-field .ts-dropdown .option,
+    .asset-tomselect-field .ts-dropdown .create {
+        padding: 12px 18px;
+        font-size: 16px;
+        color: #3a3f3a;
+    }
+
+    .asset-tomselect-field .ts-dropdown .active {
+        background: #89a96b;
+        color: #fff;
+    }
+
+    .asset-tomselect-field .ts-dropdown .option:hover {
+        background: #eef4e8;
+        color: #3a3f3a;
+    }
+
+    .asset-tomselect-field .ts-dropdown .active:hover {
+        background: #89a96b;
+        color: #fff;
+    }
+
+    .asset-tomselect-field .ts-control .clear-button {
+        color: #888;
+        margin-right: 20px;
+    }
+</style>
+<script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll('.adminuiux-sidebar .dropdown-toggle').forEach(function (el) {
+        new bootstrap.Dropdown(el);
+    });
+});
+    let masterCategoriesData = [];
+    let masterCategoryTable = null;
+
+    let subcategoryTable = null;
+    let subcategoryData = [];
+
+    let equipmentTable = null;
+
+    document.addEventListener("DOMContentLoaded", function () {
+        loadMasterCategories();
+        loadCategoryDropdowns();
+        loadSubcategories();
+        bindSearchFilters();
+        loadEquipmentSubcategories();
+        bindEquipmentCategoryAutofill();
+        initEquipmentTable();
+    });
+
+
+    let subcategorySelect = null;
+
+    function initEquipmentTable() {
+        destroyEquipmentTable();
+
+        if (!$('#equipmentDataTable').length) return;
+
+        equipmentTable = $('#equipmentDataTable').DataTable({
+            searching: true,
+            lengthChange: true,
+            autoWidth: false,
+            pageLength: 25,
+            responsive: true,
+            order: [[1, 'asc']],
+            columnDefs: [
+                {orderable: false, targets: 0}
+            ],
+            dom: '<"d-flex justify-content-between align-items-center mt-2"i p>rt',
+            language: {
+                emptyTable: "Data not available",
+                zeroRecords: "Data not available"
+            }
+        });
+
+        const searchInput = document.getElementById("equipmentSearch");
+        if (searchInput && searchInput.value) {
+            equipmentTable.search(searchInput.value).draw();
+        }
+    }
+
+    let currentStockEquipmentId = null;
+    let currentStockEquipmentName = "";
+
+    function viewStockDetails(equipmentId, equipmentName) {
+        currentStockEquipmentId = equipmentId;
+        currentStockEquipmentName = equipmentName;
+
+        document.getElementById("stockDetailsEquipmentName").textContent = equipmentName;
+
+        const tbody = document.getElementById("stockDetailsTableBody");
+        tbody.innerHTML = `
+        <tr>
+            <td colspan="4" class="table-empty">Loading stock details...</td>
+        </tr>
+    `;
+
+        fetch(`/api/equipment-stock-details/${equipmentId}/`, {
+            method: "GET",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+            .then(async response => {
+                const data = await response.json();
+                if (!response.ok) throw data;
+                return data;
+            })
+            .then(data => {
+                tbody.innerHTML = "";
+
+                if (!data.stock_details || data.stock_details.length === 0) {
+                    tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="table-empty">No stock details found.</td>
+                </tr>
+            `;
+                } else {
+                    data.stock_details.forEach((item, index) => {
+                        const safeSerial = escapeHtml(item.serial_no || "");
+                        const safeBarcode = escapeHtml(item.barcode_no || "");
+
+                        tbody.innerHTML += `
+                    <tr id="row-${item.id}">
+                        <td>${index + 1}</td>
+
+                        <td>
+                            <span class="view-mode">${safeSerial}</span>
+                            <input type="text"
+                                   class="form-control edit-mode d-none"
+                                   id="serial-${item.id}"
+                                   value="${safeSerial}">
+                        </td>
+
+                        <td>
+                            <span class="view-mode">${safeBarcode}</span>
+                            <input type="text"
+                                   class="form-control edit-mode d-none"
+                                   id="barcode-${item.id}"
+                                   value="${safeBarcode}">
+                        </td>
+
+                        <td>
+                            <button type="button"
+                                    class="btn btn-primary btn-sm me-1 view-mode"
+                                    onclick="enableEdit(${item.id})">
+                                <i class="bi bi-pencil-fill"></i>
+                            </button>
+
+                            <button type="button"
+                                    class="btn btn-success btn-sm me-1 edit-mode d-none"
+                                    onclick="saveEdit(${item.id})">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+
+                            <button type="button"
+                                    class="btn btn-outline-theme btn-sm me-1 edit-mode d-none"
+                                    onclick="cancelEdit(${item.id})">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+
+                            <button type="button"
+                                    class="btn btn-danger btn-sm view-mode"
+                                    onclick="deleteStockRow(${item.id})">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                    });
+                }
+
+                const modalEl = document.getElementById("stockDetailsModal");
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            })
+            .catch(error => {
+                console.error("Stock details fetch error:", error);
+                showToast(error.message || "Failed to load stock details", "danger");
+            });
+    }
+
+    function viewEquipmentDetails(name, h, w, l, hsn, image1, image2, image3) {
+        document.getElementById("viewEquipmentName").innerText = name || "-";
+
+        const dimension = [h, w, l].filter(v => String(v).trim() !== "").join(" x ");
+        document.getElementById("viewDimension").innerText = dimension || "-";
+        document.getElementById("viewHSN").innerText = hsn || "-";
+
+        const mainImg = document.getElementById("viewEquipmentMainImage");
+        const noImg = document.getElementById("viewNoImage");
+        const thumbWrap = document.getElementById("viewThumbnailWrap");
+
+        thumbWrap.innerHTML = "";
+
+        const images = [image1, image2, image3].filter(img => img && img.trim() !== "");
+
+        if (images.length > 0) {
+            mainImg.src = images[0];
+            mainImg.style.display = "block";
+            noImg.style.display = "none";
+
+            mainImg.onerror = function () {
+                mainImg.style.display = "none";
+                noImg.style.display = "block";
+            };
+
+            images.forEach((imgSrc, index) => {
+                const thumb = document.createElement("img");
+                thumb.src = imgSrc;
+                thumb.alt = `Thumbnail ${index + 1}`;
+                thumb.style.width = "80px";
+                thumb.style.height = "80px";
+                thumb.style.objectFit = "cover";
+                thumb.style.borderRadius = "12px";
+                thumb.style.border = index === 0 ? "2px solid #198754" : "1px solid #ddd";
+                thumb.style.cursor = "pointer";
+                thumb.style.padding = "2px";
+                thumb.style.background = "#fff";
+
+                thumb.onclick = function () {
+                    mainImg.src = imgSrc;
+
+                    [...thumbWrap.querySelectorAll("img")].forEach(t => {
+                        t.style.border = "1px solid #ddd";
+                    });
+                    thumb.style.border = "2px solid #198754";
+                };
+
+                thumb.onerror = function () {
+                    thumb.remove();
+                };
+
+                thumbWrap.appendChild(thumb);
+            });
+        } else {
+            mainImg.src = "";
+            mainImg.style.display = "none";
+            noImg.style.display = "block";
+        }
+
+        const modal = new bootstrap.Modal(document.getElementById("equipmentViewModal"));
+        modal.show();
+    }
+
+    function enableEdit(id) {
+        const row = document.getElementById(`row-${id}`);
+        row.querySelectorAll('.view-mode').forEach(el => el.classList.add('d-none'));
+        row.querySelectorAll('.edit-mode').forEach(el => el.classList.remove('d-none'));
+    }
+
+    function cancelEdit(id) {
+        viewStockDetails(currentStockEquipmentId, currentStockEquipmentName);
+    }
+
+
+    function saveEdit(id) {
+        const serial = document.getElementById(`serial-${id}`).value.trim();
+        const barcode = document.getElementById(`barcode-${id}`).value.trim();
+
+        if (!serial) {
+            showToast("Serial number is required.", "danger");
+            return;
+        }
+
+        if (!barcode) {
+            showToast("Barcode number is required.", "danger");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("serial_no", serial);
+        formData.append("barcode_no", barcode);
+
+        fetch(`/api/stock-details/update/${id}/`, {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+            .then(async response => {
+                const data = await response.json();
+                if (!response.ok) throw data;
+                return data;
+            })
+            .then(data => {
+                showToast(data.message || "Stock updated successfully", "success");
+                viewStockDetails(currentStockEquipmentId, currentStockEquipmentName);
+            })
+            .catch(error => {
+                console.error("Stock update error:", error);
+                showToast(error.message || "Failed to update stock", "danger");
+            });
+    }
+
+    function deleteStockRow(rowId) {
+        if (!confirm("Delete this stock row?")) return;
+
+        fetch(`/api/stock-details/delete/${rowId}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+            .then(async response => {
+                const data = await response.json();
+                if (!response.ok) throw data;
+                return data;
+            })
+            .then(data => {
+                showToast(data.message || "Stock deleted successfully", "success");
+                viewStockDetails(currentStockEquipmentId, currentStockEquipmentName);
+            })
+            .catch(error => {
+                console.error("Stock delete error:", error);
+                showToast(error.message || "Failed to delete stock", "danger");
+            });
+    }
+
+    let stockSubmitting = false;
+
+    function openStockForm(equipmentId, equipmentName) {
+        const stockForm = document.getElementById("stockForm");
+        stockForm.reset();
+
+        document.getElementById("stock_equipment_id").value = equipmentId;
+        document.getElementById("stock_equipment_name").value = equipmentName;
+        document.getElementById("serialBarcodeContainer").innerHTML = "";
+
+        const eqCollapse = bootstrap.Collapse.getOrCreateInstance(document.getElementById("addEquipmentCollapse"));
+        const stockCollapse = bootstrap.Collapse.getOrCreateInstance(document.getElementById("addStockCollapse"));
+
+        eqCollapse.hide();
+        stockCollapse.show();
+    }
+
+    function cancelStockForm() {
+        const stockForm = document.getElementById("stockForm");
+        stockForm.reset();
+
+        document.getElementById("serialBarcodeContainer").innerHTML = "";
+
+        const btn = document.querySelector('#stockForm button[type="submit"]');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerText = "Save Stock";
+        }
+
+        stockSubmitting = false;
+
+        bootstrap.Collapse.getOrCreateInstance(
+            document.getElementById("addStockCollapse")
+        ).hide();
+    }
+
+    function hasDuplicates(arr) {
+        return new Set(arr).size !== arr.length;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const unitInput = document.getElementById("unitValue");
+        const stockForm = document.getElementById("stockForm");
+
+        // SERIAL + BARCODE GENERATION
+        unitInput.addEventListener("input", function () {
+            const count = parseInt(this.value || 0);
+            const container = document.getElementById("serialBarcodeContainer");
+            container.innerHTML = "";
+
+            if (!count || count < 1) return;
+
+            for (let i = 1; i <= count; i++) {
+                container.innerHTML += `
+                    <div class="row mb-3">
+                        <div class="col-lg-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control"
+                                       name="serialNumber${i}" required>
+                                <label>Serial Number ${i}</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control"
+                                       name="barcodeNumber${i}" required>
+                                <label>Barcode Number ${i}</label>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        // SINGLE SUBMIT HANDLER
+        stockForm.addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            if (stockSubmitting) return;
+
+            const btn = stockForm.querySelector('button[type="submit"]');
+            stockSubmitting = true;
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = "Saving...";
+            }
+
+            const serials = [...document.querySelectorAll('[name^="serialNumber"]')].map(i => i.value.trim());
+            const barcodes = [...document.querySelectorAll('[name^="barcodeNumber"]')].map(i => i.value.trim());
+
+            // VALIDATION
+            if (serials.includes("") || barcodes.includes("")) {
+                showToast("Serial & Barcode cannot be empty", "danger");
+                resetBtn();
+                return;
+            }
+
+            if (hasDuplicates(serials)) {
+                showToast("Duplicate serial in form", "danger");
+                resetBtn();
+                return;
+            }
+
+            if (hasDuplicates(barcodes)) {
+                showToast("Duplicate barcode in form", "danger");
+                resetBtn();
+                return;
+            }
+
+            try {
+                const res = await fetch(stockForm.action, {
+                    method: "POST",
+                    body: new FormData(stockForm),
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken"),
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) throw data;
+
+                showToast(data.message || "Stock added successfully", "success");
+
+                cancelStockForm();
+
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || "Insert failed", "danger");
+                resetBtn();
+            }
+
+            function resetBtn() {
+                stockSubmitting = false;
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = "Save Stock";
+                }
+            }
+        });
+    });
+
+    function openEquipmentEditForm(equipmentId) {
+        fetch(`/api/equipment-details/${equipmentId}/`, {
+            method: "GET",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+            .then(async response => {
+                const data = await response.json();
+                if (!response.ok) throw data;
+                return data;
+            })
+            .then(data => {
+                const item = data.equipment;
+
+                document.getElementById("edit_equipment_id").value = item.id;
+                document.getElementById("equipment_name").value = item.equipment_name || "";
+                document.getElementById("subcategory_id").value = item.subcategory_id || "";
+                document.getElementById("category_name").value = item.category_name || "";
+                document.getElementById("dimension_h").value = item.dimension_h || "";
+                document.getElementById("dimension_w").value = item.dimension_w || "";
+                document.getElementById("dimension_l").value = item.dimension_l || "";
+                document.getElementById("weight").value = item.weight || "";
+                document.getElementById("volume").value = item.volume || "";
+                document.getElementById("hsn_no").value = item.hsn_no || "";
+                document.getElementById("country_origin").value = item.country_origin || "";
+
+                // Status selected value
+                const normalizedStatus =
+                    String(item.status || "").trim().toLowerCase() === "active"
+                        ? "Active"
+                        : "Inactive";
+
+                document.getElementById("status").value = normalizedStatus;
+
+                // Existing image preview
+                setImagePreview("preview_attachment_1", item.image_1);
+                setImagePreview("preview_attachment_2", item.image_2);
+                setImagePreview("preview_attachment_3", item.image_3);
+
+                document.getElementById("equipmentFormTitle").textContent = "Edit Equipment Details";
+
+                const collapse = bootstrap.Collapse.getOrCreateInstance(
+                    document.getElementById("addEquipmentCollapse")
+                );
+                collapse.show();
+
+                if (subcategorySelect) {
+                    subcategorySelect.setValue(String(item.subcategory_id), true);
+                }
+            })
+            .catch(error => {
+                console.error("Equipment detail fetch error:", error);
+                showToast(error.message || "Failed to load equipment details", "danger");
+            });
+    }
+
+    function setImagePreview(previewId, imageUrl) {
+        const preview = document.getElementById(previewId);
+        if (!preview) return;
+
+        if (imageUrl) {
+            preview.src = imageUrl;
+            preview.style.display = "block";
+        } else {
+            preview.src = "";
+            preview.style.display = "none";
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const equipmentForm = document.getElementById("equipmentForm");
+
+        if (equipmentForm) {
+            equipmentForm.addEventListener("submit", function (e) {
+                e.preventDefault();
+
+                const editId = document.getElementById("edit_equipment_id").value;
+                const url = editId
+                    ? `/update-equipment/${editId}/`
+                    : equipmentForm.action;
+
+                const formData = new FormData(equipmentForm);
+
+                fetch(url, {
+                    method: "POST",
+                    body: formData,
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken"),
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                })
+                    .then(async response => {
+                        const data = await response.json();
+                        if (!response.ok) {
+                            throw data;
+                        }
+                        return data;
+                    })
+                    .then(data => {
+                        showToast(
+                            data.message || (editId ? "Equipment updated successfully" : "Equipment added successfully"),
+                            "success"
+                        );
+
+                        equipmentForm.reset();
+                        document.getElementById("edit_equipment_id").value = "";
+                        document.getElementById("category_name").value = "";
+                        document.getElementById("equipmentFormTitle").textContent = "New Equipment Details";
+
+                        cancelEquipmentForm();
+
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 700);
+                    })
+                    .catch(error => {
+                        console.error("Equipment save error:", error);
+                        showToast(error.message || "Failed to save equipment", "danger");
+                    });
+            });
+        }
+    });
+
+    function deleteEquipment(equipmentId, equipmentName) {
+        if (!confirm(`Are you sure you want to delete "${equipmentName}"?`)) {
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("equipId", equipmentId);
+
+        fetch("{% url 'inventory:delete_equipment_id' %}", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+            .then(async response => {
+                const data = await response.json();
+                if (!response.ok) throw data;
+                return data;
+            })
+            .then(data => {
+                if (data.status === "success") {
+                    showToast(data.message || "Equipment deleted successfully", "success");
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 700);
+                } else {
+                    showToast(data.message || "Failed to delete equipment", "danger");
+                }
+            })
+            .catch(error => {
+                console.error("Delete equipment error:", error);
+                showToast(error.message || "Failed to delete equipment", "danger");
+            });
+    }
+
+    function cancelEquipmentForm() {
+        const form = document.getElementById("equipmentForm");
+
+        // Reset form fields
+        form.reset();
+
+        // Reset hidden edit id
+        document.getElementById("edit_equipment_id").value = "";
+
+        // Reset title
+        document.getElementById("equipmentFormTitle").textContent = "New Equipment Details";
+
+        // Reset status
+        document.getElementById("status").value = "Active";
+
+        // 🔥 IMPORTANT: clear image previews + file inputs
+        clearEquipmentImagePreviews();
+
+        // Reset subcategory
+        if (typeof subcategorySelect !== "undefined" && subcategorySelect) {
+            subcategorySelect.clear(true);
+        } else {
+            document.getElementById("subcategory_id").value = "";
+        }
+
+        // Reset category name
+        document.getElementById("category_name").value = "";
+
+        // Reset form action to ADD
+        form.action = "{% url 'inventory:add_equipment' %}";
+
+        // Collapse form
+        const collapseEl = document.getElementById("addEquipmentCollapse");
+        const collapse = bootstrap.Collapse.getOrCreateInstance(collapseEl);
+        collapse.hide();
+    }
+
+    function clearEquipmentImagePreviews() {
+        ["preview_attachment_1", "preview_attachment_2", "preview_attachment_3"].forEach(id => {
+            const img = document.getElementById(id);
+            if (img) {
+                img.src = "";
+                img.style.display = "none";  // 🔥 hides preview
+            }
+        });
+
+        ["attachment_1", "attachment_2", "attachment_3"].forEach(id => {
+            const input = document.getElementById(id);
+            if (input) {
+                input.value = ""; // 🔥 clears selected file
+            }
+        });
+    }
+
+    function destroyEquipmentTable() {
+        if ($.fn.DataTable.isDataTable('#equipmentDataTable')) {
+            $('#equipmentDataTable').DataTable().destroy();
+        }
+        equipmentTable = null;
+    }
+
+    function loadEquipmentSubcategories() {
+        fetch("/api/subcategories/")
+            .then(res => res.json())
+            .then(data => {
+                const select = document.getElementById("subcategory_id");
+
+                select.innerHTML = `<option value="">Select Subcategory</option>`;
+
+                data.subcategories.forEach(sub => {
+                    const option = document.createElement("option");
+                    option.value = sub.id;
+                    option.textContent = sub.name;
+                    option.setAttribute("data-category", sub.category_name || "");
+                    select.appendChild(option);
+                });
+
+                initTomSelect();
+            });
+    }
+
+    function initTomSelect() {
+        if (subcategorySelect) {
+            subcategorySelect.destroy();
+        }
+
+        subcategorySelect = new TomSelect("#subcategory_id", {
+            create: false,
+            sortField: {field: "text", direction: "asc"},
+            placeholder: "Select Subcategory",
+        });
+    }
+
+    function bindEquipmentCategoryAutofill() {
+        document.getElementById("subcategory_id").addEventListener("change", function () {
+            const selected = this.options[this.selectedIndex];
+            const category = selected.getAttribute("data-category") || "";
+            document.getElementById("category_name").value = category;
+        });
+    }
+
+    document.getElementById("subcategoryCategoryFilter")?.addEventListener("change", function () {
+        loadSubcategories(this.value || null);
+    });
+
+    function bindSearchFilters() {
+        const subSearch = document.getElementById("subcategorySearch");
+        const categoryFilter = document.getElementById("subcategoryCategoryFilter");
+        const equipmentSearch = document.getElementById("equipmentSearch");
+        const masterSearch = document.getElementById("masterCategorySearch");
+
+        if (subSearch) {
+            subSearch.addEventListener("input", function () {
+                if (subcategoryTable) {
+                    subcategoryTable.search(this.value).draw();
+                }
+            });
+        }
+
+        if (categoryFilter) {
+            categoryFilter.addEventListener("change", function () {
+                const categoryId = this.value;
+                loadSubcategories(categoryId || null);
+            });
+        }
+
+        if (equipmentSearch) {
+            equipmentSearch.addEventListener("input", function () {
+                if (equipmentTable) {
+                    equipmentTable.search(this.value).draw();
+                }
+            });
+        }
+
+        if (masterSearch) {
+            masterSearch.addEventListener("input", function () {
+                if (masterCategoryTable) {
+                    masterCategoryTable.search(this.value).draw();
+                }
+            });
+        }
+    }
+
+    function loadMasterCategories() {
+        fetch("/api/categories/")
+            .then(response => response.json())
+            .then(data => {
+                masterCategoriesData = data.categories || [];
+                renderMasterCategories();
+            })
+            .catch(error => {
+                const table = document.getElementById("masterCategoryTable");
+                if (table) {
+                    table.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="table-empty">Failed to load master categories.</td>
+                        </tr>
+                    `;
+                }
+                console.error("Error loading master categories:", error);
+            });
+    }
+
+    function renderMasterCategories() {
+        destroyMasterCategoryDataTable();
+
+        const table = document.getElementById("masterCategoryTable");
+        if (!table) return;
+
+        table.innerHTML = "";
+
+        if (!masterCategoriesData.length) {
+            table.innerHTML = `
+                <tr>
+                    <td colspan="6" class="table-empty">No master categories found.</td>
+                </tr>
+            `;
+            return;
+        }
+
+        masterCategoriesData.forEach(cat => {
+            table.innerHTML += `
+                <tr>
+                    <td>
+                        <button class="btn btn-primary btn-sm asset-action-btn me-2"
+                                onclick="editCategory(${cat.id})">
+                            <i class="bi bi-pencil-fill"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm asset-action-btn"
+                                onclick="deleteCategory(${cat.id})">
+                            <i class="bi bi-trash-fill"></i>
+                        </button>
+                    </td>
+                    <td>${escapeHtml(cat.category_name || "")}</td>
+                    <td>${escapeHtml(cat.description || "")}</td>
+                    <td>${escapeHtml(cat.created_by || "")}</td>
+                    <td>${escapeHtml(cat.created_date || "")}</td>
+                    <td>${cat.status ? "Active" : "Inactive"}</td>
+                </tr>
+            `;
+        });
+
+        initMasterCategoryDataTable();
+    }
+
+    function initMasterCategoryDataTable() {
+        destroyMasterCategoryDataTable();
+
+        if (!$('#masterCategoryDataTable').length) return;
+
+        masterCategoryTable = $('#masterCategoryDataTable').DataTable({
+            searching: true,
+            lengthChange: true,
+            autoWidth: false,
+            pageLength: 25,
+            responsive: true,
+            order: [[1, 'asc']],
+            columnDefs: [
+                {orderable: false, targets: 0}
+            ],
+            dom: '<"d-flex justify-content-between align-items-center mt-2"i p>rt',
+            language: {
+                emptyTable: "Data not available",
+                zeroRecords: "Data not available"
+            }
+        });
+
+        const searchInput = document.getElementById("masterCategorySearch");
+        if (searchInput && searchInput.value) {
+            masterCategoryTable.search(searchInput.value).draw();
+        }
+    }
+
+    function destroyMasterCategoryDataTable() {
+        if ($.fn.DataTable.isDataTable('#masterCategoryDataTable')) {
+            $('#masterCategoryDataTable').DataTable().destroy();
+        }
+        masterCategoryTable = null;
+    }
+
+    function submitCategoryForm() {
+        const categoryId = document.getElementById("edit_mode_category_id").value;
+        if (categoryId) {
+            updateCategoryInline(categoryId);
+        } else {
+            saveCategory();
+        }
+    }
+
+    function saveCategory() {
+        const name = document.getElementById("category_name_master").value.trim();
+        const description = document.getElementById("category_description").value.trim();
+        const status = document.getElementById("category_status_master").value;
+
+        if (!name) {
+            showToast("Category name is required", "danger");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("category_name", name);
+        formData.append("description", description);
+        formData.append("status", status);
+
+        fetch("/api/category/add/", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken")
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message || "Category saved successfully", "success");
+                    resetCategoryForm();
+                    bootstrap.Collapse.getOrCreateInstance(document.getElementById("addCategoryCollapse")).hide();
+                    refreshCategoryTable();
+                    loadCategoryDropdowns();
+                } else {
+                    showToast(data.message || "Failed to save category", "danger");
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                showToast("Error saving category", "danger");
+            });
+    }
+
+    function editCategory(categoryId) {
+        const category = masterCategoriesData.find(cat => Number(cat.id) === Number(categoryId));
+
+        if (!category) {
+            showToast("Category not found", "danger");
+            return;
+        }
+
+        document.getElementById("edit_mode_category_id").value = category.id;
+        document.getElementById("category_name_master").value = category.category_name || "";
+        document.getElementById("category_description").value = category.description || "";
+        document.getElementById("category_status_master").value = category.status ? "1" : "0";
+
+        document.getElementById("categoryFormTitle").textContent = "Edit Category Details";
+        document.getElementById("categorySubmitBtnText").textContent = "Update Category";
+
+        bootstrap.Collapse.getOrCreateInstance(document.getElementById("addCategoryCollapse")).show();
+    }
+
+    function updateCategoryInline(categoryId) {
+        const name = document.getElementById("category_name_master").value.trim();
+        const description = document.getElementById("category_description").value.trim();
+        const status = document.getElementById("category_status_master").value;
+
+        if (!name) {
+            showToast("Category name is required", "danger");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("categoryName", name);
+        formData.append("categoryDescription", description);
+        formData.append("statusText", status);
+
+        fetch(`/api/category/update/${categoryId}/`, {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken")
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message || "Category updated successfully", "success");
+                    resetCategoryForm();
+                    bootstrap.Collapse.getOrCreateInstance(document.getElementById("addCategoryCollapse")).hide();
+                    refreshCategoryTable();
+                    loadCategoryDropdowns();
+                } else {
+                    showToast(data.message || "Failed to update category", "danger");
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                showToast("Error updating category", "danger");
+            });
+    }
+
+    function deleteCategory(categoryId) {
+        if (!confirm("Are you sure you want to delete this category?")) return;
+
+        fetch(`/api/category/delete/${categoryId}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken")
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message || "Category deleted successfully", "success");
+                    refreshCategoryTable();
+                    loadCategoryDropdowns();
+                    refreshSubcategoryTable();
+                } else {
+                    showToast(data.message || "Delete failed", "danger");
+                }
+            })
+            .catch(error => {
+                console.error("Delete category error:", error);
+                showToast("Error deleting category", "danger");
+            });
+    }
+
+    function resetCategoryForm() {
+        document.getElementById("edit_mode_category_id").value = "";
+        document.getElementById("category_name_master").value = "";
+        document.getElementById("category_description").value = "";
+        document.getElementById("category_status_master").value = "1";
+        document.getElementById("categoryFormTitle").textContent = "New Category Details";
+        document.getElementById("categorySubmitBtnText").textContent = "Save Category";
+    }
+
+    function cancelCategoryForm() {
+        resetCategoryForm();
+        bootstrap.Collapse.getOrCreateInstance(document.getElementById("addCategoryCollapse")).hide();
+    }
+
+    function loadCategoryDropdowns() {
+        fetch("/api/category-dropdown/")
+            .then(response => response.json())
+            .then(data => {
+                const categories = data.categories || [];
+
+                const filterDropdown = document.getElementById("subcategoryCategoryFilter");
+                const formDropdown = document.getElementById("subcategory_category");
+
+                if (filterDropdown) {
+                    filterDropdown.innerHTML = `<option value="">All Categories</option>`;
+                    categories.forEach(category => {
+                        const id = category.id ?? category.category_id;
+                        const name = category.name ?? category.category_name;
+                        filterDropdown.innerHTML += `<option value="${id}">${escapeHtml(name || "")}</option>`;
+                    });
+                }
+
+                if (formDropdown) {
+                    formDropdown.innerHTML = `<option value="">Select Master Category</option>`;
+                    categories.forEach(category => {
+                        const id = category.id ?? category.category_id;
+                        const name = category.name ?? category.category_name;
+                        formDropdown.innerHTML += `<option value="${id}">${escapeHtml(name || "")}</option>`;
+                    });
+                }
+            })
+            .catch(error => {
+                console.error("Error loading category dropdowns:", error);
+            });
+    }
+
+    function loadSubcategories(categoryId = null) {
+        let url = "/api/subcategories/";
+
+        if (categoryId !== null && categoryId !== undefined && categoryId !== "") {
+            url = `/api/subcategories/${categoryId}/`;
+        }
+
+        fetch(url)
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return res.json();
+            })
+            .then(data => {
+                subcategoryData = data.subcategories || [];
+                renderSubcategories();
+            })
+            .catch(err => {
+                console.error("Error loading subcategories:", err);
+                subcategoryData = [];
+                renderSubcategories();
+                showToast("Failed to load subcategories", "danger");
+            });
+    }
+
+    function renderSubcategories() {
+        if ($.fn.DataTable.isDataTable('#subcategoryDataTable')) {
+            $('#subcategoryDataTable').DataTable().destroy();
+        }
+
+        const table = document.getElementById("subcategoryTable");
+        if (!table) return;
+
+        table.innerHTML = "";
+
+        if (subcategoryData && subcategoryData.length > 0) {
+            subcategoryData.forEach(sub => {
+                table.innerHTML += `
+                    <tr>
+                        <td>
+                            <button class="btn btn-primary btn-sm me-1" onclick="editSubcategory(${sub.id})">
+                                <i class="bi bi-pencil-fill"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteSubcategory(${sub.id})">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                        </td>
+                        <td>${escapeHtml(sub.name || "")}</td>
+                        <td>${escapeHtml(sub.category_name || "")}</td>
+                        <td>${escapeHtml(sub.type || "")}</td>
+                        <td>${escapeHtml(sub.created_by || "")}</td>
+                        <td>${escapeHtml(sub.created_date || "")}</td>
+                        <td>${sub.status ? "Active" : "Inactive"}</td>
+                    </tr>
+                `;
+            });
+        } else {
+            table.innerHTML = `
+                <tr>
+                    <td colspan="7" class="table-empty">No subcategories found.</td>
+                </tr>
+            `;
+        }
+
+        initSubcategoryTable();
+    }
+
+    function initSubcategoryTable() {
+        if ($.fn.DataTable.isDataTable('#subcategoryDataTable')) {
+            $('#subcategoryDataTable').DataTable().destroy();
+        }
+
+        if (!$('#subcategoryDataTable').length) return;
+
+        subcategoryTable = $('#subcategoryDataTable').DataTable({
+            pageLength: 25,
+            responsive: true,
+            autoWidth: false,
+            columnDefs: [{orderable: false, targets: 0}],
+            dom: '<"d-flex justify-content-between align-items-center mt-2"i p>rt',
+            language: {
+                emptyTable: "Data not available",
+                zeroRecords: "Data not available"
+            }
+        });
+    }
+
+    function submitSubcategoryForm() {
+        const id = document.getElementById("edit_subcategory_id").value;
+        const categoryId = document.getElementById("subcategory_category").value;
+        const name = document.getElementById("subcategory_name").value.trim();
+
+        if (!categoryId) {
+            showToast("Master category is required", "danger");
+            return;
+        }
+
+        if (!name) {
+            showToast("Subcategory name is required", "danger");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("category_id", categoryId);
+        formData.append("name", name);
+        formData.append("type", document.getElementById("subcategory_type").value.trim());
+        formData.append("status", document.getElementById("subcategory_status").value);
+
+        let url = "/api/subcategory/add/";
+        if (id) url = `/api/subcategory/update/${id}/`;
+
+        fetch(url, {
+            method: "POST",
+            body: formData,
+            headers: {"X-CSRFToken": getCookie("csrftoken")}
+        })
+            .then(res => res.json())
+            .then(data => {
+                showToast(data.message || "Saved", data.success ? "success" : "danger");
+                if (data.success) {
+                    resetSubcategoryForm();
+                    bootstrap.Collapse.getOrCreateInstance(document.getElementById("addSubcategoryCollapse")).hide();
+                    refreshSubcategoryTable();
+                    loadCategoryDropdowns();
+                }
+            })
+            .catch(error => {
+                console.error("Subcategory save error:", error);
+                showToast("Failed to save subcategory", "danger");
+            });
+    }
+
+    function editSubcategory(id) {
+        const sub = subcategoryData.find(x => Number(x.id) === Number(id));
+        if (!sub) {
+            showToast("Subcategory not found", "danger");
+            return;
+        }
+
+        document.getElementById("edit_subcategory_id").value = id;
+        document.getElementById("subcategory_category").value = sub.category_id || "";
+        document.getElementById("subcategory_name").value = sub.name || "";
+        document.getElementById("subcategory_type").value = sub.type || "";
+        document.getElementById("subcategory_status").value = sub.status ? "1" : "0";
+
+        document.getElementById("subcategoryFormTitle").textContent = "Edit Subcategory Details";
+        document.getElementById("subcategoryBtnText").innerText = "Update Subcategory";
+
+        bootstrap.Collapse.getOrCreateInstance(document.getElementById("addSubcategoryCollapse")).show();
+    }
+
+    function deleteSubcategory(id) {
+        if (!confirm("Delete this subcategory?")) return;
+
+        fetch(`/api/subcategory/delete/${id}/`, {
+            method: "POST",
+            headers: {"X-CSRFToken": getCookie("csrftoken")}
+        })
+            .then(res => res.json())
+            .then(data => {
+                showToast(data.message || "Deleted", data.success ? "success" : "danger");
+                if (data.success) {
+                    refreshSubcategoryTable();
+                    loadCategoryDropdowns();
+                }
+            })
+            .catch(error => {
+                console.error("Delete subcategory error:", error);
+                showToast("Failed to delete subcategory", "danger");
+            });
+    }
+
+    function resetSubcategoryForm() {
+        document.getElementById("edit_subcategory_id").value = "";
+        document.getElementById("subcategory_category").value = "";
+        document.getElementById("subcategory_name").value = "";
+        document.getElementById("subcategory_type").value = "";
+        document.getElementById("subcategory_status").value = "1";
+
+        document.getElementById("subcategoryFormTitle").textContent = "New Subcategory Details";
+        document.getElementById("subcategoryBtnText").innerText = "Save Subcategory";
+    }
+
+    function cancelSubcategoryForm() {
+        resetSubcategoryForm();
+        bootstrap.Collapse.getOrCreateInstance(document.getElementById("addSubcategoryCollapse")).hide();
+    }
+
+    function escapeHtml(value) {
+        const div = document.createElement("div");
+        div.textContent = value;
+        return div.innerHTML;
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function showToast(message, type = "success") {
+        const toastContainer = document.getElementById("toastContainer");
+        if (!toastContainer) return;
+
+        const toastHTML = `
+            <div class="toast align-items-center text-bg-${type} border-0 show mb-2" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button"
+                            class="btn-close btn-close-white me-2 m-auto"
+                            onclick="this.closest('.toast').remove()"></button>
+                </div>
+            </div>
+        `;
+
+        toastContainer.insertAdjacentHTML("beforeend", toastHTML);
+
+        setTimeout(() => {
+            const toast = toastContainer.querySelector(".toast");
+            if (toast) toast.remove();
+        }, 2500);
+    }
+
+    function refreshSubcategoryTable() {
+        const selectedCategory = document.getElementById("subcategoryCategoryFilter")?.value || null;
+        loadSubcategories(selectedCategory);
+    }
+
+    function refreshCategoryTable() {
+        loadMasterCategories();
+    }
+</script>
+</body>
+</html>

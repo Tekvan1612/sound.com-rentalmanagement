@@ -1,0 +1,114 @@
+<div class="adminuiux-sidebar">
+    <div class="adminuiux-sidebar-inner">
+        <div class="px-3 not-iconic mt-3">
+            <h6 class="fw-medium small text-uppercase opacity-50">Main</h6>
+
+        </div>
+        <ul class="nav flex-column menu-active-line mt-3">
+            <!-- ecommerce sidebar -->
+            <li class="nav-item">
+                <a href="{% url 'inventory:dashboard' %}" class="nav-link">
+                    <i class="menu-icon bi bi-columns-gap"></i>
+                    <span class="menu-name">Dashboard</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'inventory:asset_entry' %}" class="nav-link">
+                    <i class="menu-icon bi bi-boxes"></i>
+                    <span class="menu-name">Asset Master</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="ecommerce-integration.html" class="nav-link">
+                    <i class="menu-icon bi bi-gear-wide-connected"></i>
+                    <span class="menu-name">Inventory</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="ecommerce-customers.html" class="nav-link">
+                    <i class="menu-icon bi bi-people"></i>
+                    <span class="menu-name">Connects</span>
+                </a>
+            </li>
+            <li class="nav-item dropdown">
+                <a href="javascript:void(0)" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
+                   aria-expanded="false">
+                    <i class="menu-icon bi bi-cash-stack"></i>
+                    <span class="menu-name">HR Master</span>
+                </a>
+                <div class="dropdown-menu">
+                    <div class="nav-item">
+                        <a href="{% url 'inventory:add_employee' %}" class="nav-link">
+                            <i class="menu-icon bi bi-receipt-cutoff"></i>
+                            <span class="menu-name">Employees</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{% url 'inventory:add_user' %}" class="nav-link">
+                            <i class="menu-icon bi bi-receipt"></i>
+                            <span class="menu-name">Users</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{% url 'inventory:company_warehouse_master_page' %}" class="nav-link">
+                            <i class="menu-icon bi bi-tags"></i>
+                            <span class="menu-name">Company/Warehouses</span>
+                        </a>
+                    </div>
+                </div>
+            </li>
+
+            <li class="nav-item">
+                <a href="ecommerce-settings.html" class="nav-link">
+                    <i class="menu-icon" data-feather="settings"></i>
+                    <span class="menu-name">Calendar</span>
+                </a>
+            </li>
+        </ul>
+        <div class="px-3 not-iconic">
+            <h6 class="fw-medium small text-uppercase opacity-50">Other</h6>
+        </div>
+        <ul class="nav flex-column menu-active-line mt-3">
+
+
+            <li class="nav-item">
+                <a href="ecommerce-personalization.html" class="nav-link">
+                    <i class="menu-icon bi bi-palette h4"></i>
+                    <span class="menu-name">Personalize <small
+                            class="fs-14 bi bi-heart-fill text-danger"></small></span>
+                </a>
+            </li>
+
+        </ul>
+        <div class=" mt-auto "></div>
+        <div class="px-3 not-iconic">
+            <div class="card adminuiux-card shadow-sm border-0">
+                <div class="card-body p-2">
+                    <div class="row gx-2">
+                        <div class="col-12 d-flex justify-content-between">
+                            <a href="#" class="btn btn-square btn-link">
+                                <span class="position-relative">
+                                    <i data-feather="package"></i>
+                                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-warning rounded-circle"><span
+                                            class="visually-hidden">New alerts</span> </span></span>
+                            </a>
+                            <a href="#" class="btn btn-square btn-link"><span class="position-relative">
+                                    <i data-feather="calendar"></i>
+                                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger rounded-circle"><span
+                                            class="visually-hidden">New alerts</span> </span></span>
+                            </a>
+                            <a href="#" class="btn btn-square btn-link">
+                                <i data-feather="inbox"></i>
+                            </a>
+                            <a href="#" class="btn btn-square btn-link">
+                                <i data-feather="help-circle"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

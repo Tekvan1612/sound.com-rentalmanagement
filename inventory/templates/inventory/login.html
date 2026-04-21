@@ -1,0 +1,392 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'inventory/includes/head.html' %}
+    <style>
+        :root {
+            --login-dark: #111315;
+            --login-dark-2: #171a1d;
+            --login-text-muted: rgba(255, 255, 255, .62);
+            --login-border: rgba(255, 255, 255, .08);
+            --login-card: rgba(255, 255, 255, .03);
+            --brand-green: #87ab76;
+            --brand-green-dark: #6e925d;
+        }
+
+        body.login-page {
+            min-height: 100vh;
+            background: radial-gradient(circle at top left, rgba(135, 171, 118, .18), transparent 30%),
+            radial-gradient(circle at bottom right, rgba(135, 171, 118, .12), transparent 25%),
+            #eef2ec;
+        }
+
+        .login-shell {
+            min-height: 100vh;
+            display: flex;
+            align-items: stretch;
+        }
+
+        .login-left {
+            width: 48%;
+            min-height: 100vh;
+            background: linear-gradient(180deg, var(--login-dark), var(--login-dark-2));
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-left::before {
+            content: "";
+            position: absolute;
+            inset: auto auto -120px -120px;
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: rgba(135, 171, 118, .08);
+            filter: blur(10px);
+        }
+
+        .login-left::after {
+            content: "";
+            position: absolute;
+            inset: 60px -80px auto auto;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .03);
+            filter: blur(10px);
+        }
+
+        .login-form-wrap {
+            width: 100%;
+            max-width: 470px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .login-logo {
+            height: 56px;
+            width: auto;
+            margin-bottom: 30px;
+        }
+
+        .login-heading {
+            font-size: 44px;
+            line-height: 1.1;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .login-subheading {
+            color: var(--login-text-muted);
+            font-size: 18px;
+            line-height: 1.7;
+            margin-bottom: 30px;
+        }
+
+        .login-form-wrap .form-label {
+            color: rgba(255, 255, 255, .72);
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .login-form-wrap .form-control {
+            height: 58px;
+            border-radius: 14px;
+            background: var(--login-card);
+            border: 1px solid var(--login-border);
+            color: #fff;
+            box-shadow: none;
+            padding-left: 16px;
+            padding-right: 48px;
+        }
+
+        .login-form-wrap .form-control:focus {
+            border-color: rgba(135, 171, 118, .75);
+            box-shadow: 0 0 0 4px rgba(135, 171, 118, .12);
+            background: rgba(255, 255, 255, .04);
+            color: #fff;
+        }
+
+        .login-form-wrap .form-control::placeholder {
+            color: rgba(255, 255, 255, .35);
+        }
+
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 14px;
+            transform: translateY(-50%);
+            border: 0;
+            background: transparent;
+            color: rgba(255, 255, 255, .55);
+            z-index: 5;
+        }
+
+        .login-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin: 18px 0 28px;
+        }
+
+        .login-meta .form-check-label,
+        .login-meta a {
+            color: var(--login-text-muted);
+        }
+
+        .login-meta a:hover {
+            color: #fff;
+        }
+
+        .btn-login {
+            height: 58px;
+            border-radius: 14px;
+            background: var(--brand-green);
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            font-weight: 600;
+            transition: .2s ease;
+        }
+
+        .btn-login:hover {
+            background: var(--brand-green-dark);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        .login-footer-note {
+            margin-top: 26px;
+            color: rgba(255, 255, 255, .42);
+            font-size: 13px;
+        }
+
+        .login-right {
+            width: 52%;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 56px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, .35), rgba(255, 255, 255, .15));
+        }
+
+        .login-showcase {
+            width: 100%;
+            max-width: 700px;
+            text-align: center;
+        }
+
+        .showcase-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(135, 171, 118, .12);
+            color: #5f7c52;
+            font-weight: 600;
+            margin-bottom: 18px;
+        }
+
+        .showcase-title {
+            font-size: 54px;
+            line-height: 1.08;
+            font-weight: 700;
+            color: #243020;
+            margin-bottom: 14px;
+        }
+
+        .showcase-text {
+            font-size: 18px;
+            line-height: 1.8;
+            color: #5a6756;
+            max-width: 620px;
+            margin: 0 auto 30px;
+        }
+
+        .showcase-media-wrap {
+            border-radius: 28px;
+            background: linear-gradient(180deg, #ffffff, #f5f7f2);
+            padding: 20px;
+            box-shadow: 0 24px 60px rgba(34, 46, 38, .12);
+        }
+
+        .showcase-media {
+            width: 100%;
+            max-height: 430px;
+            object-fit: cover;
+            border-radius: 20px;
+            display: block;
+            background: #d37a55;
+        }
+
+        .alert {
+            border-radius: 14px;
+        }
+
+        @media (max-width: 1199.98px) {
+            .showcase-title {
+                font-size: 44px;
+            }
+
+            .login-heading {
+                font-size: 38px;
+            }
+        }
+
+        @media (max-width: 991.98px) {
+            .login-shell {
+                flex-direction: column;
+            }
+
+            .login-left,
+            .login-right {
+                width: 100%;
+                min-height: auto;
+            }
+
+            .login-left {
+                padding: 32px 22px;
+            }
+
+            .login-right {
+                padding: 16px 22px 32px;
+            }
+
+            .showcase-title {
+                font-size: 34px;
+            }
+
+            .showcase-text {
+                font-size: 16px;
+            }
+
+            .login-heading {
+                font-size: 34px;
+            }
+        }
+    </style>
+</head>
+
+<body class="login-page">
+
+<div class="login-shell">
+
+    <section class="login-left">
+        <div class="login-form-wrap">
+            <div style="
+background:white;
+display:inline-block;
+padding:10px;
+border-radius:10px;
+margin-bottom:20px;
+">
+                <img src="{% static 'inventory/assets/img/tekvan_logo_hd.png' %}" height="60">
+            </div>
+
+            <h1 class="login-heading">Sign In</h1>
+            <p class="login-subheading">
+                Sign in to access your rental inventory workspace and manage assets, bookings, and returns.
+            </p>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-danger mb-3">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text"
+                           class="form-control"
+                           id="username"
+                           name="username"
+                           placeholder="Enter your username"
+                           required>
+                </div>
+
+                <div class="mb-1 position-relative">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password"
+                           class="form-control"
+                           id="password"
+                           name="password"
+                           placeholder="Enter your password"
+                           required>
+                    <button type="button" class="password-toggle" onclick="togglePassword()">
+                        <i class="bi bi-eye" id="passwordToggleIcon"></i>
+                    </button>
+                </div>
+
+                <div class="login-meta">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="rememberme" name="rememberme">
+                        <label class="form-check-label" for="rememberme">Remember my preference</label>
+                    </div>
+                    <a href="#">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="btn btn-login w-100">Sign In</button>
+            </form>
+
+            <div class="login-footer-note">
+                Rental Inventory Management © 2026
+            </div>
+        </div>
+    </section>
+
+    <section class="login-right">
+        <div class="login-showcase">
+            <div class="showcase-badge">
+                <i class="bi bi-box-seam"></i>
+                Smart Rental Operations
+            </div>
+
+            <h2 class="showcase-title">
+                Rental Inventory<br>Management
+            </h2>
+
+            <p class="showcase-text">
+                Track assets, monitor availability, control rentals and returns,
+                and streamline day-to-day operations from a single dashboard.
+            </p>
+
+            <div class="showcase-media-wrap">
+                <video autoplay muted loop playsinline class="showcase-media">
+                    <source src="{% static 'inventory/assets/video/login-bg.mp4' %}" type="video/mp4">
+                </video>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<script src="{% static 'inventory/assets/js/app5724.js' %}"></script>
+<script>
+    function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const icon = document.getElementById('passwordToggleIcon');
+
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.className = 'bi bi-eye-slash';
+        } else {
+            passwordInput.type = 'password';
+            icon.className = 'bi bi-eye';
+        }
+    }
+</script>
+</body>
+</html>

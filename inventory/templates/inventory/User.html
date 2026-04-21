@@ -1,0 +1,429 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'inventory/includes/head.html' %}
+</head>
+
+<body class="main-bg main-bg-opac main-bg-blur roundedui adminuiux-header-standard adminuiux-sidebar-standard adminuiux-mobile-footer-fill-theme adminuiux-header-transparent theme-pista bg-r-gradient adminuiux-sidebar-fill-none scrollup"
+      data-theme="theme-pista">
+
+{% include 'inventory/includes/header.html' %}
+
+<div class="adminuiux-wrap">
+    {% include 'inventory/includes/sidebar.html' %}
+
+    <main class="adminuiux-content has-sidebar" onclick="contentClick()">
+        <div class="container mt-3">
+            <div class="row gx-3 align-items-center">
+                <div class="col">
+                    <nav aria-label="breadcrumb" class="mb-1">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item">
+                                <a href="#"><i class="bi bi-house-door"></i> Dashboard</a>
+                            </li>
+                            <li class="breadcrumb-item active">User Master</li>
+                        </ol>
+                    </nav>
+                    <h4 class="mb-0">User Master</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="container mt-3 mt-lg-4">
+            <div class="card asset-master-card">
+                <div class="card-body">
+
+                    <div class="asset-toolbar asset-toolbar-inline mb-3 d-flex gap-2">
+                        <div class="asset-search-wrap flex-grow-1">
+                            <input type="text" class="form-control asset-search" id="userSearch"
+                                   placeholder="Search user...">
+                        </div>
+
+                        <button class="btn btn-theme collapsed asset-add-btn"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#addUserCollapse">
+                            New User
+                        </button>
+                    </div>
+
+                    <div class="collapse mt-4" id="addUserCollapse">
+                        <div class="card border-0 bg-theme-1-subtle">
+                            <div class="card-body">
+                                <p class="h6 mb-3" id="userFormTitle">New User Details</p>
+                                <input type="hidden" id="edit_user_id">
+
+                                <div class="row">
+                                    <div class="col-lg-4">
+                                        <div class="form-floating mb-3">
+                                            <select class="form-select" id="username">
+                                                <option value="">Select Username</option>
+                                                {% for emp in employee_data %}
+                                                    <option value="{{ emp.id }}">{{ emp.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <label>Username</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-4">
+                                        <div class="form-floating mb-3">
+                                            <input type="password" class="form-control" id="password"
+                                                   placeholder="Password">
+                                            <label>Password</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-4">
+                                        <div class="form-floating mb-3">
+                                            <select class="form-select" id="status">
+                                                <option value="1">Active</option>
+                                                <option value="0">Inactive</option>
+                                            </select>
+                                            <label>Status</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label class="mb-2 fw-semibold">Module Permissions</label>
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered align-middle text-center">
+                                                <thead>
+                                                <tr>
+                                                    <th class="text-start">Module</th>
+                                                    <th>Read</th>
+                                                    <th>Write</th>
+                                                    <th>All</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody id="modulePermissionTable">
+                                                <tr>
+                                                    <td class="text-start">Dashboard</td>
+                                                    <td><input type="checkbox" class="perm-read"
+                                                               data-module="dashboard"></td>
+                                                    <td><input type="checkbox" class="perm-write"
+                                                               data-module="dashboard"></td>
+                                                    <td><input type="checkbox" class="perm-all" data-module="dashboard">
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="text-start">HR Management</td>
+                                                    <td><input type="checkbox" class="perm-read"
+                                                               data-module="hr_management"></td>
+                                                    <td><input type="checkbox" class="perm-write"
+                                                               data-module="hr_management"></td>
+                                                    <td><input type="checkbox" class="perm-all"
+                                                               data-module="hr_management"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="text-start">Connects</td>
+                                                    <td><input type="checkbox" class="perm-read" data-module="connects">
+                                                    </td>
+                                                    <td><input type="checkbox" class="perm-write"
+                                                               data-module="connects"></td>
+                                                    <td><input type="checkbox" class="perm-all" data-module="connects">
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="text-start">Asset Masters</td>
+                                                    <td><input type="checkbox" class="perm-read"
+                                                               data-module="asset_masters"></td>
+                                                    <td><input type="checkbox" class="perm-write"
+                                                               data-module="asset_masters"></td>
+                                                    <td><input type="checkbox" class="perm-all"
+                                                               data-module="asset_masters"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="text-start">Inventory</td>
+                                                    <td><input type="checkbox" class="perm-read"
+                                                               data-module="inventory"></td>
+                                                    <td><input type="checkbox" class="perm-write"
+                                                               data-module="inventory"></td>
+                                                    <td><input type="checkbox" class="perm-all" data-module="inventory">
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="text-start">Calendar</td>
+                                                    <td><input type="checkbox" class="perm-read" data-module="calendar">
+                                                    </td>
+                                                    <td><input type="checkbox" class="perm-write"
+                                                               data-module="calendar"></td>
+                                                    <td><input type="checkbox" class="perm-all" data-module="calendar">
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="text-start">Reports</td>
+                                                    <td><input type="checkbox" class="perm-read" data-module="reports">
+                                                    </td>
+                                                    <td><input type="checkbox" class="perm-write" data-module="reports">
+                                                    </td>
+                                                    <td><input type="checkbox" class="perm-all" data-module="reports">
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="text-start">Accounts</td>
+                                                    <td><input type="checkbox" class="perm-read" data-module="accounts">
+                                                    </td>
+                                                    <td><input type="checkbox" class="perm-write"
+                                                               data-module="accounts"></td>
+                                                    <td><input type="checkbox" class="perm-all" data-module="accounts">
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="text-start">HR</td>
+                                                    <td><input type="checkbox" class="perm-read" data-module="hr"></td>
+                                                    <td><input type="checkbox" class="perm-write" data-module="hr"></td>
+                                                    <td><input type="checkbox" class="perm-all" data-module="hr"></td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button type="button" class="btn btn-theme" onclick="submitUserForm()">
+                                    <span id="userBtnText">Save User</span>
+                                </button>
+                                <button type="button" class="btn btn-outline-theme ms-2" onclick="cancelUserForm()">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table asset-table align-middle w-100" id="userTable">
+                            <thead>
+                            <tr>
+                                <th style="width:140px;">Action</th>
+                                <th>User Name</th>
+                                <th>Password</th>
+                                <th>Status</th>
+                                <th>Modules</th>
+                                <th>Created By</th>
+                                <th>Created Date</th>
+                            </tr>
+                            </thead>
+                            <tbody id="userTableBody">
+                            <tr>
+                                <td colspan="7" class="text-center">Loading users...</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+
+{% include 'inventory/includes/footer.html' %}
+<script src="{% static 'inventory/assets/js/app5724.js' %}"></script>
+
+<script>
+    let userData = [];
+
+    document.addEventListener("DOMContentLoaded", function () {
+        loadUsers();
+
+        document.getElementById("userSearch").addEventListener("input", function () {
+            renderUsers(this.value.trim().toLowerCase());
+        });
+    });
+
+    function loadUsers() {
+        fetch("{% url 'inventory:user_list' %}")
+            .then(res => res.json())
+            .then(data => {
+                userData = data.data || [];
+                renderUsers();
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById("userTableBody").innerHTML = `
+                <tr><td colspan="7" class="text-center text-danger">Failed to load users</td></tr>
+            `;
+            });
+    }
+
+    function renderUsers(searchText = "") {
+        const tbody = document.getElementById("userTableBody");
+        tbody.innerHTML = "";
+
+        let filtered = userData.filter(user =>
+            JSON.stringify(user).toLowerCase().includes(searchText)
+        );
+
+        if (!filtered.length) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center">No users found</td></tr>`;
+            return;
+        }
+
+        filtered.forEach(user => {
+            tbody.innerHTML += `
+            <tr>
+                <td>
+                    <button class="btn btn-primary btn-sm me-2" onclick="editUser(${user.user_id})">
+                        <i class="bi bi-pencil-fill"></i>
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteUser(${user.user_id})">
+                        <i class="bi bi-trash-fill"></i>
+                    </button>
+                </td>
+                <td>${user.user_name || ""}</td>
+                <td>${user.password || ""}</td>
+                <td>${user.status ? "Active" : "Inactive"}</td>
+                <td>${Array.isArray(user.modules) ? user.modules.join(", ") : ""}</td>
+                <td>${user.created_by || ""}</td>
+                <td>${user.created_date_time || ""}</td>
+            </tr>
+        `;
+        });
+    }
+
+    function submitUserForm() {
+        const userId = document.getElementById("edit_user_id").value;
+        const formData = new FormData();
+
+        formData.append("username", document.getElementById("username").value.trim());
+        formData.append("password", document.getElementById("password").value.trim());
+        formData.append("emp_id", document.getElementById("emp_id").value);
+        formData.append("status", document.getElementById("status").value);
+
+        document.querySelectorAll(".module-checkbox:checked").forEach(cb => {
+            if (userId) {
+                formData.append("modules[]", cb.value);
+            } else {
+                formData.append("modules", cb.value);
+            }
+        });
+
+        let url = "{% url 'inventory:add_user' %}";
+        if (userId) {
+            formData.append("userId", userId);
+            formData.append("statusText", document.getElementById("status").value);
+            url = `/update_user/${userId}/`;
+        }
+
+        fetch(url, {
+            method: "POST",
+            body: formData,
+            headers: {"X-CSRFToken": getCookie("csrftoken")}
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success || data.message) {
+                    showToast(data.message || "Saved successfully", "success");
+                    resetUserForm();
+                    bootstrap.Collapse.getOrCreateInstance(document.getElementById("addUserCollapse")).hide();
+                    loadUsers();
+                } else {
+                    showToast(data.error || data.message || "Failed", "danger");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast("Error saving user", "danger");
+            });
+    }
+
+    function editUser(id) {
+        const user = userData.find(u => Number(u.user_id) === Number(id));
+        if (!user) return;
+
+        document.getElementById("edit_user_id").value = user.user_id;
+        document.getElementById("username").value = user.user_name || "";
+        document.getElementById("password").value = user.password || "";
+        document.getElementById("status").value = user.status ? "1" : "0";
+
+        document.querySelectorAll(".module-checkbox").forEach(cb => cb.checked = false);
+        if (Array.isArray(user.modules)) {
+            user.modules.forEach(mod => {
+                const checkbox = document.querySelector(`.module-checkbox[value="${mod}"]`);
+                if (checkbox) checkbox.checked = true;
+            });
+        }
+
+        document.getElementById("userFormTitle").textContent = "Edit User Details";
+        document.getElementById("userBtnText").textContent = "Update User";
+
+        bootstrap.Collapse.getOrCreateInstance(document.getElementById("addUserCollapse")).show();
+    }
+
+    function deleteUser(id) {
+        if (!confirm("Are you sure you want to delete this user?")) return;
+
+        fetch(`/delete_user/${id}/`, {
+            method: "POST",
+            headers: {"X-CSRFToken": getCookie("csrftoken")}
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.message) {
+                    showToast(data.message, "success");
+                    loadUsers();
+                } else {
+                    showToast(data.error || "Delete failed", "danger");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast("Error deleting user", "danger");
+            });
+    }
+
+    function resetUserForm() {
+        document.getElementById("edit_user_id").value = "";
+        document.getElementById("username").value = "";
+        document.getElementById("password").value = "";
+        document.getElementById("emp_id").value = "";
+        document.getElementById("status").value = "1";
+        document.querySelectorAll(".module-checkbox").forEach(cb => cb.checked = false);
+
+        document.getElementById("userFormTitle").textContent = "New User Details";
+        document.getElementById("userBtnText").textContent = "Save User";
+    }
+
+    function cancelUserForm() {
+        resetUserForm();
+        bootstrap.Collapse.getOrCreateInstance(document.getElementById("addUserCollapse")).hide();
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function showToast(message, type = "success") {
+        const toastContainer = document.getElementById("toastContainer");
+        const toastHTML = `
+        <div class="toast align-items-center text-bg-${type} border-0 show mb-2" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.closest('.toast').remove()"></button>
+            </div>
+        </div>`;
+        toastContainer.insertAdjacentHTML("beforeend", toastHTML);
+
+        setTimeout(() => {
+            const toast = toastContainer.querySelector(".toast");
+            if (toast) toast.remove();
+        }, 2500);
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="linear-gradient" x1="0.5" x2="0.169" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#e3fa8c"/>
+      <stop offset="1" stop-color="#a6cb9c"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-2" x1="0.656" x2="0.339" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#ffb9d9"/>
+      <stop offset="1" stop-color="#d17693"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-3" x1="-0.194" y1="0.392" x2="0.802" y2="0.724" xlink:href="#linear-gradient-2"/>
+  </defs>
+  <g id="logo-light" transform="translate(-7 -24.998)">
+    <path id="Union_1" data-name="Union 1" d="M173.176,256,128,116.364,82.823,256H0L82.823,0h90.353L256,256Z" transform="translate(7 24.998)" fill="url(#linear-gradient)"/>
+    <path id="Subtraction_2" data-name="Subtraction 2" d="M127.9,255.791a127.546,127.546,0,0,1-42.769-7.327L108.317,176.8a52.648,52.648,0,0,0,72.246-48.9V0H255.8V127.893a128.826,128.826,0,0,1-2.6,25.776A127.21,127.21,0,0,1,233.954,199.4a128.289,128.289,0,0,1-56.272,46.338,127.272,127.272,0,0,1-24.008,7.452A128.824,128.824,0,0,1,127.9,255.791ZM19.44,195.709h0v0A127.383,127.383,0,0,1,0,127.893V0H75.234V23.261Z" transform="translate(7 24.999)" fill="url(#linear-gradient-2)"/>
+    <path id="Subtraction_4" data-name="Subtraction 4" d="M127.9,255.791a127.552,127.552,0,0,1-42.771-7.327L108.315,176.8a52.648,52.648,0,0,0,72.248-48.9V0H255.8V127.893a128.826,128.826,0,0,1-2.6,25.776A127.227,127.227,0,0,1,233.954,199.4a128.289,128.289,0,0,1-56.272,46.338,127.272,127.272,0,0,1-24.008,7.452A128.824,128.824,0,0,1,127.9,255.791ZM19.439,195.708h0v0A127.383,127.383,0,0,1,0,127.893V0H75.234V23.256Z" transform="translate(7 25.004)" opacity="0.26" fill="url(#linear-gradient-3)"/>
+    <g id="Ellipse_1" data-name="Ellipse 1" transform="translate(75 104.998)" fill="rgba(255,255,255,0.5)" stroke="rgba(255,255,255,0.14)" stroke-width="1">
+      <circle cx="60" cy="60" r="60" stroke="none"/>
+      <circle cx="60" cy="60" r="59.5" fill="none"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,229 @@
+
+{% load static %}
+
+<header class="adminuiux-header">
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container-fluid">
+            <!-- main sidebar toggle -->
+            <button class="btn btn-link btn-square sidebar-toggler" type="button" onclick="initSidebar()">
+                <i class="sidebar-svg" data-feather="menu"></i>
+            </button>
+            <!-- logo -->
+            <a class="navbar-brand" href="{% url 'inventory:dashboard' %}">
+                <img data-bs-img="light" src="{% static 'inventory/assets/img/tekvan_logo_hd.png' %}" alt="">
+                <img data-bs-img="dark" src="{% static 'inventory/assets/img/tekvan_logo_hd.png'%}" alt="">
+                <div class="">
+                    <span class="h4">Rental<span class="fw-bold"></span><span></span></span>
+                    <p class="company-tagline">Inventory Management</p>
+                </div>
+            </a>
+
+            <!-- right icons button -->
+            <div class="ms-auto">
+                <!-- fullscreen toggle -->
+                <button class="btn btn-link btn-square btn-icon btn-link-header" type="button" data-bs-toggle="modal" data-bs-target="#searchmodalfull">
+                    <i data-feather="search"></i>
+                </button>
+                <!-- dark mode -->
+                <button class="btn btn-link btn-square btnsunmoon btn-link-header" id="btn-layout-modes-dark-page">
+                    <i class="sun mx-auto" data-feather="sun"></i>
+                    <i class="moon mx-auto" data-feather="moon"></i>
+                </button>
+                <!-- application list dropdown -->
+                <div class="dropdown d-none d-sm-inline-block">
+                    <button class="btn btn-link btn-square btn-icon btn-link-header dropdown-toggle no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i data-feather="grid"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end width-300 pt-0 px-0 overflow-hidden">
+                        <div class="py-3 mb-2 dropdown-dontclose text-center">
+                            <h5 class="mb-0">Applications</h5>
+                            <p class="text-secondary small">Make your app innovative</p>
+                        </div>
+                        <div class="px-2">
+                            <div class="row g-2 text-center mb-2">
+                                <div class="col-4">
+                                    <a class="dropdown-item square-item position-relative" href="#">
+                                        <div class="avatar avatar-40 rounded mb-2">
+                                            <i class="bi bi-bank fs-4 mx-0"></i>
+                                        </div>
+                                        <p class="mb-0">Finance</p>
+                                        <p class="fs-12 opacity-50 mb-2">Accounting</p>
+                                    </a>
+                                </div>
+                                <div class="col-4">
+                                    <a class="dropdown-item square-item position-relative" href="#">
+                                        <div class="avatar avatar-40 rounded mb-2">
+                                            <i class="bi bi-globe fs-4 mx-0"></i>
+                                        </div>
+                                        <p class="mb-0">Network</p>
+                                        <p class="fs-12 opacity-50 mb-2">Stabilize</p>
+                                    </a>
+                                </div>
+                                <div class="col-4">
+                                    <a class="dropdown-item square-item position-relative" href="#">
+                                        <div class="avatar avatar-40 rounded mb-2">
+                                            <i class="bi bi-box fs-4 mx-0"></i>
+                                        </div>
+                                        <p class="mb-0">Inventory</p>
+                                        <p class="fs-12 opacity-50 mb-2">Assuring</p>
+                                    </a>
+                                </div>
+                                <div class="col-4">
+                                    <a class="dropdown-item square-item position-relative" href="#">
+                                        <div class="avatar avatar-40 rounded mb-2">
+                                            <i class="bi bi-folder fs-4 mx-0"></i>
+                                        </div>
+                                        <p class="mb-0">Project</p>
+                                        <p class="fs-12 opacity-50 mb-2">Management</p>
+                                    </a>
+                                </div>
+                                <div class="col-4">
+                                    <a class="dropdown-item square-item position-relative" href="#">
+                                        <div class="avatar avatar-40 rounded mb-2">
+                                            <i class="bi bi-people fs-4 mx-0"></i>
+                                        </div>
+                                        <p class="mb-0">Social</p>
+                                        <p class="fs-12 opacity-50 mb-2">Tracking</p>
+                                    </a>
+                                </div>
+                                <div class="col-4">
+                                    <a class="dropdown-item square-item position-relative" href="#">
+                                        <div class="avatar avatar-40 rounded mb-2">
+                                            <i class="bi bi-journal-bookmark fs-4 mx-0"></i>
+                                        </div>
+                                        <p class="mb-0">eComm</p>
+                                        <p class="fs-12 opacity-50 mb-2">Make-easy</p>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <a class="btn btn-link text-center" href="#">View all <i class="bi bi-arrow-right fs-14"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- language dropdown -->
+                <div class="dropdown d-none d-sm-inline-block">
+                    <button class="btn btn-link btn-square btn-icon btn-link-header dropdown-toggle no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false"> <i class="bi bi-translate"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item active" data-value="EN">EN - English</a></li>
+                        <li><a class="dropdown-item" data-value="FR">FR - French</a></li>
+                        <li><a class="dropdown-item" data-value="CH">CH - Chinese</a></li>
+                        <li><a class="dropdown-item" data-value="HI">HI - Hindi</a></li>
+                    </ul>
+                </div>
+                <!-- notification dropdown -->
+                <button class="btn btn-link btn-square btn-icon btn-link-header position-relative" data-bs-toggle="offcanvas" data-bs-target="#view-notification">
+                    <i data-feather="bell"></i>
+                    <span class="position-absolute top-0 end-0 badge rounded-pill bg-danger p-1">
+                        <small>9+</small>
+                        <span class="visually-hidden">unread messages</span>
+                    </span>
+                </button>
+                <!-- profile dropdown -->
+                <div class="dropdown d-inline-block">
+                    <a class="dropdown-toggle btn btn-link btn-link-header style-none" id="userprofiledd" data-bs-toggle="dropdown" aria-expanded="false" role="button">
+                        <div class="row gx-0 d-inline-flex">
+                            <div class="col-auto align-self-center">
+                                <figure class="avatar avatar-28 rounded-circle coverimg vm">
+                                    <img src="{% static 'inventory/assets/img/modern-ai-image/user-1.jpg'%}" alt="" id="userphotoonboarding2">
+                                </figure>
+                            </div>
+                            <div class="col align-self-center d-none d-xl-block px-2 lh-14 text-start">
+                                <span class="mb-0 small">Adminuiuxer <br><small class="opacity-75">Store Owner</small></span>
+                            </div>
+                        </div>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end width-300 pt-0 px-0 sm-mi-45px" aria-labelledby="userprofiledd">
+                        <div class="rounded p-3 dropdown-dontclose">
+                            <div class="row gx-3 align-items-center">
+                                <div class="col-auto">
+                                    <figure class="avatar avatar-60 rounded coverimg vm">
+                                        <img src="{% static 'inventory/assets/img/modern-ai-image/user-1.jpg'%}" alt="">
+                                    </figure>
+                                </div>
+                                <div class="col">
+                                    <h5 class="mb-1"><i class="bi bi-wallet2 me-2"></i> $1100.00</h5>
+                                    <p class="small opacity-50">Available Balance</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="px-2">
+                            <div><a class="dropdown-item" href="ecommerce-profile.html"><i data-feather="user" class="avatar avatar-18 me-1"></i> My
+                                    Profile</a>
+                            </div>
+                            <div>
+                                <a class="dropdown-item" href="ecommerce-dashboard.html">
+                                    <div class="row g-0">
+                                        <div class="col align-self-center"><i data-feather="layout" class="avatar avatar-18 me-1"></i>
+                                            My Dashboard
+                                        </div>
+                                        <div class="col-auto avatar-group">
+                                            <figure class="avatar avatar-20 coverimg rounded-circle">
+                                                <img src="{% static 'inventory/assets/img/modern-ai-image/user-1.jpg'%}" alt="">
+                                            </figure>
+                                            <figure class="avatar avatar-20 coverimg rounded-circle">
+                                                <img src="{% static 'inventory/assets/img/modern-ai-image/user-2.jpg'%}" alt="">
+                                            </figure>
+                                            <figure class="avatar avatar-20 coverimg rounded-circle">
+                                                <img src="{% static 'inventory/assets/img/modern-ai-image/user-4.jpg'%}" alt="">
+                                            </figure>
+                                            <div class="avatar avatar-20 bg-theme-1 rounded-circle text-center vm">
+                                                <small class="fs-10 vm">9+</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                            <div>
+                                <a class="dropdown-item" href="ecommerce-finance-billing.html">
+                                    <i data-feather="dollar-sign" class="avatar avatar-18 me-1"></i> Earning
+                                </a>
+                            </div>
+                            <div>
+                                <a class="dropdown-item" href="ecommerce-mysubscription.html">
+                                    <div class="row">
+                                        <div class="col"><i data-feather="gift" class="avatar avatar-18 me-1"></i> Subscription</div>
+                                        <div class="col-auto">
+                                            <p class="small text-success">Upgrade</p>
+                                        </div>
+                                        <div class="col-auto"><span class="arrow bi bi-chevron-right"></span></div>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="dropdown open-left dropdown-dontclose">
+                                <a class="dropdown-item" data-bs-toggle="dropdown" aria-expanded="false" role="button">
+                                    <div class="row">
+                                        <div class="col"><i class="bi bi-translate avatar avatar-18 me-1"></i> Language</div>
+                                        <div class="col-auto"><small class="vm">EN - English</small> <i class="bi bi-translate"></i></div>
+                                        <div class="col-auto"><span class="arrow bi bi-chevron-right"></span></div>
+                                    </div>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-end">
+                                    <div><a class="dropdown-item active" data-value="EN">EN - English</a></div>
+                                    <div><a class="dropdown-item" data-value="FR">FR - French</a></div>
+                                    <div><a class="dropdown-item" data-value="CH">CH - Chinese</a></div>
+                                    <div><a class="dropdown-item" data-value="HI">HI - Hindi</a></div>
+                                </div>
+                            </div>
+                            <div>
+                                <a class="dropdown-item" href="ecommerce-settings.html">
+                                    <i data-feather="settings" class="avatar avatar-18 me-1"></i> Account Setting
+                                </a>
+                            </div>
+                            <div>
+                                <a class="dropdown-item theme-red" href="{% url 'inventory:logout' %}">
+                                    <i data-feather="power" class="avatar avatar-18 me-1"></i> Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+</header>
