@@ -20,14 +20,14 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="ecommerce-integration.html" class="nav-link">
-                    <i class="menu-icon bi bi-gear-wide-connected"></i>
+                <a href="{% url 'inventory:Stock_list' %}" class="nav-link">
+                    <i class="menu-icon bi bi-box-seam"></i>
                     <span class="menu-name">Inventory</span>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a href="ecommerce-customers.html" class="nav-link">
+                <a href="{% url 'inventory:connects' %}" class="nav-link">
                     <i class="menu-icon bi bi-people"></i>
                     <span class="menu-name">Connects</span>
                 </a>
@@ -57,14 +57,73 @@
                             <span class="menu-name">Company/Warehouses</span>
                         </a>
                     </div>
+                    <div class="nav-item">
+                        <a href="{% url 'inventory:transport_master' %}" class="nav-link">
+                            <i class="menu-icon bi bi-truck"></i>
+                            <span class="menu-name">Transports</span>
+                        </a>
+                    </div>
+
+                    <div class="nav-item">
+                        <a href="{% url 'inventory:crew_master' %}" class="nav-link">
+                            <i class="menu-icon bi bi-tags"></i>
+                            <span class="menu-name">Crews</span>
+                        </a>
+                    </div>
                 </div>
             </li>
 
-            <li class="nav-item">
-                <a href="ecommerce-settings.html" class="nav-link">
-                    <i class="menu-icon" data-feather="settings"></i>
-                    <span class="menu-name">Calendar</span>
+            <li class="nav-item dropdown">
+                <a href="javascript:void(0)" class="nav-link dropdown-toggle" data-bs-toggle="collapse"
+                   data-bs-target="#projectMenu">
+                    <i class="menu-icon bi bi-kanban"></i>
+                    <span class="menu-name">Project Management</span>
                 </a>
+
+                <div class="collapse" id="projectMenu">
+
+                    <div class="nav-item">
+                        <a href="{% url 'inventory:event_creation' %}" class="nav-link">
+                            <i class="menu-icon bi bi-calendar-event"></i>
+                            <span class="menu-name">Event Creation</span>
+                        </a>
+                    </div>
+
+                    <div class="nav-item">
+                        <a href="{% url 'inventory:crew_allocation' %}" class="nav-link">
+                            <i class="menu-icon bi bi-diagram-3"></i>
+                            <span class="menu-name">Crew Allocation</span>
+                        </a>
+                    </div>
+
+                </div>
+            </li>
+
+            <li class="nav-item dropdown">
+                <a href="javascript:void(0)"
+                   class="nav-link dropdown-toggle"
+                   data-bs-toggle="collapse"
+                   data-bs-target="#orderBookMenu"
+                   aria-expanded="false">
+                    <i class="menu-icon bi bi-bag"></i>
+                    <span class="menu-name">Order Book</span>
+                </a>
+
+                <div class="collapse" id="orderBookMenu">
+                    <div class="nav-item">
+                        <a href="{% url 'inventory:job_book' %}"
+                           class="nav-link">
+                            <span class="menu-name ms-4">- Job Book</span>
+                        </a>
+                    </div>
+
+                    <div class="nav-item">
+                        <a href="#"
+                           class="nav-link">
+                            <span class="menu-name ms-4">- Job Summary</span>
+                        </a>
+                    </div>
+                </div>
             </li>
         </ul>
         <div class="px-3 not-iconic">
