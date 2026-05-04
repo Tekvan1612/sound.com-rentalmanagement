@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -374,4 +375,382 @@ function deleteEvent() {
 </script>
 
 </body>
+=======
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'inventory/includes/head.html' %}
+
+    <!-- FullCalendar -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+</head>
+
+<body class="main-bg main-bg-opac main-bg-blur roundedui adminuiux-header-standard adminuiux-sidebar-standard adminuiux-mobile-footer-fill-theme adminuiux-header-transparent theme-pista bg-r-gradient adminuiux-sidebar-fill-none scrollup">
+
+{% include 'inventory/includes/header.html' %}
+
+<div class="adminuiux-wrap">
+    {% include 'inventory/includes/sidebar.html' %}
+
+    <main class="adminuiux-content has-sidebar">
+
+        <!-- Header -->
+        <div class="container mt-3">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h4>Event Creation</h4>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-theme" onclick="openEventPanel()">
+                        + Create Event
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container mt-3">
+            <div class="row">
+
+                <!-- LEFT: EVENT LIST -->
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6>Events This Month</h6>
+                            <ul id="eventList" class="list-group"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT: CALENDAR -->
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-body">
+                            <div id="calendar"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+    </main>
+</div>
+
+<!-- Slide Panel -->
+<div id="eventPanel" class="transport-panel">
+    <div class="panel-content">
+
+        <h5>Create Event</h5>
+
+        <input type="hidden" id="event_id">
+
+        <div class="form-floating mb-3">
+            <input type="text" id="event_name" class="form-control" placeholder="Event Name">
+            <label>Event Name</label>
+        </div>
+
+        <div class="form-floating mb-3">
+            <input type="date" id="from_date" class="form-control">
+            <label>From Date</label>
+        </div>
+
+        <div class="form-floating mb-3">
+            <input type="date" id="to_date" class="form-control">
+            <label>To Date</label>
+        </div>
+
+        <div class="form-floating mb-3">
+            <input type="text" id="location" class="form-control">
+            <label>Location</label>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button class="btn btn-theme" onclick="saveEvent()">Save</button>
+            <button class="btn btn-outline-secondary" onclick="closeEventPanel()">Cancel</button>
+        </div>
+
+    </div>
+</div>
+
+<div id="eventDetailPanel" class="transport-panel">
+    <div class="panel-content">
+
+        <h5>Event Details</h5>
+
+        <p><strong>Name:</strong> <span id="d_name"></span></p>
+        <p><strong>From:</strong> <span id="d_from"></span></p>
+        <p><strong>To:</strong> <span id="d_to"></span></p>
+        <p><strong>Location:</strong> <span id="d_location"></span></p>
+
+        <div class="d-flex gap-2 mt-3">
+            <button class="btn btn-outline-primary" onclick="editEvent()">Edit</button>
+            <button class="btn btn-outline-danger" onclick="deleteEvent()">Delete</button>
+            <button class="btn btn-outline-secondary" onclick="closeEventDetail()">Close</button>
+        </div>
+
+    </div>
+</div>
+
+{% include 'inventory/includes/footer.html' %}
+
+<script>
+let calendar;
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+        initialView: 'dayGridMonth',
+        events: [],
+
+        datesSet: function() {
+            loadEvents();   // ✅ THIS IS THE CORRECT PLACE
+        },
+
+        eventClick: function(info) {
+            showEventDetails(info.event.extendedProps);
+        }
+    });
+
+    calendar.render();
+});
+
+function openEventPanel() {
+
+    currentEvent = null;  // ✅ ADD THIS LINE
+
+    // 🔥 RESET FORM (IMPORTANT)
+    document.getElementById("event_id").value = "";
+    document.getElementById("event_name").value = "";
+    document.getElementById("from_date").value = "";
+    document.getElementById("to_date").value = "";
+    document.getElementById("location").value = "";
+
+    document.getElementById("eventPanel").classList.add("open");
+}
+
+function closeEventPanel() {
+    document.getElementById("eventPanel").classList.remove("open");
+}
+
+function saveEvent() {
+
+    const name = document.getElementById("event_name");
+    const from = document.getElementById("from_date");
+    const to = document.getElementById("to_date");
+    const location = document.getElementById("location");
+
+    let valid = true;
+
+    [name, from, to, location].forEach(el => el.classList.remove("is-invalid"));
+
+    if (!name.value.trim()) {
+        name.classList.add("is-invalid");
+        valid = false;
+    }
+    if (!from.value) {
+        from.classList.add("is-invalid");
+        valid = false;
+    }
+    if (!to.value) {
+        to.classList.add("is-invalid");
+        valid = false;
+    }
+    if (!location.value.trim()) {
+        location.classList.add("is-invalid");
+        valid = false;
+    }
+
+    if (!valid) {
+        alert("Please fill all required fields");
+        return;
+    }
+
+    if (from.value > to.value) {
+        alert("From Date cannot be after To Date");
+        return;
+    }
+
+    const formData = new FormData();
+
+    if (currentEvent && currentEvent.id) {
+        formData.append("event_id", currentEvent.id);
+    }
+
+    formData.append("event_name", name.value);
+    formData.append("from_date", from.value);
+    formData.append("to_date", to.value);
+    formData.append("location", location.value);
+
+    fetch("{% url 'inventory:add_event' %}", {
+        method: "POST",
+        body: formData,
+        headers: {"X-CSRFToken": getCookie("csrftoken")}
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.success) {
+            alert("Error: " + data.error);
+            return;
+        }
+
+        closeEventPanel();
+        loadEvents();
+
+        if (currentEvent && currentEvent.id) {
+            alert("Event updated successfully ✅");
+        } else {
+            alert("Event created successfully ✅");
+        }
+
+        currentEvent = null;
+        document.getElementById("event_id").value = "";
+    })
+    .catch(err => {
+        console.error(err);
+    });
+}
+
+
+function loadEvents() {
+
+    console.log("LOAD EVENTS CALLED");
+
+    if (!calendar) {
+        console.log("Calendar not ready");
+        return;
+    }
+
+    const view = calendar.view;
+
+    if (!view) {
+        console.log("View not ready");
+        return;
+    }
+
+    const start = view.currentStart.toISOString().split('T')[0];
+    const end = view.currentEnd.toISOString().split('T')[0];
+
+    console.log("FETCHING:", start, end);
+
+    fetch(`/event-list/?start=${start}&end=${end}`)
+    .then(res => res.json())
+    .then(data => {
+
+        console.log("API RESPONSE:", data);
+
+        calendar.removeAllEvents();
+
+        const list = document.getElementById("eventList");
+        list.innerHTML = "";
+
+        data.data.forEach(ev => {
+
+            const endDate = new Date(ev.event_date_to);
+            endDate.setDate(endDate.getDate() + 1);
+
+            calendar.addEvent({
+                title: ev.event_name,
+                start: ev.event_date_from,
+                end: endDate.toISOString().split('T')[0],  // ✅ FIXED
+
+                allDay: true,
+
+                backgroundColor: ev.color + "20",
+                borderColor: ev.color,
+                textColor: "#111",
+
+                extendedProps: {
+                    id: ev.event_id,
+                    name: ev.event_name,
+                    from: ev.event_date_from,
+                    to: ev.event_date_to,
+                    location: ev.location
+                }
+            });
+
+            list.innerHTML += `
+                <li class="list-group-item mb-2"
+                    style="border-left: 5px solid ${ev.color}; background:${ev.color}10">
+                    <div class="fw-semibold">${ev.event_name}</div>
+                    <div class="small text-muted">📍 ${ev.location || "N/A"}</div>
+                    <div class="small">📅 ${ev.event_date_from} → ${ev.event_date_to}</div>
+                </li>
+            `;
+        });
+    })
+    .catch(err => {
+        console.error("FETCH ERROR:", err);
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie) {
+        document.cookie.split(';').forEach(cookie => {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            }
+        });
+    }
+    return cookieValue;
+}
+
+let currentEvent = null;
+
+function showEventDetails(event) {
+    currentEvent = event;
+
+    document.getElementById("d_name").innerText = event.name;
+    document.getElementById("d_from").innerText = event.from;
+    document.getElementById("d_to").innerText = event.to;
+    document.getElementById("d_location").innerText = event.location || "N/A";
+
+    document.getElementById("eventDetailPanel").classList.add("open");
+}
+
+function closeEventDetail() {
+    document.getElementById("eventDetailPanel").classList.remove("open");
+}
+
+function editEvent() {
+    closeEventDetail();
+
+    // 🔥 OPEN PANEL WITHOUT RESET
+    document.getElementById("eventPanel").classList.add("open");
+
+    document.getElementById("event_id").value = currentEvent.id;
+    document.getElementById("event_name").value = currentEvent.name;
+    document.getElementById("from_date").value = currentEvent.from;
+    document.getElementById("to_date").value = currentEvent.to;
+    document.getElementById("location").value = currentEvent.location;
+}
+
+function deleteEvent() {
+    if (!confirm("Delete this event?")) return;
+
+    fetch(`/delete-event/${currentEvent.id}/`, {
+        method: "POST",
+        headers: {"X-CSRFToken": getCookie("csrftoken")}
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.success) {
+            alert("Error: " + data.error);
+            return;
+        }
+
+        closeEventPanel();
+        loadEvents();
+        alert("Event deleted successfully 🗑️");
+    });
+}
+
+</script>
+
+</body>
+>>>>>>> 6ad47df (Fix database and connects routing)
 </html>

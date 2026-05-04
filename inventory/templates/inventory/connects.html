@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -363,4 +364,371 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 
 </body>
+=======
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'inventory/includes/head.html' %}
+</head>
+
+<body class="main-bg main-bg-opac main-bg-blur">
+
+{% include 'inventory/includes/header.html' %}
+
+<div class="adminuiux-wrap">
+{% include 'inventory/includes/sidebar.html' %}
+
+<main class="adminuiux-content has-sidebar">
+
+<div class="container mt-3">
+
+    <!-- HEADER + ACTION -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">Connects</h4>
+        <button class="btn btn-theme"
+                data-bs-toggle="collapse"
+                data-bs-target="#connectForm">
+            + New Connect
+        </button>
+    </div>
+
+    <!-- 🔽 FORM -->
+    <div class="collapse" id="connectForm">
+        <div class="card shadow-sm border-0 mb-3">
+            <div class="card-body">
+
+                <!-- TYPE -->
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Type</label>
+                        <select id="type" class="form-control" onchange="toggleForm()">
+                            <option value="Company">Company</option>
+                            <option value="Venue">Venue</option>
+                            <option value="Individual">Individual</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- COMPANY -->
+                <div id="companyForm">
+                    <div class="row g-2">
+
+                        <div class="col-md-3"><input id="company_name" class="form-control" placeholder="Company Name"></div>
+                        <div class="col-md-3"><input id="gst_no" class="form-control" placeholder="GST No"></div>
+                        <div class="col-md-3"><input id="pan_no" class="form-control" placeholder="PAN No"></div>
+                        <div class="col-md-3"><input id="company_email" class="form-control" placeholder="Email"></div>
+
+                        <div class="col-md-3"><input id="office_address" class="form-control" placeholder="Office Address"></div>
+                        <div class="col-md-3"><input id="billing_address" class="form-control" placeholder="Billing Address"></div>
+
+                    </div>
+                </div>
+
+                <!-- VENUE -->
+                <div id="venueForm" style="display:none;">
+                    <div class="row g-2">
+
+                        <div class="col-md-3"><input id="venue_name" class="form-control" placeholder="Venue Name"></div>
+                        <div class="col-md-3"><input id="venue_address" class="form-control" placeholder="Venue Address"></div>
+
+                    </div>
+                </div>
+
+                <!-- INDIVIDUAL -->
+                <div id="individualForm" style="display:none;">
+                    <div class="row g-2">
+
+                        <div class="col-md-3"><input id="individual_name" class="form-control" placeholder="Name"></div>
+                        <div class="col-md-3"><input id="mobile_no" class="form-control" placeholder="Mobile"></div>
+                        <div class="col-md-3"><input id="social_no" class="form-control" placeholder="Social No"></div>
+                        <div class="col-md-3"><input id="individual_email" class="form-control" placeholder="Email"></div>
+
+                        <div class="col-md-3"><input id="company" class="form-control" placeholder="Company"></div>
+                        <div class="col-md-3"><input id="individual_address" class="form-control" placeholder="Address"></div>
+
+                    </div>
+                </div>
+
+                <!-- COMMON -->
+                <div class="row g-2 mt-3">
+                    <div class="col-md-3"><input id="country" class="form-control" placeholder="Country"></div>
+                    <div class="col-md-3"><input id="state" class="form-control" placeholder="State"></div>
+                    <div class="col-md-3"><input id="city" class="form-control" placeholder="City"></div>
+                    <div class="col-md-3"><input id="post_code" class="form-control" placeholder="Post Code"></div>
+                </div>
+
+                <!-- ACTION -->
+                <div class="mt-3">
+                    <button class="btn btn-theme" onclick="saveConnect()">Save</button>
+                    <button class="btn btn-outline-secondary" onclick="resetForm()">Cancel</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔍 SEARCH -->
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-body">
+            <input type="text" id="search" class="form-control" placeholder="Search connects...">
+        </div>
+    </div>
+
+    <!-- 📋 LIST -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body table-responsive">
+
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr id="tableHead"></tr>
+                </thead>
+                <tbody id="list"></tbody>
+            </table>
+
+        </div>
+    </div>
+
+</div>
+
+</main>
+</div>
+
+{% include 'inventory/includes/footer.html' %}
+
+<script>
+
+function toggleForm(){
+    const t = type.value;
+    companyForm.style.display = t==="Company"?"block":"none";
+    venueForm.style.display = t==="Venue"?"block":"none";
+    individualForm.style.display = t==="Individual"?"block":"none";
+}
+
+function saveConnect(){
+
+    const fd = new FormData();
+
+    // 🔥 VALIDATION FIRST
+    if(!type.value){
+        alert("Please select type");
+        return;
+    }
+
+    if(type.value === "Company" && !company_name.value){
+        alert("Company name is required");
+        return;
+    }
+
+    if(type.value === "Individual" && !mobile_no.value){
+        alert("Mobile number is required");
+        return;
+    }
+
+    if(!country.value || !city.value){
+        alert("Country and City are required");
+        return;
+    }
+
+    // 🔥 APPEND DATA
+    fd.append("type", type.value);
+
+    fd.append("company_name", company_name.value);
+    fd.append("gst_no", gst_no.value);
+    fd.append("pan_no", pan_no.value);
+    fd.append("company_email", company_email.value);
+    fd.append("office_address", office_address.value);
+    fd.append("billing_address", billing_address.value);
+
+    fd.append("venue_name", venue_name.value);
+    fd.append("venue_address", venue_address.value);
+
+    fd.append("individual_name", individual_name.value);
+    fd.append("mobile_no", mobile_no.value);
+    fd.append("social_no", social_no.value);
+    fd.append("individual_email", individual_email.value);
+    fd.append("company", company.value);
+    fd.append("individual_address", individual_address.value);
+
+    fd.append("country", country.value);
+    fd.append("state", state.value);   // 🔥 IMPORTANT
+    fd.append("city", city.value);
+    fd.append("post_code", post_code.value);
+
+    fetch("/save-connect/", {
+        method:"POST",
+        body:fd,
+        headers: {"X-CSRFToken": getCookie("csrftoken")}
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if(data.success){
+
+            alert("Record saved successfully ✅");
+
+            resetForm();     // 🔥 CLEAR FORM
+            loadList();      // 🔥 REFRESH LIST
+
+        } else {
+            alert("Error saving record ❌");
+        }
+
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Something went wrong");
+    });
+}
+
+function loadList(){
+
+    fetch("/get-connects/")
+    .then(res => res.json())
+    .then(data => {
+
+        const type = document.getElementById("type").value;
+        const head = document.getElementById("tableHead");
+        const body = document.getElementById("list");
+
+        head.innerHTML = "";
+        body.innerHTML = "";
+
+        // 🏢 COMPANY
+        if(type === "Company"){
+
+            head.innerHTML = `
+                <th>Company Name</th>
+                <th>GST No</th>
+                <th>PAN No</th>
+                <th>Email</th>
+                <th>Office Address</th>
+                <th>Billing Address</th>
+                <th>Country</th>
+                <th>State</th>
+                <th>City</th>
+                <th>Post Code</th>
+            `;
+
+            data.data.forEach(r => {
+                if(r.type.toLowerCase() !== "company") return;
+
+                body.innerHTML += `
+                    <tr>
+                        <td>${r.company_name || ""}</td>
+                        <td>${r.gst_no || ""}</td>
+                        <td>${r.pan_no || ""}</td>
+                        <td>${r.company_email || ""}</td>
+                        <td>${r.office_address || ""}</td>
+                        <td>${r.billing_address || ""}</td>
+                        <td>${r.country || ""}</td>
+                        <td>${r.state || ""}</td>
+                        <td>${r.city || ""}</td>
+                        <td>${r.post_code || ""}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // 🏟️ VENUE
+        if(type === "Venue"){
+
+            head.innerHTML = `
+                <th>Venue Name</th>
+                <th>Venue Address</th>
+                <th>Country</th>
+                <th>State</th>
+                <th>City</th>
+                <th>Post Code</th>
+            `;
+
+            data.data.forEach(r => {
+                if(r.type.toLowerCase() !== "venue") return;
+
+                body.innerHTML += `
+                    <tr>
+                        <td>${r.venue_name || ""}</td>
+                        <td>${r.venue_address || ""}</td>
+                        <td>${r.country || ""}</td>
+                        <td>${r.state || ""}</td>
+                        <td>${r.city || ""}</td>
+                        <td>${r.post_code || ""}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // 👤 INDIVIDUAL
+        if(type === "Individual"){
+
+            head.innerHTML = `
+                <th>Name</th>
+                <th>Mobile</th>
+                <th>Social No</th>
+                <th>Email</th>
+                <th>Company</th>
+                <th>Address</th>
+                <th>State</th>
+                <th>City</th>
+                <th>Post Code</th>
+            `;
+
+            data.data.forEach(r => {
+                if(r.type.toLowerCase() !== "individual") return;
+
+                body.innerHTML += `
+                    <tr>
+                        <td>${r.individual_name || ""}</td>
+                        <td>${r.mobile_no || ""}</td>
+                        <td>${r.social_no || ""}</td>
+                        <td>${r.individual_email || ""}</td>
+                        <td>${r.company || ""}</td>
+                        <td>${r.individual_address || ""}</td>
+                        <td>${r.state || ""}</td>
+                        <td>${r.city || ""}</td>
+                        <td>${r.post_code || ""}</td>
+                    </tr>
+                `;
+            });
+        }
+
+    });
+}
+
+function resetForm(){
+
+    document.querySelectorAll("#connectForm input").forEach(i=>{
+        i.value="";
+    });
+
+    // reset dropdown
+    type.value = "Company";
+
+    // reset form view
+    toggleForm();
+}
+
+function getCookie(n){
+    let v=null;
+    document.cookie.split(';').forEach(c=>{
+        if(c.trim().startsWith(n+'=')){
+            v=decodeURIComponent(c.split('=')[1]);
+        }
+    });
+    return v;
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    loadList(); // initial load
+
+    // 🔥 ADD THIS HERE
+    document.getElementById("type").addEventListener("change", loadList);
+
+});
+
+</script>
+
+</body>
+>>>>>>> 6ad47df (Fix database and connects routing)
 </html>

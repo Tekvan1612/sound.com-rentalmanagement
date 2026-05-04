@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -252,4 +253,260 @@ function getCookie(name) {
 </script>
 
 </body>
+=======
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'inventory/includes/head.html' %}
+</head>
+
+<body class="main-bg main-bg-opac main-bg-blur roundedui adminuiux-header-standard adminuiux-sidebar-standard adminuiux-mobile-footer-fill-theme adminuiux-header-transparent theme-pista bg-r-gradient adminuiux-sidebar-fill-none scrollup">
+
+{% include 'inventory/includes/header.html' %}
+
+<div class="adminuiux-wrap">
+    {% include 'inventory/includes/sidebar.html' %}
+
+    <main class="adminuiux-content has-sidebar">
+
+        <!-- Header -->
+        <div class="container mt-3">
+            <div class="row gx-3 align-items-center">
+                <div class="col">
+                    <h4 class="mb-0">Crew Master</h4>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-theme collapsed"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#addCrewCollapse">
+                        + Add Crew
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container mt-3">
+            <div class="collapse" id="addCrewCollapse">
+                <div class="card border-0 bg-theme-1-subtle">
+                    <div class="card-body">
+
+                        <h5 id="crewFormTitle" class="mb-3">Add Crew</h5>
+
+                        <input type="hidden" id="crew_id">
+
+                        <div class="row">
+                            <div class="col-lg-4">
+                                <div class="form-floating mb-3">
+                                    <input type="text"
+                                           id="designation"
+                                           class="form-control"
+                                           placeholder="Designation">
+                                    <label>Crew Designation</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-theme" onclick="saveCrew()">Submit</button>
+                        <button class="btn btn-outline-theme ms-2"
+                                onclick="cancelCrewForm()">Cancel</button>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="container mt-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle text-center">
+                            <thead>
+                                <tr>
+                                    <th>Sr No.</th>
+                                    <th>Crew Designation</th>
+                                    <th>Created By</th>
+                                    <th>Created Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="crewTableBody">
+                                <tr>
+                                    <td colspan="5">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+
+
+{% include 'inventory/includes/footer.html' %}
+<script src="{% static 'inventory/assets/js/app5724.js' %}"></script>
+
+<!-- JS -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    loadCrew();
+});
+
+// Panel controls
+function saveCrew() {
+
+    const formData = new FormData();
+
+    const crewId = document.getElementById("crew_id").value;
+
+    if (crewId) {
+        formData.append("id", crewId);  // ✅ edit mode
+    }
+
+    formData.append("designation", document.getElementById("designation").value);
+
+    fetch("{% url 'inventory:add_crew' %}", {
+        method: "POST",
+        body: formData,
+        headers: {"X-CSRFToken": getCookie("csrftoken")}
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        alert(data.message);
+
+        // ✅ CLOSE COLLAPSE
+        bootstrap.Collapse
+            .getOrCreateInstance(document.getElementById("addCrewCollapse"))
+            .hide();
+
+        resetCrew();
+        loadCrew();
+    });
+}
+
+function cancelCrewForm() {
+
+    resetCrew();
+
+    document.getElementById("crewFormTitle").innerText = "Add Crew";
+
+    bootstrap.Collapse
+        .getOrCreateInstance(document.getElementById("addCrewCollapse"))
+        .hide();
+}
+
+// Load Crew List
+function loadCrew() {
+    fetch("{% url 'inventory:crew_list' %}")
+    .then(res => res.json())
+    .then(data => {
+
+        const tbody = document.getElementById("crewTableBody");
+        tbody.innerHTML = "";
+
+        if (!data.data || !data.data.length) {
+            tbody.innerHTML = `<tr><td colspan="5">No data found</td></tr>`;
+            return;
+        }
+
+        data.data.forEach((item, index) => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${item.designation}</td>
+                    <td>${item.created_by}</td>
+                    <td>${item.created_date}</td>
+                    <td>
+                        <div class="d-flex justify-content-center gap-2">
+
+                            <button class="btn btn-sm btn-outline-primary"
+                                title="Edit"
+                                onclick='editCrew(${item.id}, ${JSON.stringify(item.designation)})'>
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+
+                            <button class="btn btn-sm btn-outline-danger"
+                                title="Delete"
+                                onclick="deleteCrew(${item.id})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+    });
+}
+
+// Edit Crew
+function editCrew(id, designation) {
+
+    document.getElementById("crew_id").value = id;
+    document.getElementById("designation").value = designation;
+
+    // ✅ Change title
+    document.getElementById("crewFormTitle").innerText = "Edit Crew";
+
+    // ✅ Open collapse
+    bootstrap.Collapse
+        .getOrCreateInstance(document.getElementById("addCrewCollapse"))
+        .show();
+}
+
+// Delete Crew
+function deleteCrew(id) {
+    if (!confirm("Are you sure you want to delete?")) return;
+
+    fetch(`/delete-crew/${id}/`, {
+        method: "POST",
+        headers: {"X-CSRFToken": getCookie("csrftoken")}
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        loadCrew();
+    });
+}
+
+function cancelCrewForm() {
+
+    resetCrew();
+
+    document.getElementById("crewFormTitle").innerText = "Add Crew";
+
+    bootstrap.Collapse
+        .getOrCreateInstance(document.getElementById("addCrewCollapse"))
+        .hide();
+}
+
+// Reset Form
+function resetCrew() {
+    document.getElementById("crew_id").value = "";
+    document.getElementById("designation").value = "";
+}
+
+// CSRF Helper
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie) {
+        document.cookie.split(';').forEach(cookie => {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            }
+        });
+    }
+    return cookieValue;
+}
+</script>
+
+</body>
+>>>>>>> 6ad47df (Fix database and connects routing)
 </html>

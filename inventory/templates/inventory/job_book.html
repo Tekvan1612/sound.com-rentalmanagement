@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -384,4 +385,392 @@
 </script>
 
 </body>
+=======
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'inventory/includes/head.html' %}
+</head>
+
+<body class="main-bg main-bg-opac main-bg-blur roundedui adminuiux-header-standard adminuiux-sidebar-standard adminuiux-mobile-footer-fill-theme adminuiux-header-transparent theme-pista bg-r-gradient adminuiux-sidebar-fill-none scrollup"
+      data-theme="theme-pista"
+      data-sidebarfill="adminuiux-sidebar-fill-none"
+      data-sidebarlayout="adminuiux-sidebar-standard"
+      data-headerlayout="adminuiux-header-standard"
+      data-headerfill="adminuiux-header-transparent"
+      data-bggradient="bg-r-gradient">
+
+<div class="pageloader">
+    <div class="container h-100">
+        <div class="row justify-content-center align-items-center text-center h-100 pb-ios">
+            <div class="col-auto">
+                <img src="{% static 'inventory/assets/img/tekvan_logo_hd.png' %}" alt="" class="height-80 mb-3">
+                <p class="h2 mb-0 text-theme-accent-1">Rental</p>
+                <p class="display-3 text-theme-1 fw-bold mb-4">Management</p>
+                <div class="loader12 mb-2 mx-auto"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'inventory/includes/header.html' %}
+
+<div class="adminuiux-wrap">
+    {% include 'inventory/includes/sidebar.html' %}
+
+    <main class="adminuiux-content has-sidebar" onclick="contentClick()">
+
+        <div class="container mt-3">
+            <div class="row gx-3 align-items-center">
+                <div class="col">
+                    <nav aria-label="breadcrumb" class="mb-1 asset-breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item">
+                                <a href="{% url 'inventory:dashboard' %}">
+                                    <i class="bi bi-house-door"></i> Dashboard
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item active">Order Book</li>
+                        </ol>
+                    </nav>
+                    <h4 class="asset-page-title mb-0">Order Book</h4>
+                </div>
+
+                <div class="col-auto">
+                    <a href="{% url 'inventory:add_job' %}" class="btn btn-theme">
+                        <i class="bi bi-plus-lg me-2"></i>Add Jobs
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="container mt-3 mt-lg-4">
+
+            <!-- Summary -->
+            <div class="card asset-master-card mb-4">
+                <div class="card-body">
+                    <h5 class="mb-3">Orders Summary</h5>
+
+                    <div class="row g-3" id="jobSummaryCards">
+                        <div class="col-md-3">
+                            <div class="p-3 rounded-4 bg-theme-1-subtle h-100">
+                                <div class="d-flex align-items-center">
+                                    <h3 class="mb-0 me-3" id="quotationCount">0</h3>
+                                    <span class="text-secondary">Number of jobs for Quotation</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="p-3 rounded-4 bg-theme-1-subtle h-100">
+                                <div class="d-flex align-items-center">
+                                    <h3 class="mb-0 me-3" id="proformaCount">0</h3>
+                                    <span class="text-secondary">Number of jobs for Proforma</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="p-3 rounded-4 bg-theme-1-subtle h-100">
+                                <div class="d-flex align-items-center">
+                                    <h3 class="mb-0 me-3" id="prepsheetCount">0</h3>
+                                    <span class="text-secondary">Number of jobs for Prepsheet</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="p-3 rounded-4 bg-theme-1-subtle h-100">
+                                <div class="d-flex align-items-center">
+                                    <h3 class="mb-0 me-3" id="completedCount">0</h3>
+                                    <span class="text-secondary">Completed</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jobs Table -->
+            <div class="card asset-master-card">
+                <div class="card-body">
+                    <div class="asset-toolbar asset-toolbar-inline mb-3">
+                        <div class="asset-search-wrap flex-grow-1">
+                            <input type="text"
+                                   class="form-control asset-search"
+                                   id="jobSearch"
+                                   placeholder="Search job no, title, status...">
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table asset-table align-middle w-100 nowrap" id="jobBookTable">
+                            <thead>
+                            <tr>
+                                <th style="width:80px;">SR NO</th>
+                                <th>Job No</th>
+                                <th>Title</th>
+                                <th>Status</th>
+                                <th style="width:130px;">Action</th>
+                            </tr>
+                            </thead>
+                            <tbody id="jobBookTableBody">
+                            <tr>
+                                <td colspan="5" class="table-empty">Loading jobs...</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+
+{% include 'inventory/includes/footer.html' %}
+
+<script>
+    let jobTable = null;
+    let allJobs = [];
+
+    document.addEventListener("DOMContentLoaded", function () {
+        loadStatusCounts();
+        loadJobs();
+
+        const searchInput = document.getElementById("jobSearch");
+        if (searchInput) {
+            searchInput.addEventListener("input", function () {
+                if (jobTable) {
+                    jobTable.search(this.value).draw();
+                }
+            });
+        }
+    });
+
+    function loadStatusCounts() {
+        fetch("/get_status_counts/")
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("quotationCount").textContent =
+                    data.quatation_count ?? data.quotation_count ?? 0;
+
+                document.getElementById("proformaCount").textContent =
+                    data.perfoma_count ?? data.proforma_count ?? 0;
+
+                document.getElementById("prepsheetCount").textContent =
+                    data.prepsheet_count ?? 0;
+
+                document.getElementById("completedCount").textContent =
+                    data.deliveryChallan_count ?? data.completed_count ?? 0;
+            })
+            .catch(err => {
+                console.error("Status count error:", err);
+            });
+    }
+
+    function loadJobs() {
+        fetch("/jobs_list/")
+            .then(res => res.json())
+            .then(data => {
+                allJobs = Array.isArray(data) ? data : [];
+                renderJobs();
+            })
+            .catch(err => {
+                console.error("Job list error:", err);
+                document.getElementById("jobBookTableBody").innerHTML = `
+                    <tr>
+                        <td colspan="5" class="table-empty text-danger">Failed to load jobs.</td>
+                    </tr>
+                `;
+            });
+    }
+
+    function renderJobs() {
+        destroyJobTable();
+
+        const tbody = document.getElementById("jobBookTableBody");
+        tbody.innerHTML = "";
+
+        if (!allJobs.length) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="table-empty">No jobs found.</td>
+                </tr>
+            `;
+            return;
+        }
+
+        allJobs.forEach((job, index) => {
+            const jobNo = job.job_reference_no || job.job_no || job.id || "-";
+            const title = job.title || "-";
+            const status = job.status || "-";
+            const id = job.id || job.job_id || "";
+
+            tbody.innerHTML += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>
+                        <a href="javascript:void(0);"
+                           class="fw-semibold text-decoration-underline"
+                           onclick="viewJob('${id}')">
+                            ${escapeHtml(jobNo)}
+                        </a>
+                    </td>
+                    <td>${escapeHtml(title)}</td>
+                    <td>
+                        <span class="badge rounded-pill ${getStatusBadgeClass(status)}">
+                            ${escapeHtml(status)}
+                        </span>
+                    </td>
+                    <td>
+                        <button type="button"
+                                class="btn btn-primary btn-sm me-1"
+                                onclick="editJob('${id}')">
+                            <i class="bi bi-pencil-fill"></i>
+                        </button>
+                        <button type="button"
+                                class="btn btn-danger btn-sm"
+                                onclick="deleteJob('${id}', '${escapeJs(jobNo)}')">
+                            <i class="bi bi-trash-fill"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        initJobTable();
+    }
+
+    function initJobTable() {
+        if (!$('#jobBookTable').length) return;
+
+        jobTable = $('#jobBookTable').DataTable({
+            searching: true,
+            lengthChange: true,
+            autoWidth: false,
+            pageLength: 25,
+            responsive: true,
+            order: [[0, 'asc']],
+            columnDefs: [
+                {orderable: false, targets: 4}
+            ],
+            dom: '<"d-flex justify-content-between align-items-center mt-2"i p>rt',
+            language: {
+                emptyTable: "Data not available",
+                zeroRecords: "Data not available"
+            }
+        });
+    }
+
+    function destroyJobTable() {
+        if ($.fn.DataTable.isDataTable('#jobBookTable')) {
+            $('#jobBookTable').DataTable().destroy();
+        }
+        jobTable = null;
+    }
+
+    function getStatusBadgeClass(status) {
+        status = String(status || "").toLowerCase();
+
+        if (status.includes("quotation")) return "bg-warning text-dark";
+        if (status.includes("proforma") || status.includes("porforma")) return "bg-info";
+        if (status.includes("prepsheet")) return "bg-primary";
+        if (status.includes("delivery")) return "bg-success";
+
+        return "bg-secondary";
+    }
+
+    function viewJob(id) {
+        if (!id) return;
+        window.location.href = `/job-details/?job_id=${id}`;
+    }
+
+    function editJob(id) {
+        if (!id) return;
+        window.location.href = `/job-book/add/?edit_id=${id}`;
+    }
+
+    function deleteJob(id, jobNo) {
+        if (!id) return;
+
+        if (!confirm(`Delete job "${jobNo}"?`)) return;
+
+        fetch(`/delete_jobs/${id}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                showToast(data.message || "Job deleted successfully", "success");
+                loadJobs();
+                loadStatusCounts();
+            })
+            .catch(err => {
+                console.error("Delete job error:", err);
+                showToast("Failed to delete job", "danger");
+            });
+    }
+
+    function escapeHtml(value) {
+        const div = document.createElement("div");
+        div.textContent = value || "";
+        return div.innerHTML;
+    }
+
+    function escapeJs(value) {
+        return String(value || "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+
+        return cookieValue;
+    }
+
+    function showToast(message, type = "success") {
+        const toastContainer = document.getElementById("toastContainer");
+        if (!toastContainer) return;
+
+        const toastHTML = `
+            <div class="toast align-items-center text-bg-${type} border-0 show mb-2" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">${escapeHtml(message)}</div>
+                    <button type="button"
+                            class="btn-close btn-close-white me-2 m-auto"
+                            onclick="this.closest('.toast').remove()"></button>
+                </div>
+            </div>
+        `;
+
+        toastContainer.insertAdjacentHTML("beforeend", toastHTML);
+
+        setTimeout(() => {
+            const toast = toastContainer.querySelector(".toast");
+            if (toast) toast.remove();
+        }, 2500);
+    }
+</script>
+
+</body>
+>>>>>>> 3dc6676 (Fix database and connects routing)
 </html>

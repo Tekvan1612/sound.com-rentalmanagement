@@ -348,6 +348,18 @@
 
                                                 <div class="col-lg-4">
                                                     <div class="form-floating mb-3">
+                                                        <select class="form-select"
+                                                                id="warehouse_id"
+                                                                name="warehouse_id"
+                                                                required>
+                                                            <option value="">Select Warehouse</option>
+                                                        </select>
+                                                        <label for="warehouse_id">Warehouse</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-lg-4">
+                                                    <div class="form-floating mb-3">
                                                         <input type="text"
                                                                class="form-control"
                                                                name="vendor_name"
@@ -927,10 +939,10 @@
 <script>
 
     document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll('.adminuiux-sidebar .dropdown-toggle').forEach(function (el) {
-        new bootstrap.Dropdown(el);
+        document.querySelectorAll('.adminuiux-sidebar .dropdown-toggle').forEach(function (el) {
+            new bootstrap.Dropdown(el);
+        });
     });
-});
     let masterCategoriesData = [];
     let masterCategoryTable = null;
 
@@ -1607,6 +1619,37 @@
                 initTomSelect();
             });
     }
+
+    function loadWarehouses() {
+        fetch('/warehouse-list/', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                const select = document.getElementById("warehouse_id");
+                select.innerHTML = `<option value="">Select Warehouse</option>`;
+
+                const rows = data.data || data.warehouses || [];
+
+                rows.forEach(w => {
+                    select.innerHTML += `
+                    <option value="${w.id}">
+                        ${w.warehouse_name || w.name || w.code || ''}
+                    </option>
+                `;
+                });
+            })
+            .catch(err => {
+                console.error("Warehouse load error:", err);
+            });
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        loadWarehouses();
+    });
 
     function initTomSelect() {
         if (subcategorySelect) {
