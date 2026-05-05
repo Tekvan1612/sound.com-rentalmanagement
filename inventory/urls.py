@@ -136,4 +136,5 @@ urlpatterns = [
         name="get_serial_details"
     ),
     path("get-connects/", views.get_connects),
+    path("save-connect/", views.save_connect),
 ]
