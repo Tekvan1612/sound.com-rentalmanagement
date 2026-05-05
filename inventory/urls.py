@@ -110,7 +110,7 @@ urlpatterns = [
     path("save-crew-allocation/", views.save_crew_allocation),
     path("get-allocations/", views.get_allocations),
     path("delete-crew-allocation/<int:id>/", views.delete_crew_allocation),
-path('api/warehouses/', views.get_warehouses, name='get_warehouses'),
+    path('api/warehouses/', views.get_warehouses, name='get_warehouses'),
     path('job-book/', views.job_book_list, name='job_book'),
     path('job-book/add/', views.add_job, name='add_job'),
     path('fetch_client_name/', views.fetch_client_name, name='fetch_client_name'),
@@ -129,5 +129,10 @@ path('api/warehouses/', views.get_warehouses, name='get_warehouses'),
     path('get_vehicle_numbers/', views.get_vehicle_numbers, name='get_vehicle_numbers'),
     path('get_driver_list/', views.get_driver_list, name='get_driver_list'),
     path('get_categories/', views.get_categories, name='get_categories'),
-path('fetch_equipment_usages/', views.fetch_equipment_usages, name='fetch_equipment_usages'),
+    path('fetch_equipment_usages/', views.fetch_equipment_usages, name='fetch_equipment_usages'),
+    path(
+        "get_serial_details/<int:equipment_id>/",
+        views.get_serial_details,
+        name="get_serial_details"
+    ),
 ]

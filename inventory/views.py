@@ -1464,45 +1464,79 @@ def fetch_stock_equipment_list(request):
 
         print(f"Fetching data for category: {category_id}, start: {start}, limit: {limit}")
 
-        # Fetch paginated data
         with connection.cursor() as cursor:
             cursor.execute("""
-                SELECT * FROM public.get_list(%s) OFFSET %s LIMIT %s
+                SELECT
+                    el.id,
+                    el.equipment_name,
+                    sc.name AS sub_category_name,
+                    el.category_type,
+                    COALESCE(MAX(sd.unit_price), 0) AS unit_price,
+                    COALESCE(MAX(sd.rental_price), 0) AS rental_price,
+                    COUNT(sd.id) AS total_units
+                FROM public.equipment_list el
+                LEFT JOIN public.sub_category sc
+                    ON el.sub_category_id = sc.id
+                LEFT JOIN public.stock_details sd
+                    ON el.id = sd.equipment_id
+                WHERE sc.category_id = %s
+                GROUP BY el.id, el.equipment_name, sc.name, el.category_type
+                ORDER BY el.equipment_name
+                OFFSET %s LIMIT %s
             """, [category_id, start, limit])
-            rows = cursor.fetchall()
-            print(f"Fetched rows: {rows}")
 
-        # Fetch total count
+            rows = cursor.fetchall()
+
         with connection.cursor() as cursor:
             cursor.execute("""
-                SELECT COUNT(*) FROM (
-                    SELECT DISTINCT el.equipment_name, el.sub_category_id, el.category_type
-                    FROM public.equipment_list el
-                    LEFT JOIN public.sub_category sc ON el.sub_category_id = sc.id
-                    LEFT JOIN public.stock_details sd ON el.id = sd.equipment_id
-                    WHERE sc.category_id = %s
-                ) AS distinct_items
+                SELECT COUNT(*)
+                FROM public.equipment_list el
+                LEFT JOIN public.sub_category sc
+                    ON el.sub_category_id = sc.id
+                WHERE sc.category_id = %s
             """, [category_id])
+
             total_items = cursor.fetchone()[0]
-            print(f"Total items: {total_items}")
 
-        equipment_list = []
-        for row in rows:
-            equipment_list.append({
-                'equipment_name': row[0],
-                'sub_category_name': row[1],  # Ensure this is the correct index for sub_category_name
-                'category_type': row[2],
-                'unit_price': row[3],
-                'rental_price': row[4],
-                'total_units': row[5],
-            })
-
-        print(f"Equipment list: {equipment_list}")
+        equipment_list = [
+            {
+                'id': row[0],
+                'equipment_name': row[1],
+                'sub_category_name': row[2],
+                'category_type': row[3],
+                'unit_price': row[4],
+                'rental_price': row[5],
+                'total_units': row[6],
+            }
+            for row in rows
+        ]
 
         return JsonResponse({'totalItems': total_items, 'data': equipment_list}, safe=False)
-    else:
-        return JsonResponse({'error': 'Invalid request'})
 
+    return JsonResponse({'error': 'Invalid request'}, status=405)
+
+def get_serial_details(request, equipment_id):
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT
+                serial_no,
+                barcode_no
+            FROM public.stock_details
+            WHERE equipment_id = %s
+            ORDER BY id
+        """, [equipment_id])
+
+        rows = cursor.fetchall()
+
+    serial_details = [
+        {
+            "serial_no": row[0],
+            "barcode_no": row[1],
+        }
+        for row in rows
+    ]
+
+    return JsonResponse({"serial_details": serial_details})
 
 def stock_in(request, equipment_id):
     print('inside the stock in')
