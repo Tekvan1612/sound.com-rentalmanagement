@@ -128,4 +128,5 @@ path('api/warehouses/', views.get_warehouses, name='get_warehouses'),
     path('get_crew_designations/', views.get_crew_designations, name='get_crew_designations'),
     path('get_vehicle_numbers/', views.get_vehicle_numbers, name='get_vehicle_numbers'),
     path('get_driver_list/', views.get_driver_list, name='get_driver_list'),
+    path('get_categories/', views.get_categories, name='get_categories'),
 ]
