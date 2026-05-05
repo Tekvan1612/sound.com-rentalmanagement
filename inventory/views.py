@@ -1396,6 +1396,20 @@ def stock_list(request):
     username = request.session.get('username')
     return render(request, 'inventory/Stock_details.html', {'username': username})
 
+def get_categories(request):
+    with connection.cursor() as cursor:
+        # Fetch categories ordered by category_name in ascending order
+        cursor.execute(
+            "SELECT category_id, category_name FROM master_category WHERE status = TRUE ORDER BY category_name ASC")
+        categories = cursor.fetchall()
+
+    # Convert the result into a list of dictionaries
+    category_list = [{'id': category[0], 'name': category[1]} for category in categories]
+
+    # Determine the default category (first in alphabetical order)
+    default_category = category_list[0] if category_list else None
+
+    return JsonResponse({'categories': category_list, 'default_category': default_category})
 
 def fetch_stock_equipment_list(request):
     if request.method == 'POST':
