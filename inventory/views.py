@@ -1411,6 +1411,51 @@ def get_categories(request):
 
     return JsonResponse({'categories': category_list, 'default_category': default_category})
 
+def fetch_equipment_usages(request):
+    equipment_id = request.GET.get('equipment_id')
+    response_data = {'data': []}
+
+    if equipment_id:
+        with connection.cursor() as cursor:
+            # Step 1: Get equipment name from equipment_list
+            cursor.execute("SELECT equipment_name FROM equipment_list WHERE id = %s", [equipment_id])
+            equipment_row = cursor.fetchone()
+
+            if equipment_row:
+                equipment_name = equipment_row[0]
+
+                # Step 2: Get temp_id(s) from temp_equipment_details where equipment_name matches
+                cursor.execute("""
+                    SELECT temp_id
+                    FROM temp_equipment_details
+                    WHERE equipment_name = %s
+                """, [equipment_name])
+
+                temp_ids = cursor.fetchall()
+
+                # Step 3: For each temp_id, get job_reference_no from temp table
+                for temp_id_row in temp_ids:
+                    temp_id = temp_id_row[0]
+
+                    cursor.execute("""
+                        SELECT job_reference_no
+                        FROM temp
+                        WHERE id = %s AND status = 'Delivery Challan'
+                    """, [temp_id])
+
+                    job_row = cursor.fetchone()
+                    if job_row:
+                        response_data['data'].append({
+                            'temp_id': temp_id,
+                            'job_reference_no': job_row[0]
+                        })
+            else:
+                response_data['error'] = 'Equipment not found.'
+    else:
+        response_data['error'] = 'No Equipment ID provided.'
+
+    return JsonResponse(response_data)
+
 def fetch_stock_equipment_list(request):
     if request.method == 'POST':
         category_id = request.POST.get('category_type', '')
