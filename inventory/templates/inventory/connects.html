@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -6,729 +5,697 @@
     {% include 'inventory/includes/head.html' %}
 </head>
 
-<body class="main-bg main-bg-opac main-bg-blur">
+<body class="main-bg main-bg-opac main-bg-blur roundedui adminuiux-header-standard adminuiux-sidebar-standard adminuiux-mobile-footer-fill-theme adminuiux-header-transparent theme-pista bg-r-gradient adminuiux-sidebar-fill-none scrollup"
+      data-theme="theme-pista"
+      data-sidebarfill="adminuiux-sidebar-fill-none"
+      data-sidebarlayout="adminuiux-sidebar-standard"
+      data-headerlayout="adminuiux-header-standard"
+      data-headerfill="adminuiux-header-transparent"
+      data-bggradient="bg-r-gradient">
+
+<div class="pageloader">
+    <div class="container h-100">
+        <div class="row justify-content-center align-items-center text-center h-100 pb-ios">
+            <div class="col-12 mb-auto pt-4"></div>
+            <div class="col-auto">
+                <img src="{% static 'inventory/assets/img/tekvan_logo_hd.png' %}" alt="" class="height-80 mb-3">
+                <p class="h2 mb-0 text-theme-accent-1">Rental</p>
+                <p class="display-3 text-theme-1 fw-bold mb-4">Management</p>
+                <div class="loader12 mb-2 mx-auto"></div>
+            </div>
+            <div class="col-12 mt-auto pb-4">
+                <p class="small text-secondary">Please wait we are preparing awesome things...</p>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% include 'inventory/includes/header.html' %}
 
 <div class="adminuiux-wrap">
-{% include 'inventory/includes/sidebar.html' %}
+    {% include 'inventory/includes/sidebar.html' %}
 
-<main class="adminuiux-content has-sidebar">
+    <main class="adminuiux-content has-sidebar">
+        <div class="container mt-3">
 
-<div class="container mt-3">
-
-    <!-- HEADER + ACTION -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">Connects</h4>
-        <button class="btn btn-theme"
-                data-bs-toggle="collapse"
-                data-bs-target="#connectForm">
-            + New Connect
-        </button>
-    </div>
-
-    <!-- 🔽 FORM -->
-    <div class="collapse" id="connectForm">
-        <div class="card shadow-sm border-0 mb-3">
-            <div class="card-body">
-
-                <!-- TYPE -->
-                <div class="row mb-3">
-                    <div class="col-md-3">
-                        <label class="form-label">Type</label>
-                        <select id="type" class="form-control" onchange="toggleForm()">
-                            <option value="Company">Company</option>
-                            <option value="Venue">Venue</option>
-                            <option value="Individual">Individual</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- COMPANY -->
-                <div id="companyForm">
-                    <div class="row g-2">
-
-                        <div class="col-md-3"><input id="company_name" class="form-control" placeholder="Company Name"></div>
-                        <div class="col-md-3"><input id="gst_no" class="form-control" placeholder="GST No"></div>
-                        <div class="col-md-3"><input id="pan_no" class="form-control" placeholder="PAN No"></div>
-                        <div class="col-md-3"><input id="company_email" class="form-control" placeholder="Email"></div>
-
-                        <div class="col-md-3"><input id="office_address" class="form-control" placeholder="Office Address"></div>
-                        <div class="col-md-3"><input id="billing_address" class="form-control" placeholder="Billing Address"></div>
-
-                    </div>
-                </div>
-
-                <!-- VENUE -->
-                <div id="venueForm" style="display:none;">
-                    <div class="row g-2">
-
-                        <div class="col-md-3"><input id="venue_name" class="form-control" placeholder="Venue Name"></div>
-                        <div class="col-md-3"><input id="venue_address" class="form-control" placeholder="Venue Address"></div>
-
-                    </div>
-                </div>
-
-                <!-- INDIVIDUAL -->
-                <div id="individualForm" style="display:none;">
-                    <div class="row g-2">
-
-                        <div class="col-md-3"><input id="individual_name" class="form-control" placeholder="Name"></div>
-                        <div class="col-md-3"><input id="mobile_no" class="form-control" placeholder="Mobile"></div>
-                        <div class="col-md-3"><input id="social_no" class="form-control" placeholder="Social No"></div>
-                        <div class="col-md-3"><input id="individual_email" class="form-control" placeholder="Email"></div>
-
-                        <div class="col-md-3"><input id="company" class="form-control" placeholder="Company"></div>
-                        <div class="col-md-3"><input id="individual_address" class="form-control" placeholder="Address"></div>
-
-                    </div>
-                </div>
-
-                <!-- COMMON -->
-                <div class="row g-2 mt-3">
-                    <div class="col-md-3"><input id="country" class="form-control" placeholder="Country"></div>
-                    <div class="col-md-3"><input id="state" class="form-control" placeholder="State"></div>
-                    <div class="col-md-3"><input id="city" class="form-control" placeholder="City"></div>
-                    <div class="col-md-3"><input id="post_code" class="form-control" placeholder="Post Code"></div>
-                </div>
-
-                <!-- ACTION -->
-                <div class="mt-3">
-                    <button class="btn btn-theme" onclick="saveConnect()">Save</button>
-                    <button class="btn btn-outline-secondary" onclick="resetForm()">Cancel</button>
-                </div>
-
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">Connects</h4>
+                <button class="btn btn-theme" data-bs-toggle="collapse" data-bs-target="#connectForm">
+                    + New Connect
+                </button>
             </div>
+
+            <div class="collapse" id="connectForm">
+                <div class="card shadow-sm border-0 mb-3">
+                    <div class="card-body">
+
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Type</label>
+                                <select id="type" class="form-control" onchange="toggleForm()">
+                                    <option value="Company">Company</option>
+                                    <option value="Venue">Venue</option>
+                                    <option value="Individual">Individual</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="companyForm">
+                            <div class="row g-2">
+                                <div class="col-md-3"><input id="company_name" class="form-control"
+                                                             placeholder="Company Name"></div>
+                                <div class="col-md-3"><input id="gst_no" class="form-control" placeholder="GST No">
+                                </div>
+                                <div class="col-md-3"><input id="pan_no" class="form-control" placeholder="PAN No">
+                                </div>
+                                <div class="col-md-3"><input id="company_email" class="form-control"
+                                                             placeholder="Email"></div>
+                                <div class="col-md-3"><input id="office_address" class="form-control"
+                                                             placeholder="Office Address"></div>
+                                <div class="col-md-3"><input id="billing_address" class="form-control"
+                                                             placeholder="Billing Address"></div>
+                            </div>
+                        </div>
+
+                        <div id="venueForm" style="display:none;">
+                            <div class="row g-2">
+                                <div class="col-md-3"><input id="venue_name" class="form-control"
+                                                             placeholder="Venue Name"></div>
+                                <div class="col-md-3"><input id="venue_address" class="form-control"
+                                                             placeholder="Venue Address"></div>
+                            </div>
+                        </div>
+
+                        <div id="individualForm" style="display:none;">
+                            <div class="row g-2">
+                                <div class="col-md-3"><input id="individual_name" class="form-control"
+                                                             placeholder="Name"></div>
+                                <div class="col-md-3"><input id="mobile_no" class="form-control" placeholder="Mobile">
+                                </div>
+                                <div class="col-md-3"><input id="social_no" class="form-control"
+                                                             placeholder="Social No"></div>
+                                <div class="col-md-3"><input id="individual_email" class="form-control"
+                                                             placeholder="Email"></div>
+                                <div class="col-md-3"><input id="company" class="form-control" placeholder="Company">
+                                </div>
+                                <div class="col-md-3"><input id="individual_address" class="form-control"
+                                                             placeholder="Address"></div>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mt-3">
+                            <div class="col-md-3"><input id="country" class="form-control" placeholder="Country"></div>
+                            <div class="col-md-3"><input id="state" class="form-control" placeholder="State"></div>
+                            <div class="col-md-3"><input id="city" class="form-control" placeholder="City"></div>
+                            <div class="col-md-3"><input id="post_code" class="form-control" placeholder="Post Code">
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <button class="btn btn-theme" onclick="saveConnect()">Save</button>
+                            <button class="btn btn-outline-secondary" onclick="resetForm()">Cancel</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-3 filter-card">
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <select id="searchType" class="form-control">
+                                <option value="Company">Company</option>
+                                <option value="Venue">Venue</option>
+                                <option value="Individual">Individual</option>
+                            </select>
+                        </div>
+                        <div class="col-md-9">
+                            <input type="text" id="search" class="form-control" placeholder="Search connects...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card asset-master-card">
+                <div class="card-body table-responsive">
+                    <table class="table asset-table align-middle" id="connectTable">
+                        <thead>
+                        <tr id="tableHead"></tr>
+                        </thead>
+                        <tbody id="list"></tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
-    </div>
-
-    <!-- 🔍 SEARCH -->
-    <div class="card shadow-sm border-0 mb-3">
-        <div class="card-body">
-            <input type="text" id="search" class="form-control" placeholder="Search connects...">
-        </div>
-    </div>
-
-    <!-- 📋 LIST -->
-    <div class="card shadow-sm border-0">
-        <div class="card-body table-responsive">
-
-            <table class="table table-hover align-middle">
-                <thead>
-                    <tr id="tableHead"></tr>
-                </thead>
-                <tbody id="list"></tbody>
-            </table>
-
-        </div>
-    </div>
-
-</div>
-
-</main>
+    </main>
 </div>
 
 {% include 'inventory/includes/footer.html' %}
 
 <script>
+    let connectTableInstance = null;
+    let allConnects = [];
+    let selectedRowId = null;
 
-function toggleForm(){
-    const t = type.value;
-    companyForm.style.display = t==="Company"?"block":"none";
-    venueForm.style.display = t==="Venue"?"block":"none";
-    individualForm.style.display = t==="Individual"?"block":"none";
-}
-
-function saveConnect(){
-
-    const fd = new FormData();
-
-    // 🔥 VALIDATION FIRST
-    if(!type.value){
-        alert("Please select type");
-        return;
+    function toggleForm() {
+        const t = type.value;
+        companyForm.style.display = t === "Company" ? "block" : "none";
+        venueForm.style.display = t === "Venue" ? "block" : "none";
+        individualForm.style.display = t === "Individual" ? "block" : "none";
     }
 
-    if(type.value === "Company" && !company_name.value){
-        alert("Company name is required");
-        return;
-    }
+    function saveConnect() {
+        const fd = new FormData();
 
-    if(type.value === "Individual" && !mobile_no.value){
-        alert("Mobile number is required");
-        return;
-    }
-
-    if(!country.value || !city.value){
-        alert("Country and City are required");
-        return;
-    }
-
-    // 🔥 APPEND DATA
-    fd.append("type", type.value);
-
-    fd.append("company_name", company_name.value);
-    fd.append("gst_no", gst_no.value);
-    fd.append("pan_no", pan_no.value);
-    fd.append("company_email", company_email.value);
-    fd.append("office_address", office_address.value);
-    fd.append("billing_address", billing_address.value);
-
-    fd.append("venue_name", venue_name.value);
-    fd.append("venue_address", venue_address.value);
-
-    fd.append("individual_name", individual_name.value);
-    fd.append("mobile_no", mobile_no.value);
-    fd.append("social_no", social_no.value);
-    fd.append("individual_email", individual_email.value);
-    fd.append("company", company.value);
-    fd.append("individual_address", individual_address.value);
-
-    fd.append("country", country.value);
-    fd.append("state", state.value);   // 🔥 IMPORTANT
-    fd.append("city", city.value);
-    fd.append("post_code", post_code.value);
-
-    fetch("/save-connect/", {
-        method:"POST",
-        body:fd,
-        headers: {"X-CSRFToken": getCookie("csrftoken")}
-    })
-    .then(res => res.json())
-    .then(data => {
-
-        if(data.success){
-
-            alert("Record saved successfully ✅");
-
-            resetForm();     // 🔥 CLEAR FORM
-            loadList();      // 🔥 REFRESH LIST
-
-        } else {
-            alert("Error saving record ❌");
+        if (!type.value) {
+            alert("Please select type");
+            return;
         }
 
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Something went wrong");
-    });
-}
+        if (type.value === "Company" && !company_name.value) {
+            alert("Company name is required");
+            return;
+        }
 
-function loadList(){
+        if (type.value === "Individual" && !mobile_no.value) {
+            alert("Mobile number is required");
+            return;
+        }
 
-    fetch("/get-connects/")
-    .then(res => res.json())
-    .then(data => {
+        if (!country.value || !city.value) {
+            alert("Country and City are required");
+            return;
+        }
 
-        const type = document.getElementById("type").value;
+        fd.append("type", type.value);
+        fd.append("company_name", company_name.value);
+        fd.append("gst_no", gst_no.value);
+        fd.append("pan_no", pan_no.value);
+        fd.append("company_email", company_email.value);
+        fd.append("office_address", office_address.value);
+        fd.append("billing_address", billing_address.value);
+        fd.append("venue_name", venue_name.value);
+        fd.append("venue_address", venue_address.value);
+        fd.append("individual_name", individual_name.value);
+        fd.append("mobile_no", mobile_no.value);
+        fd.append("social_no", social_no.value);
+        fd.append("individual_email", individual_email.value);
+        fd.append("company", company.value);
+        fd.append("individual_address", individual_address.value);
+        fd.append("country", country.value);
+        fd.append("state", state.value);
+        fd.append("city", city.value);
+        fd.append("post_code", post_code.value);
+        fd.append("id", window.editId || "");
+        fd.append("operation", window.editId ? "UPDATE" : "CREATE");
+
+        fetch("/save-connect/", {
+            method: "POST",
+            body: fd,
+            headers: {"X-CSRFToken": getCookie("csrftoken")}
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Record saved successfully ✅");
+                    resetForm();
+                    loadList();
+                } else {
+                    alert("Error saving record ❌");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Something went wrong");
+            });
+    }
+
+    function loadList() {
+        fetch("/get-connects/")
+            .then(res => res.json())
+            .then(data => {
+                allConnects = data.data || [];
+                renderConnectList();
+            });
+    }
+
+    function getBadge(type) {
+        if (type === "Company") {
+            return `<span class="connect-badge badge-company"><i class="bi bi-building"></i></span>`;
+        }
+        if (type === "Venue") {
+            return `<span class="connect-badge badge-venue"><i class="bi bi-geo-alt"></i></span>`;
+        }
+        return `<span class="connect-badge badge-individual"><i class="bi bi-person"></i></span>`;
+    }
+
+    function actionButtons(r) {
+        return `
+        <div class="d-flex gap-2">
+            <button class="btn btn-info rounded-circle btn-icon"
+                    title="View"
+                    onclick='viewConnect(${JSON.stringify(r)})'>
+                <i class="bi bi-eye-fill"></i>
+            </button>
+
+            <button class="btn btn-primary rounded-circle btn-icon"
+                    title="Edit"
+                    onclick='editConnect(${JSON.stringify(r)})'>
+                <i class="bi bi-pencil-fill"></i>
+            </button>
+
+            <button class="btn btn-danger rounded-circle btn-icon"
+                    title="Delete"
+                    onclick="deleteConnect(${r.id})">
+                <i class="bi bi-trash-fill"></i>
+            </button>
+        </div>
+    `;
+    }
+
+    function selectConnectRow(id) {
+        selectedRowId = id;
+        document.querySelectorAll("#connectTable tbody tr").forEach(row => {
+            row.classList.remove("selected-row");
+        });
+
+        const row = document.querySelector(`#connectTable tbody tr[data-id="${id}"]`);
+        if (row) row.classList.add("selected-row");
+    }
+
+    function renderConnectList() {
+        destroyConnectTable();
+
+        const type = document.getElementById("searchType").value;
+        const searchText = document.getElementById("search").value.toLowerCase();
         const head = document.getElementById("tableHead");
         const body = document.getElementById("list");
 
         head.innerHTML = "";
         body.innerHTML = "";
 
-        // 🏢 COMPANY
-        if(type === "Company"){
+        const filtered = allConnects.filter(r => {
+            if ((r.type || "").toLowerCase() !== type.toLowerCase()) return false;
+            const text = JSON.stringify(r).toLowerCase();
+            return !searchText || text.includes(searchText);
+        });
 
+        if (type === "Company") {
             head.innerHTML = `
-                <th>Company Name</th>
-                <th>GST No</th>
-                <th>PAN No</th>
-                <th>Email</th>
-                <th>Office Address</th>
-                <th>Billing Address</th>
-                <th>Country</th>
-                <th>State</th>
-                <th>City</th>
-                <th>Post Code</th>
-            `;
+            <th>Action</th>
+            <th>Company Name</th>
+            <th>GST No</th>
+            <th>PAN No</th>
+            <th>Email</th>
+        `;
 
-            data.data.forEach(r => {
-                if(r.type.toLowerCase() !== "company") return;
-
+            filtered.forEach(r => {
                 body.innerHTML += `
-                    <tr>
-                        <td>${r.company_name || ""}</td>
-                        <td>${r.gst_no || ""}</td>
-                        <td>${r.pan_no || ""}</td>
-                        <td>${r.company_email || ""}</td>
-                        <td>${r.office_address || ""}</td>
-                        <td>${r.billing_address || ""}</td>
-                        <td>${r.country || ""}</td>
-                        <td>${r.state || ""}</td>
-                        <td>${r.city || ""}</td>
-                        <td>${r.post_code || ""}</td>
-                    </tr>
-                `;
+                <tr data-id="${r.id}" onclick="selectConnectRow(${r.id})">
+                    <td>${actionButtons(r)}</td>
+                    <td class="fw-semibold text-theme-1">
+                        ${getBadge("Company")}
+                        ${r.company_name || ""}
+                    </td>
+                    <td>${r.gst_no || ""}</td>
+                    <td>${r.pan_no || ""}</td>
+                    <td>${r.company_email || ""}</td>
+                </tr>`;
             });
         }
 
-        // 🏟️ VENUE
-        if(type === "Venue"){
-
+        if (type === "Venue") {
             head.innerHTML = `
-                <th>Venue Name</th>
-                <th>Venue Address</th>
-                <th>Country</th>
-                <th>State</th>
-                <th>City</th>
-                <th>Post Code</th>
-            `;
+    <th>Action</th>
+    <th>Type</th>
+    <th>Venue Name</th>
+    <th>Venue Address</th>
+    <th>City</th>
+`;
 
-            data.data.forEach(r => {
-                if(r.type.toLowerCase() !== "venue") return;
-
+            filtered.forEach(r => {
                 body.innerHTML += `
-                    <tr>
-                        <td>${r.venue_name || ""}</td>
-                        <td>${r.venue_address || ""}</td>
-                        <td>${r.country || ""}</td>
-                        <td>${r.state || ""}</td>
-                        <td>${r.city || ""}</td>
-                        <td>${r.post_code || ""}</td>
-                    </tr>
-                `;
+<tr data-id="${r.id}" onclick="selectConnectRow(${r.id})">
+    <td>${actionButtons(r)}</td>
+    <td>${getBadge("Venue")}</td>
+    <td class="fw-semibold text-theme-1 text-nowrap">${r.venue_name || ""}</td>
+    <td>${r.venue_address || ""}</td>
+    <td>${r.city || ""}</td>
+</tr>`;
             });
         }
 
-        // 👤 INDIVIDUAL
-        if(type === "Individual"){
-
+        if (type === "Individual") {
             head.innerHTML = `
-                <th>Name</th>
-                <th>Mobile</th>
-                <th>Social No</th>
-                <th>Email</th>
-                <th>Company</th>
-                <th>Address</th>
-                <th>State</th>
-                <th>City</th>
-                <th>Post Code</th>
-            `;
+            <th>Action</th>
+            <th>Name</th>
+            <th>Mobile</th>
+            <th>Email</th>
+            <th>Company</th>
+            <th>City</th>
+        `;
 
-            data.data.forEach(r => {
-                if(r.type.toLowerCase() !== "individual") return;
-
+            filtered.forEach(r => {
                 body.innerHTML += `
-                    <tr>
-                        <td>${r.individual_name || ""}</td>
-                        <td>${r.mobile_no || ""}</td>
-                        <td>${r.social_no || ""}</td>
-                        <td>${r.individual_email || ""}</td>
-                        <td>${r.company || ""}</td>
-                        <td>${r.individual_address || ""}</td>
-                        <td>${r.state || ""}</td>
-                        <td>${r.city || ""}</td>
-                        <td>${r.post_code || ""}</td>
-                    </tr>
-                `;
+                <tr data-id="${r.id}" onclick="selectConnectRow(${r.id})">
+                    <td>${actionButtons(r)}</td>
+                    <td class="fw-semibold text-theme-1">
+                        ${getBadge("Individual")}
+                        ${r.individual_name || ""}
+                    </td>
+                    <td>${r.mobile_no || ""}</td>
+                    <td>${r.individual_email || ""}</td>
+                    <td>${r.company || ""}</td>
+                    <td>${r.city || ""}</td>
+                </tr>`;
             });
         }
 
-    });
-}
+        initConnectTable();
+    }
 
-function resetForm(){
+    function resetForm() {
+        document.querySelectorAll("#connectForm input").forEach(i => {
+            i.value = "";
+        });
 
-    document.querySelectorAll("#connectForm input").forEach(i=>{
-        i.value="";
-    });
+        type.value = "Company";
+        toggleForm();
+        window.editId = null;
 
-    // reset dropdown
-    type.value = "Company";
+        const collapseEl = document.getElementById('connectForm');
+        const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapseEl);
+        bsCollapse.hide();
+    }
 
-    // reset form view
-    toggleForm();
-}
+    function deleteConnect(id) {
+        event.stopPropagation();
 
-function getCookie(n){
-    let v=null;
-    document.cookie.split(';').forEach(c=>{
-        if(c.trim().startsWith(n+'=')){
-            v=decodeURIComponent(c.split('=')[1]);
+        if (!confirm("Are you sure you want to delete this record?")) return;
+
+        fetch(`/delete-connect/${id}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken")
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Deleted successfully ✅");
+                    loadList();
+                } else {
+                    alert("Delete failed ❌");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Error deleting");
+            });
+    }
+
+    function editConnect(record) {
+        event.stopPropagation();
+
+        const collapseEl = document.getElementById('connectForm');
+        const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapseEl);
+        bsCollapse.show();
+
+        const typeValue = record.type.charAt(0).toUpperCase() + record.type.slice(1).toLowerCase();
+        type.value = typeValue;
+        toggleForm();
+
+        resetFormFieldsOnly();
+
+        if (typeValue === "Company") {
+            company_name.value = record.company_name || "";
+            gst_no.value = record.gst_no || "";
+            pan_no.value = record.pan_no || "";
+            company_email.value = record.company_email || "";
+            office_address.value = record.office_address || "";
+            billing_address.value = record.billing_address || "";
         }
-    });
-    return v;
-}
 
-document.addEventListener("DOMContentLoaded", function () {
+        if (typeValue === "Venue") {
+            venue_name.value = record.venue_name || "";
+            venue_address.value = record.venue_address || "";
+        }
 
-    loadList(); // initial load
+        if (typeValue === "Individual") {
+            individual_name.value = record.individual_name || "";
+            mobile_no.value = record.mobile_no || "";
+            social_no.value = record.social_no || "";
+            individual_email.value = record.individual_email || "";
+            company.value = record.company || "";
+            individual_address.value = record.individual_address || "";
+        }
 
-    // 🔥 ADD THIS HERE
-    document.getElementById("type").addEventListener("change", loadList);
+        country.value = record.country || "";
+        state.value = record.state || "";
+        city.value = record.city || "";
+        post_code.value = record.post_code || "";
 
-});
+        window.editId = record.id;
+    }
 
-</script>
+    function resetFormFieldsOnly() {
+        document.querySelectorAll("#connectForm input").forEach(i => {
+            i.value = "";
+        });
+    }
 
-</body>
-=======
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    {% include 'inventory/includes/head.html' %}
-</head>
+function viewConnect(record) {
+    event.stopPropagation();
 
-<body class="main-bg main-bg-opac main-bg-blur">
+    const type = (record.type || "").toLowerCase();
+    const cleanType = type.charAt(0).toUpperCase() + type.slice(1);
 
-{% include 'inventory/includes/header.html' %}
+    document.getElementById("viewModalTitle").innerText = `${cleanType} Details`;
+    document.getElementById("viewModalBadge").innerText = cleanType;
 
-<div class="adminuiux-wrap">
-{% include 'inventory/includes/sidebar.html' %}
+    let fields = [];
 
-<main class="adminuiux-content has-sidebar">
+    if (type === "company") {
+        fields = [
+            ["bi-building", "Company Name", record.company_name],
+            ["bi-receipt", "GST No", record.gst_no],
+            ["bi-credit-card-2-front", "PAN No", record.pan_no],
+            ["bi-envelope", "Email", record.company_email],
+            ["bi-geo-alt", "Office Address", record.office_address],
+            ["bi-geo", "Billing Address", record.billing_address],
+            ["bi-globe", "Country", record.country],
+            ["bi-map", "State", record.state],
+            ["bi-pin-map", "City", record.city],
+            ["bi-mailbox", "Post Code", record.post_code],
+        ];
+    }
 
-<div class="container mt-3">
+    if (type === "venue") {
+        fields = [
+            ["bi-geo-alt-fill", "Venue Name", record.venue_name],
+            ["bi-map", "Venue Address", record.venue_address],
+            ["bi-globe", "Country", record.country],
+            ["bi-map", "State", record.state],
+            ["bi-pin-map", "City", record.city],
+            ["bi-mailbox", "Post Code", record.post_code],
+        ];
+    }
 
-    <!-- HEADER + ACTION -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">Connects</h4>
-        <button class="btn btn-theme"
-                data-bs-toggle="collapse"
-                data-bs-target="#connectForm">
-            + New Connect
-        </button>
-    </div>
+    if (type === "individual") {
+        fields = [
+            ["bi-person", "Name", record.individual_name],
+            ["bi-telephone", "Mobile", record.mobile_no],
+            ["bi-person-vcard", "Social No", record.social_no],
+            ["bi-envelope", "Email", record.individual_email],
+            ["bi-building", "Company", record.company],
+            ["bi-geo-alt", "Address", record.individual_address],
+            ["bi-globe", "Country", record.country],
+            ["bi-map", "State", record.state],
+            ["bi-pin-map", "City", record.city],
+            ["bi-mailbox", "Post Code", record.post_code],
+        ];
+    }
 
-    <!-- 🔽 FORM -->
-    <div class="collapse" id="connectForm">
-        <div class="card shadow-sm border-0 mb-3">
-            <div class="card-body">
-
-                <!-- TYPE -->
-                <div class="row mb-3">
-                    <div class="col-md-3">
-                        <label class="form-label">Type</label>
-                        <select id="type" class="form-control" onchange="toggleForm()">
-                            <option value="Company">Company</option>
-                            <option value="Venue">Venue</option>
-                            <option value="Individual">Individual</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- COMPANY -->
-                <div id="companyForm">
-                    <div class="row g-2">
-
-                        <div class="col-md-3"><input id="company_name" class="form-control" placeholder="Company Name"></div>
-                        <div class="col-md-3"><input id="gst_no" class="form-control" placeholder="GST No"></div>
-                        <div class="col-md-3"><input id="pan_no" class="form-control" placeholder="PAN No"></div>
-                        <div class="col-md-3"><input id="company_email" class="form-control" placeholder="Email"></div>
-
-                        <div class="col-md-3"><input id="office_address" class="form-control" placeholder="Office Address"></div>
-                        <div class="col-md-3"><input id="billing_address" class="form-control" placeholder="Billing Address"></div>
-
-                    </div>
-                </div>
-
-                <!-- VENUE -->
-                <div id="venueForm" style="display:none;">
-                    <div class="row g-2">
-
-                        <div class="col-md-3"><input id="venue_name" class="form-control" placeholder="Venue Name"></div>
-                        <div class="col-md-3"><input id="venue_address" class="form-control" placeholder="Venue Address"></div>
-
-                    </div>
-                </div>
-
-                <!-- INDIVIDUAL -->
-                <div id="individualForm" style="display:none;">
-                    <div class="row g-2">
-
-                        <div class="col-md-3"><input id="individual_name" class="form-control" placeholder="Name"></div>
-                        <div class="col-md-3"><input id="mobile_no" class="form-control" placeholder="Mobile"></div>
-                        <div class="col-md-3"><input id="social_no" class="form-control" placeholder="Social No"></div>
-                        <div class="col-md-3"><input id="individual_email" class="form-control" placeholder="Email"></div>
-
-                        <div class="col-md-3"><input id="company" class="form-control" placeholder="Company"></div>
-                        <div class="col-md-3"><input id="individual_address" class="form-control" placeholder="Address"></div>
-
-                    </div>
-                </div>
-
-                <!-- COMMON -->
-                <div class="row g-2 mt-3">
-                    <div class="col-md-3"><input id="country" class="form-control" placeholder="Country"></div>
-                    <div class="col-md-3"><input id="state" class="form-control" placeholder="State"></div>
-                    <div class="col-md-3"><input id="city" class="form-control" placeholder="City"></div>
-                    <div class="col-md-3"><input id="post_code" class="form-control" placeholder="Post Code"></div>
-                </div>
-
-                <!-- ACTION -->
-                <div class="mt-3">
-                    <button class="btn btn-theme" onclick="saveConnect()">Save</button>
-                    <button class="btn btn-outline-secondary" onclick="resetForm()">Cancel</button>
-                </div>
-
+    document.getElementById("viewContent").innerHTML = fields.map(([icon, label, value]) => `
+        <div class="connect-detail-card">
+            <div class="connect-detail-icon">
+                <i class="bi ${icon}"></i>
+            </div>
+            <div>
+                <div class="connect-detail-label">${label}</div>
+                <div class="connect-detail-value">${value || "-"}</div>
             </div>
         </div>
-    </div>
+    `).join("");
 
-    <!-- 🔍 SEARCH -->
-    <div class="card shadow-sm border-0 mb-3">
-        <div class="card-body">
-            <input type="text" id="search" class="form-control" placeholder="Search connects...">
-        </div>
-    </div>
-
-    <!-- 📋 LIST -->
-    <div class="card shadow-sm border-0">
-        <div class="card-body table-responsive">
-
-            <table class="table table-hover align-middle">
-                <thead>
-                    <tr id="tableHead"></tr>
-                </thead>
-                <tbody id="list"></tbody>
-            </table>
-
-        </div>
-    </div>
-
-</div>
-
-</main>
-</div>
-
-{% include 'inventory/includes/footer.html' %}
-
-<script>
-
-function toggleForm(){
-    const t = type.value;
-    companyForm.style.display = t==="Company"?"block":"none";
-    venueForm.style.display = t==="Venue"?"block":"none";
-    individualForm.style.display = t==="Individual"?"block":"none";
+    new bootstrap.Modal(document.getElementById("viewModal")).show();
 }
 
-function saveConnect(){
-
-    const fd = new FormData();
-
-    // 🔥 VALIDATION FIRST
-    if(!type.value){
-        alert("Please select type");
-        return;
+    function getCookie(n) {
+        let v = null;
+        document.cookie.split(';').forEach(c => {
+            if (c.trim().startsWith(n + '=')) {
+                v = decodeURIComponent(c.split('=')[1]);
+            }
+        });
+        return v;
     }
 
-    if(type.value === "Company" && !company_name.value){
-        alert("Company name is required");
-        return;
+    document.addEventListener("DOMContentLoaded", function () {
+        loadList();
+
+        document.getElementById("searchType").addEventListener("change", function () {
+            selectedRowId = null;
+            renderConnectList();
+        });
+
+        document.getElementById("search").addEventListener("input", renderConnectList);
+    });
+
+    function initConnectTable() {
+        destroyConnectTable();
+
+        if (!$('#connectTable').length) return;
+
+        connectTableInstance = $('#connectTable').DataTable({
+            pageLength: 25,
+            responsive: true,
+            autoWidth: false,
+            ordering: false,
+            searching: false,
+            lengthChange: false,
+            dom: '<"d-flex justify-content-between align-items-center mt-2"i p>rt'
+        });
     }
 
-    if(type.value === "Individual" && !mobile_no.value){
-        alert("Mobile number is required");
-        return;
+    function destroyConnectTable() {
+        if ($.fn.DataTable.isDataTable('#connectTable')) {
+            $('#connectTable').DataTable().destroy();
+        }
+        connectTableInstance = null;
     }
-
-    if(!country.value || !city.value){
-        alert("Country and City are required");
-        return;
-    }
-
-    // 🔥 APPEND DATA
-    fd.append("type", type.value);
-
-    fd.append("company_name", company_name.value);
-    fd.append("gst_no", gst_no.value);
-    fd.append("pan_no", pan_no.value);
-    fd.append("company_email", company_email.value);
-    fd.append("office_address", office_address.value);
-    fd.append("billing_address", billing_address.value);
-
-    fd.append("venue_name", venue_name.value);
-    fd.append("venue_address", venue_address.value);
-
-    fd.append("individual_name", individual_name.value);
-    fd.append("mobile_no", mobile_no.value);
-    fd.append("social_no", social_no.value);
-    fd.append("individual_email", individual_email.value);
-    fd.append("company", company.value);
-    fd.append("individual_address", individual_address.value);
-
-    fd.append("country", country.value);
-    fd.append("state", state.value);   // 🔥 IMPORTANT
-    fd.append("city", city.value);
-    fd.append("post_code", post_code.value);
-
-    fetch("/save-connect/", {
-        method:"POST",
-        body:fd,
-        headers: {"X-CSRFToken": getCookie("csrftoken")}
-    })
-    .then(res => res.json())
-    .then(data => {
-
-        if(data.success){
-
-            alert("Record saved successfully ✅");
-
-            resetForm();     // 🔥 CLEAR FORM
-            loadList();      // 🔥 REFRESH LIST
-
-        } else {
-            alert("Error saving record ❌");
-        }
-
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Something went wrong");
-    });
-}
-
-function loadList(){
-
-    fetch("/get-connects/")
-    .then(res => res.json())
-    .then(data => {
-
-        const type = document.getElementById("type").value;
-        const head = document.getElementById("tableHead");
-        const body = document.getElementById("list");
-
-        head.innerHTML = "";
-        body.innerHTML = "";
-
-        // 🏢 COMPANY
-        if(type === "Company"){
-
-            head.innerHTML = `
-                <th>Company Name</th>
-                <th>GST No</th>
-                <th>PAN No</th>
-                <th>Email</th>
-                <th>Office Address</th>
-                <th>Billing Address</th>
-                <th>Country</th>
-                <th>State</th>
-                <th>City</th>
-                <th>Post Code</th>
-            `;
-
-            data.data.forEach(r => {
-                if(r.type.toLowerCase() !== "company") return;
-
-                body.innerHTML += `
-                    <tr>
-                        <td>${r.company_name || ""}</td>
-                        <td>${r.gst_no || ""}</td>
-                        <td>${r.pan_no || ""}</td>
-                        <td>${r.company_email || ""}</td>
-                        <td>${r.office_address || ""}</td>
-                        <td>${r.billing_address || ""}</td>
-                        <td>${r.country || ""}</td>
-                        <td>${r.state || ""}</td>
-                        <td>${r.city || ""}</td>
-                        <td>${r.post_code || ""}</td>
-                    </tr>
-                `;
-            });
-        }
-
-        // 🏟️ VENUE
-        if(type === "Venue"){
-
-            head.innerHTML = `
-                <th>Venue Name</th>
-                <th>Venue Address</th>
-                <th>Country</th>
-                <th>State</th>
-                <th>City</th>
-                <th>Post Code</th>
-            `;
-
-            data.data.forEach(r => {
-                if(r.type.toLowerCase() !== "venue") return;
-
-                body.innerHTML += `
-                    <tr>
-                        <td>${r.venue_name || ""}</td>
-                        <td>${r.venue_address || ""}</td>
-                        <td>${r.country || ""}</td>
-                        <td>${r.state || ""}</td>
-                        <td>${r.city || ""}</td>
-                        <td>${r.post_code || ""}</td>
-                    </tr>
-                `;
-            });
-        }
-
-        // 👤 INDIVIDUAL
-        if(type === "Individual"){
-
-            head.innerHTML = `
-                <th>Name</th>
-                <th>Mobile</th>
-                <th>Social No</th>
-                <th>Email</th>
-                <th>Company</th>
-                <th>Address</th>
-                <th>State</th>
-                <th>City</th>
-                <th>Post Code</th>
-            `;
-
-            data.data.forEach(r => {
-                if(r.type.toLowerCase() !== "individual") return;
-
-                body.innerHTML += `
-                    <tr>
-                        <td>${r.individual_name || ""}</td>
-                        <td>${r.mobile_no || ""}</td>
-                        <td>${r.social_no || ""}</td>
-                        <td>${r.individual_email || ""}</td>
-                        <td>${r.company || ""}</td>
-                        <td>${r.individual_address || ""}</td>
-                        <td>${r.state || ""}</td>
-                        <td>${r.city || ""}</td>
-                        <td>${r.post_code || ""}</td>
-                    </tr>
-                `;
-            });
-        }
-
-    });
-}
-
-function resetForm(){
-
-    document.querySelectorAll("#connectForm input").forEach(i=>{
-        i.value="";
-    });
-
-    // reset dropdown
-    type.value = "Company";
-
-    // reset form view
-    toggleForm();
-}
-
-function getCookie(n){
-    let v=null;
-    document.cookie.split(';').forEach(c=>{
-        if(c.trim().startsWith(n+'=')){
-            v=decodeURIComponent(c.split('=')[1]);
-        }
-    });
-    return v;
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-
-    loadList(); // initial load
-
-    // 🔥 ADD THIS HERE
-    document.getElementById("type").addEventListener("change", loadList);
-
-});
-
 </script>
 
+<div class="modal fade" id="viewModal" tabindex="-1" aria-labelledby="viewModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content connect-view-modal">
+
+            <div class="modal-header connect-view-header">
+                <div>
+                    <span class="connect-view-badge" id="viewModalBadge">Connect</span>
+                    <h5 class="modal-title mt-2" id="viewModalTitle">Details</h5>
+                </div>
+                <button type="button" class="btn-close connect-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div id="viewContent" class="connect-detail-grid"></div>
+            </div>
+
+            <div class="modal-footer connect-view-footer">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                    Close
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+<style>
+.connect-view-modal {
+    border: 0;
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 24px 80px rgba(0,0,0,.28);
+}
+
+.connect-view-header {
+    border: 0;
+    padding: 26px 30px 12px;
+    background: linear-gradient(135deg, #eef7ed, #ffffff);
+}
+
+.connect-view-header .modal-title {
+    font-size: 26px;
+    font-weight: 800;
+    color: #263528;
+}
+
+.connect-view-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: #7faa72;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.connect-close {
+    transform: scale(1.15);
+}
+
+.connect-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    padding: 4px;
+}
+
+.connect-detail-card {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 16px;
+    border-radius: 18px;
+    background: #f7faf6;
+    border: 1px solid rgba(122,168,111,.2);
+}
+
+.connect-detail-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: #e5f1e2;
+    color: #669b5d;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex: 0 0 auto;
+}
+
+.connect-detail-label {
+    font-size: 12px;
+    color: #7b897d;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-bottom: 4px;
+}
+
+.connect-detail-value {
+    font-size: 15px;
+    color: #232b25;
+    font-weight: 600;
+    word-break: break-word;
+}
+
+.connect-view-footer {
+    border: 0;
+    padding: 8px 30px 26px;
+    background: #fff;
+}
+
+@media (max-width: 768px) {
+    .connect-detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
 </body>
->>>>>>> 6ad47df (Fix database and connects routing)
 </html>

@@ -135,4 +135,5 @@ urlpatterns = [
         views.get_serial_details,
         name="get_serial_details"
     ),
+    path("get-connects/", views.get_connects),
 ]
