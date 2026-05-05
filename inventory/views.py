@@ -1394,7 +1394,7 @@ def get_dimension_list(request, equipment_id):
 
 def stock_list(request):
     username = request.session.get('username')
-    return render(request, 'product_tracking/Stock_details.html', {'username': username})
+    return render(request, 'inventory/Stock_details.html', {'username': username})
 
 
 def fetch_stock_equipment_list(request):
