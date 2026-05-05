@@ -3439,9 +3439,5 @@ def get_vehicle_numbers(request):
 
 def get_driver_list(request):
     return JsonResponse({
-        "drivers": []
-<<<<<<< HEAD
+        "success": True
     })
-=======
-    })
->>>>>>> 6ad47df (Fix database and connects routing)
