@@ -1,0 +1,727 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'inventory/includes/head.html' %}
+</head>
+
+<body class="main-bg main-bg-opac main-bg-blur roundedui adminuiux-header-standard adminuiux-sidebar-standard adminuiux-mobile-footer-fill-theme adminuiux-header-transparent theme-pista bg-r-gradient adminuiux-sidebar-fill-none scrollup"
+      data-theme="theme-pista"
+      data-sidebarfill="adminuiux-sidebar-fill-none"
+      data-sidebarlayout="adminuiux-sidebar-standard"
+      data-headerlayout="adminuiux-header-standard"
+      data-headerfill="adminuiux-header-transparent"
+      data-bggradient="bg-r-gradient">
+
+<div class="pageloader">
+    <div class="container h-100">
+        <div class="row justify-content-center align-items-center text-center h-100 pb-ios">
+            <div class="col-12 mb-auto pt-4"></div>
+            <div class="col-auto">
+                <img src="{% static 'inventory/assets/img/tekvan_logo_hd.png' %}" alt="" class="height-80 mb-3">
+                <p class="h2 mb-0 text-theme-accent-1">Rental</p>
+                <p class="display-3 text-theme-1 fw-bold mb-4">Management</p>
+                <div class="loader12 mb-2 mx-auto"></div>
+            </div>
+            <div class="col-12 mt-auto pb-4">
+                <p class="small text-secondary">Please wait we are preparing awesome things...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'inventory/includes/header.html' %}
+
+<div class="adminuiux-wrap">
+    {% include 'inventory/includes/sidebar.html' %}
+
+    <main class="adminuiux-content has-sidebar" onclick="contentClick()">
+        <!-- breadcrumb header -->
+        <div class="container mt-3">
+            <div class="row gx-3 align-items-center">
+                <div class="col">
+                    <nav aria-label="breadcrumb" class="mb-1 asset-breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item">
+                                <a href="{% url 'inventory:dashboard' %}">
+                                    <i class="bi bi-house-door"></i> Dashboard
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item active" aria-current="page">Stock Details</li>
+                        </ol>
+                    </nav>
+                    <h4 class="asset-page-title mb-0">Stock Details</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="container mt-3 mt-lg-4 mt-xl-4">
+            <div class="card asset-master-card">
+                <div class="card-body">
+
+                    <!-- toolbar -->
+                    <div class="asset-toolbar asset-toolbar-inline mb-3">
+                        <div class="asset-search-wrap flex-grow-1">
+                            <input type="text"
+                                   class="form-control asset-search"
+                                   id="search-equipment"
+                                   placeholder="Search equipment...">
+                        </div>
+
+                        <select class="form-select" id="master-category" style="max-width: 260px;">
+                            <option value="" selected disabled>Loading categories...</option>
+                        </select>
+                    </div>
+
+                    <!-- split layout -->
+                    <div class="row g-4">
+                        <!-- LEFT SIDE -->
+                        <div class="col-lg-3">
+                            <div class="card border-0 bg-theme-1-subtle h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <p class="h6 mb-0">Equipment List</p>
+                                    </div>
+
+                                    <div id="equipment-list-wrapper"
+                                         class="border rounded p-2 bg-white"
+                                         style="max-height: 650px; overflow-y: auto;">
+                                        <div id="equipment-list" class="list-group">
+                                            <p class="text-muted mb-0">Select a category to load equipment.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT SIDE -->
+                        <div class="col-lg-9">
+                            <ul class="nav nav-tabs asset-master-tabs" id="stockDetailsTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active"
+                                            id="general-tab"
+                                            data-bs-toggle="tab"
+                                            data-bs-target="#general-tab-pane"
+                                            type="button"
+                                            role="tab"
+                                            aria-controls="general-tab-pane"
+                                            aria-selected="true">
+                                        General
+                                    </button>
+                                </li>
+
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link"
+                                            id="images-tab"
+                                            data-bs-toggle="tab"
+                                            data-bs-target="#images-tab-pane"
+                                            type="button"
+                                            role="tab"
+                                            aria-controls="images-tab-pane"
+                                            aria-selected="false">
+                                        Images
+                                    </button>
+                                </li>
+
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link"
+                                            id="usages-tab"
+                                            data-bs-toggle="tab"
+                                            data-bs-target="#usages-tab-pane"
+                                            type="button"
+                                            role="tab"
+                                            aria-controls="usages-tab-pane"
+                                            aria-selected="false">
+                                        Usages
+                                    </button>
+                                </li>
+
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link"
+                                            id="stock-tab"
+                                            data-bs-toggle="tab"
+                                            data-bs-target="#stock-tab-pane"
+                                            type="button"
+                                            role="tab"
+                                            aria-controls="stock-tab-pane"
+                                            aria-selected="false">
+                                        Stock Details
+                                    </button>
+                                </li>
+
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link"
+                                            id="serial-tab"
+                                            data-bs-toggle="tab"
+                                            data-bs-target="#serial-tab-pane"
+                                            type="button"
+                                            role="tab"
+                                            aria-controls="serial-tab-pane"
+                                            aria-selected="false">
+                                        Serial Details
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <div class="tab-content pt-3" id="stockDetailsTabsContent">
+                                <!-- GENERAL -->
+                                <div class="tab-pane fade show active"
+                                     id="general-tab-pane"
+                                     role="tabpanel"
+                                     aria-labelledby="general-tab"
+                                     tabindex="0">
+
+                                    <div class="card border-0 bg-theme-1-subtle mb-3">
+                                        <div class="card-body table-responsive">
+                                            <p class="h6 mb-3">General Information</p>
+                                            <table class="table asset-table align-middle mb-0">
+                                                <tbody>
+                                                <tr>
+                                                    <th>Equipment Name</th>
+                                                    <td id="equipment-name">-</td>
+                                                    <th>Category Name</th>
+                                                    <td id="category-name">-</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Subcategory Name</th>
+                                                    <td id="subcategory-name">-</td>
+                                                    <th>Status</th>
+                                                    <td id="equipment-status">-</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Available Quantity</th>
+                                                    <td id="available-qty">-</td>
+                                                    <th>Stock Quantity</th>
+                                                    <td id="stock-qty">-</td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <div class="card border-0 bg-theme-1-subtle mb-3">
+                                        <div class="card-body table-responsive">
+                                            <p class="h6 mb-3">Physical Details</p>
+                                            <table class="table asset-table align-middle mb-0">
+                                                <tbody>
+                                                <tr>
+                                                    <th>Weight</th>
+                                                    <td id="weight">-</td>
+                                                    <th>Length</th>
+                                                    <td id="length">-</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Height</th>
+                                                    <td id="height">-</td>
+                                                    <th>Width</th>
+                                                    <td id="width">-</td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <div class="card border-0 bg-theme-1-subtle">
+                                        <div class="card-body table-responsive">
+                                            <p class="h6 mb-3">Monetary Details</p>
+                                            <table class="table asset-table align-middle mb-0">
+                                                <tbody>
+                                                <tr>
+                                                    <th>Unit Price</th>
+                                                    <td id="unit-price">-</td>
+                                                    <th>Rental Price</th>
+                                                    <td id="rental-price">-</td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- IMAGES -->
+                                <div class="tab-pane fade"
+                                     id="images-tab-pane"
+                                     role="tabpanel"
+                                     aria-labelledby="images-tab"
+                                     tabindex="0">
+                                    <div class="card border-0 bg-theme-1-subtle">
+                                        <div class="card-body">
+                                            <p class="h6 mb-3">Images</p>
+                                            <div id="equipment-images" class="d-flex flex-wrap gap-3">
+                                                <p class="text-muted mb-0">No images loaded.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- USAGES -->
+                                <div class="tab-pane fade"
+                                     id="usages-tab-pane"
+                                     role="tabpanel"
+                                     aria-labelledby="usages-tab"
+                                     tabindex="0">
+                                    <div class="card border-0 bg-theme-1-subtle">
+                                        <div class="card-body">
+                                            <p class="h6 mb-3">Usages</p>
+                                            <div id="equipment-usages">
+                                                <p class="text-muted mb-0">No usages loaded.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- STOCK -->
+                                <div class="tab-pane fade"
+                                     id="stock-tab-pane"
+                                     role="tabpanel"
+                                     aria-labelledby="stock-tab"
+                                     tabindex="0">
+                                    <div class="card border-0 bg-theme-1-subtle mb-3">
+                                        <div class="card-body">
+                                            <p class="h6 mb-3">Stock Summary</p>
+                                            <div id="equipment-stock-summary" class="table-responsive">
+                                                <p class="text-muted mb-0">No stock summary loaded.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="card border-0 bg-theme-1-subtle">
+                                        <div class="card-body">
+                                            <p class="h6 mb-3">Stock Item Details</p>
+                                            <div id="stock-details-info">
+                                                <p class="text-muted mb-0">No stock detail selected.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- SERIAL -->
+                                <div class="tab-pane fade"
+                                     id="serial-tab-pane"
+                                     role="tabpanel"
+                                     aria-labelledby="serial-tab"
+                                     tabindex="0">
+                                    <div class="card border-0 bg-theme-1-subtle">
+                                        <div class="card-body">
+                                            <p class="h6 mb-3">Serial Details</p>
+                                            <div id="serial-details-info" class="table-responsive">
+                                                <p class="text-muted mb-0">No serial details loaded.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /RIGHT SIDE -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+{% include 'inventory/includes/footer.html' %}
+
+<script>
+    function loadCategories() {
+        $.ajax({
+            url: "{% url 'inventory:get_categories' %}",
+            method: "GET",
+            dataType: "json",
+            success: function (data) {
+                const dropdown = $('#master-category');
+                dropdown.empty();
+
+                if (data.categories && data.categories.length > 0) {
+                    $.each(data.categories, function (index, category) {
+                        dropdown.append(`<option value="${category.id}">${category.name}</option>`);
+                    });
+
+                    dropdown.val(data.categories[0].id);
+                    fetchEquipmentList(data.categories[0].id);
+                } else {
+                    dropdown.append('<option disabled>No categories found</option>');
+                }
+            },
+            error: function () {
+                $('#master-category').html('<option disabled>Error loading categories</option>');
+            }
+        });
+    }
+
+    let allEquipmentList = [];
+    let selectedEquipmentId = null;
+
+    function fetchEquipmentList(categoryId, start = 0, limit = 50) {
+        $.ajax({
+            url: "{% url 'inventory:fetch_stock_equipment_list' %}",
+            method: "POST",
+            dataType: "json",
+            data: {
+                category_type: categoryId,
+                start: start,
+                limit: limit,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function (response) {
+                allEquipmentList = response.data || [];
+                renderEquipmentList(allEquipmentList);
+
+                if (allEquipmentList.length > 0) {
+                    $('#equipment-list a:first').trigger('click');
+                }
+            },
+            error: function (xhr) {
+                console.error("Failed to fetch equipment list:", xhr.responseText);
+                $('#equipment-list').html('<p class="text-danger mb-0">Failed to load equipment.</p>');
+            }
+        });
+    }
+
+    function renderEquipmentList(equipmentList) {
+        let html = '';
+
+        if (!equipmentList.length) {
+            html = '<p class="text-muted mb-0">No equipment available.</p>';
+        } else {
+            $.each(equipmentList, function (index, equipment) {
+                html += `
+                <a href="#"
+                   class="list-group-item list-group-item-action"
+                   data-id="${equipment.id}">
+                    ${equipment.equipment_name}
+                </a>`;
+            });
+        }
+
+        $('#equipment-list').html(html);
+    }
+
+    $('#equipment-list').on('click', 'a.list-group-item', function (e) {
+        e.preventDefault();
+
+        selectedEquipmentId = $(this).data('id');
+        if (!selectedEquipmentId) return;
+
+        $('#equipment-list .list-group-item').removeClass('active');
+        $(this).addClass('active');
+
+        loadEquipmentDetails(selectedEquipmentId);
+        loadStockDetails(selectedEquipmentId);
+        loadUsages(selectedEquipmentId);
+    });
+
+    function loadEquipmentDetails(equipmentId) {
+        $.ajax({
+            url: `/api/equipment-details/${equipmentId}/`,
+            method: "GET",
+            dataType: "json",
+
+            success: function (response) {
+                if (!response.success) {
+                    console.error(response.message || "Failed to load equipment details");
+                    return;
+                }
+
+                const data = response.equipment || {};
+
+                $('#equipment-name').text(data.equipment_name || '-');
+                $('#category-name').text(data.category_name || '-');
+                $('#subcategory-name').text(data.subcategory_name || '-');
+                $('#equipment-status').text(data.status || '-');
+
+                $('#available-qty').text(data.available_qty ?? '-');
+                $('#stock-qty').text(data.stock_qty ?? '-');
+
+                $('#weight').text(data.weight ? `${data.weight} kg` : '-');
+                $('#length').text(data.dimension_l ? `${data.dimension_l} inch` : '-');
+                $('#height').text(data.dimension_h ? `${data.dimension_h} inch` : '-');
+                $('#width').text(data.dimension_w ? `${data.dimension_w} inch` : '-');
+
+                $('#unit-price').text(data.unit_price ? `₹${data.unit_price}` : '-');
+                $('#rental-price').text(data.rental_price ? `₹${data.rental_price}` : '-');
+
+                let imagesHtml = '';
+
+                const images = [
+                    data.image_1,
+                    data.image_2,
+                    data.image_3
+                ].filter(Boolean);
+
+                if (images.length > 0) {
+                    images.forEach(function (url) {
+                        imagesHtml += `
+                        <img src="${url}"
+                             class="img-thumbnail rounded"
+                             style="max-width:200px; max-height:200px; object-fit:cover;">
+                    `;
+                    });
+                } else {
+                    imagesHtml = '<p class="text-muted mb-0">No images available.</p>';
+                }
+
+                $('#equipment-images').html(imagesHtml);
+            },
+
+            error: function (xhr) {
+                console.error("Equipment details error:", xhr.status, xhr.responseText);
+
+                $('#equipment-name').text('-');
+                $('#category-name').text('-');
+                $('#subcategory-name').text('-');
+                $('#warehouse').text('-');
+                $('#available-qty').text('-');
+                $('#stock-qty').text('-');
+                $('#weight').text('-');
+                $('#length').text('-');
+                $('#height').text('-');
+                $('#width').text('-');
+                $('#unit-price').text('-');
+                $('#rental-price').text('-');
+                $('#equipment-images').html('<p class="text-danger mb-0">Failed to load images.</p>');
+            }
+        });
+    }
+
+    let stockDetailsGlobal = [];
+
+  function loadStockDetails(equipmentId) {
+    $.ajax({
+        url: `/api/equipment-stock-details/${equipmentId}/`,
+        method: "GET",
+        dataType: "json",
+        success: function (response) {
+
+            const rows = response.stock_details || [];
+
+            if (!rows.length) {
+                $('#equipment-stock-summary').html(
+                    '<p class="text-muted mb-0">No stock data found.</p>'
+                );
+                return;
+            }
+
+            // Group by warehouse
+            const grouped = {};
+
+            rows.forEach(row => {
+                const warehouse = row.warehouse_name || 'No Warehouse';
+                if (!grouped[warehouse]) grouped[warehouse] = [];
+                grouped[warehouse].push(row);
+            });
+
+            let html = '';
+
+            Object.keys(grouped).forEach(warehouse => {
+
+                const items = grouped[warehouse];
+
+                html += `
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body">
+
+                            <div class="d-flex justify-content-between mb-3">
+                                <div>
+                                    <h5 class="mb-0">${warehouse}</h5>
+                                    <small class="text-muted">${items.length} items</small>
+                                </div>
+                            </div>
+
+                            <input type="text"
+                                   class="form-control mb-3 stock-search"
+                                   placeholder="Search serial or barcode...">
+
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Serial No</th>
+                                            <th>Barcode No</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                `;
+
+                items.forEach(item => {
+                    html += `
+                        <tr>
+                            <td>${item.serial_no}</td>
+                            <td>${item.barcode_no}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+                    </div>
+                `;
+            });
+
+            $('#equipment-stock-summary').html(html);
+        }
+    });
+}
+
+    $('#equipment-stock-summary').on('click', '.view-details-btn', function () {
+        const referenceNo = $(this).data('reference-no');
+
+        let html = `
+        <table class="table table-bordered table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Barcode No</th>
+                    <th>Serial No</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+        let found = false;
+
+        $.each(stockDetailsGlobal, function (index, detail) {
+            if (detail.reference_no == referenceNo) {
+                found = true;
+                html += `
+                <tr>
+                    <td>${detail.barcode_no || 'N/A'}</td>
+                    <td>${detail.serial_no || 'N/A'}</td>
+                </tr>`;
+            }
+        });
+
+        if (!found) {
+            html += `<tr><td colspan="2" class="text-center">No stock detail found.</td></tr>`;
+        }
+
+        html += `</tbody></table>`;
+        $('#stock-details-info').html(html);
+    });
+    $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+        const target = $(e.target).attr('data-bs-target');
+
+        if (target === '#serial-tab-pane' && selectedEquipmentId) {
+            $.ajax({
+                url: `/get_serial_details/${selectedEquipmentId}/`,
+                method: "GET",
+                dataType: "json",
+                success: function (data) {
+                    const rows = data.serial_details || data.data || [];
+                    let html = `
+                    <table class="table table-bordered table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Serial No</th>
+                                <th>Barcode No</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+                    if (rows.length > 0) {
+                        $.each(rows, function (index, row) {
+                            html += `
+                            <tr>
+                                <td>${row.serial_no || row.serial_number || 'N/A'}</td>
+                                <td>${row.barcode_no || row.barcode_number || 'N/A'}</td>
+                            </tr>`;
+                        });
+                    } else {
+                        html += `<tr><td colspan="2" class="text-center">No serial data found.</td></tr>`;
+                    }
+
+                    html += `</tbody></table>`;
+                    $('#serial-details-info').html(html);
+                }
+            });
+        }
+    });
+
+    function loadUsages(equipmentId) {
+        $.ajax({
+            url: "{% url 'inventory:fetch_equipment_usages' %}",
+            method: "GET",
+            dataType: "json",
+            data: {equipment_id: equipmentId},
+            success: function (response) {
+                const rows = response.data || [];
+                let html = '';
+
+                if (rows.length > 0) {
+                    $.each(rows, function (index, item) {
+                        html += `
+                        <div class="card border mb-3">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 mb-2"><strong>Job Number:</strong> ${item.job_number || 'N/A'}</div>
+                                    <div class="col-md-4 mb-2"><strong>Project Name:</strong> ${item.project_name || 'N/A'}</div>
+                                    <div class="col-md-4 mb-2"><strong>Client Name:</strong> ${item.client_name || 'N/A'}</div>
+                                    <div class="col-md-4 mb-2"><strong>Scan Out:</strong> ${item.scan_out || 'N/A'}</div>
+                                    <div class="col-md-4 mb-2"><strong>Scan In:</strong> ${item.scan_in || 'N/A'}</div>
+                                </div>
+                            </div>
+                        </div>`;
+                    });
+                } else {
+                    html = '<p class="text-muted mb-0">No usages available.</p>';
+                }
+
+                $('#equipment-usages').html(html);
+            }
+        });
+    }
+
+    function displayEquipmentList(equipmentList) {
+        let html = '';
+
+        if (!equipmentList.length) {
+            html = '<p class="text-muted mb-0">No equipment available.</p>';
+        } else {
+            $.each(equipmentList, function (index, equipment) {
+                html += `
+                <a href="#"
+                   class="list-group-item list-group-item-action"
+                   data-id="${equipment.id}">
+                    ${equipment.equipment_name}
+                </a>`;
+            });
+        }
+
+        $('#equipment-list').html(html);
+    }
+
+    function fetchEquipmentListByCategory(categoryId) {
+        $.ajax({
+            url: "{% url 'inventory:fetch_stock_equipment_list' %}",
+            method: "POST",
+            dataType: "json",
+            data: {
+                category_type: categoryId,
+                start: 0,
+                limit: 100,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function (response) {
+                allEquipmentList = response.data || [];
+                displayEquipmentList(allEquipmentList);
+
+                if (allEquipmentList.length > 0) {
+                    $('#equipment-list a:first').trigger('click');
+                }
+            },
+            error: function (xhr) {
+                console.error(xhr.responseText);
+                $('#equipment-list').html('<p class="text-danger mb-0">Failed to load equipment list.</p>');
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        loadCategories();
+    });
+</script>
+
+</body>
+</html>

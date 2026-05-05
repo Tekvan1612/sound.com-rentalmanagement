@@ -1,0 +1,369 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'inventory/includes/head.html' %}
+</head>
+
+<body class="main-bg main-bg-opac main-bg-blur roundedui adminuiux-header-standard adminuiux-sidebar-standard adminuiux-mobile-footer-fill-theme adminuiux-header-transparent theme-pista bg-r-gradient adminuiux-sidebar-fill-none scrollup">
+
+{% include 'inventory/includes/header.html' %}
+
+<div class="adminuiux-wrap">
+    {% include 'inventory/includes/sidebar.html' %}
+
+    <main class="adminuiux-content has-sidebar">
+        
+        <!-- Header -->
+        <div class="container mt-3">
+            <div class="row gx-3 align-items-center">
+                <div class="col">
+                    <h4 class="mb-0">Transport Master</h4>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-theme collapsed"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#addTransportCollapse">
+                        + Add Transport
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container mt-3">
+            <div class="collapse" id="addTransportCollapse">
+                <div class="card border-0 bg-theme-1-subtle">
+                    <div class="card-body">
+
+                        <h5 class="mb-3">Add Transport</h5>
+
+                        <input type="hidden" id="transport_id">
+
+                        <div class="row">
+                            <div class="col-lg-4">
+                                <div class="form-floating mb-3">
+                                    <input type="text" id="vehicle_name" class="form-control" placeholder="Vehicle Name">
+                                    <label>Vehicle Name</label>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-4">
+                                <div class="form-floating mb-3">
+                                    <input type="text" id="vehicle_number" class="form-control" placeholder="Vehicle Number">
+                                    <label>Vehicle Number</label>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-4">
+                                <div class="form-floating mb-3">
+                                    <select id="load_capacity" class="form-select">
+                                        <option value="">Select Capacity</option>
+                                        <option>14 feet</option>
+                                        <option>17 feet</option>
+                                        <option>20 feet</option>
+                                        <option>24 feet</option>
+                                        <option>32 feet</option>
+                                    </select>
+                                    <label>Load Capacity</label>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Upload Documents</label>
+                                    <input type="file" id="documents" class="form-control" multiple>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="existingDocs" class="mt-2"></div>
+
+                        <button class="btn btn-theme" onclick="saveTransport()">Submit</button>
+                        <button class="btn btn-outline-theme ms-2"
+                                onclick="cancelTransportForm()">Cancel</button>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="container mt-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle text-center">
+                            <thead>
+                                <tr>
+                                    <th>Sr No.</th>
+                                    <th>Vehicle Name</th>
+                                    <th>Vehicle Number</th>
+                                    <th>Load Capacity</th>
+                                    <th>Documents</th>
+                                    <th>Created By</th>
+                                    <th>Created Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transportTableBody">
+                                <tr>
+                                    <td colspan="8">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+
+
+{% include 'inventory/includes/footer.html' %}
+<script src="{% static 'inventory/assets/js/app5724.js' %}"></script>
+
+<!-- JS -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    loadTransport();
+});
+
+function cancelTransportForm() {
+    resetForm();
+
+    document.querySelector("#addTransportCollapse h5").innerText = "Add Transport";
+
+    bootstrap.Collapse
+        .getOrCreateInstance(document.getElementById("addTransportCollapse"))
+        .hide();
+}
+function saveTransport() {
+
+    const formData = new FormData();
+
+    const transportId = document.getElementById("transport_id").value;
+
+    if (transportId) {
+        formData.append("id", transportId);  // ✅ edit mode
+    }
+
+    formData.append("vehicle_name", document.getElementById("vehicle_name").value);
+    formData.append("vehicle_number", document.getElementById("vehicle_number").value);
+    formData.append("load_capacity", document.getElementById("load_capacity").value);
+
+    const files = document.getElementById("documents").files;
+
+    for (let i = 0; i < files.length; i++) {
+        formData.append("documents", files[i]);
+    }
+
+    fetch("{% url 'inventory:add_transport' %}", {
+        method: "POST",
+        body: formData,
+        headers: {"X-CSRFToken": getCookie("csrftoken")}
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        alert(data.message);
+
+        // ✅ CLOSE COLLAPSE
+        bootstrap.Collapse
+            .getOrCreateInstance(document.getElementById("addTransportCollapse"))
+            .hide();
+
+        resetForm();   // ✅ clear after save
+        loadTransport();
+    });
+}
+
+function loadTransport() {
+    fetch("{% url 'inventory:transport_list' %}")
+    .then(res => res.json())
+    .then(data => {
+        console.log("Transport Data:", data);  // 👈 ADD THIS
+
+        const tbody = document.getElementById("transportTableBody");
+        tbody.innerHTML = "";
+
+        if (!data.data || !data.data.length) {
+            tbody.innerHTML = `<tr><td colspan="8">No data found</td></tr>`;
+            return;
+        }
+
+        data.data.forEach((item, index) => {
+
+            let docsHTML = "";
+
+            if (item.documents && item.documents.length) {
+                item.documents.forEach(doc => {
+                    const fileName = doc.split('/').pop();
+
+                    docsHTML += `
+                        <div class="d-flex align-items-center justify-content-center gap-2">
+                            <i class="bi bi-file-earmark"></i>
+                            <span class="text-truncate" style="max-width:120px;">${fileName}</span>
+                            <button class="btn btn-sm btn-outline-primary"
+                                onclick='previewDoc("${doc.startsWith("/media/") ? doc : "/media/" + doc}")'>
+                                View
+                            </button>
+                        </div>
+                    `;
+                });
+            } else {
+                docsHTML = "No Docs";
+            }
+
+            tbody.innerHTML += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${item.vehicle_name}</td>
+                    <td>${item.vehicle_number}</td>
+                    <td>${item.load_capacity}</td>
+                    <td>${docsHTML}</td>
+                    <td>${item.created_by}</td>
+                    <td>${item.created_date}</td>
+                    <td>
+                        <div class="d-flex justify-content-center gap-2">
+                            <button class="btn btn-sm btn-outline-primary"
+                                title="Edit"
+                                onclick='editTransport(${item.id}, ${JSON.stringify(item.vehicle_name)}, ${JSON.stringify(item.vehicle_number)}, ${JSON.stringify(item.load_capacity)}, ${JSON.stringify(item.documents)})'>
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+
+                            <button class="btn btn-sm btn-outline-danger"
+                                title="Delete"
+                                onclick="deleteTransport(${item.id})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+    })
+    .catch(err => {
+        console.error("Error loading transport:", err);
+    });
+}
+
+function editTransport(id, name, number, capacity, documents) {
+
+    // ✅ Set values
+    document.getElementById("transport_id").value = id;
+    document.getElementById("vehicle_name").value = name;
+    document.getElementById("vehicle_number").value = number;
+    document.getElementById("load_capacity").value = capacity;
+
+    // ✅ Show existing documents
+    let html = "<label class='fw-semibold'>Existing Documents:</label><br>";
+
+    if (documents && documents.length) {
+        documents.forEach(doc => {
+            const fileName = doc.split('/').pop();
+
+            html += `
+                <div class="mb-1 d-flex align-items-center gap-2">
+                    ${fileName}
+
+                    <button class="btn btn-sm btn-outline-primary"
+                        onclick='previewDoc("${doc.startsWith("/media/") ? doc : "/media/" + doc}")'>
+                        View
+                    </button>
+
+                    <button class="btn btn-sm btn-outline-danger"
+                        onclick="deleteDocument(${id}, '${doc}')">
+                        Delete
+                    </button>
+                </div>
+            `;
+        });
+    } else {
+        html += "<span class='text-muted'>No Documents</span>";
+    }
+
+    document.getElementById("existingDocs").innerHTML = html;
+
+    // ✅ CHANGE TITLE (optional but recommended)
+    document.querySelector("#addTransportCollapse h5").innerText = "Edit Transport";
+
+    // ✅ OPEN COLLAPSE (IMPORTANT)
+    bootstrap.Collapse
+        .getOrCreateInstance(document.getElementById("addTransportCollapse"))
+        .show();
+}
+
+function deleteTransport(id) {
+    if (!confirm("Are you sure you want to delete?")) return;
+
+    fetch(`/delete-transport/${id}/`, {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Content-Type": "application/json"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        loadTransport();
+    });
+}
+
+
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie) {
+        document.cookie.split(';').forEach(cookie => {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            }
+        });
+    }
+    return cookieValue;
+}
+
+function resetForm() {
+    document.getElementById("transport_id").value = "";
+    document.getElementById("vehicle_name").value = "";
+    document.getElementById("vehicle_number").value = "";
+    document.getElementById("load_capacity").value = "";
+    document.getElementById("documents").value = "";
+    document.getElementById("existingDocs").innerHTML = "";
+}
+
+function deleteDocument(transportId, filePath) {
+    if (!confirm("Delete this document?")) return;
+
+    fetch("/delete-transport-document/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: JSON.stringify({
+            transport_id: transportId,
+            file_path: filePath
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        loadTransport();  // refresh
+    });
+}
+
+
+function previewDoc(url) {
+    window.open(url, '_blank');
+}
+
+</script>
+
+</body>
+</html>
