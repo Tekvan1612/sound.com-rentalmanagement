@@ -4,9 +4,54 @@
 <head>
     {% include 'inventory/includes/head.html' %}
 
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <!-- FullCalendar -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
+    <style>
+        main.adminuiux-content {
+            padding: 20px;
+            min-height: calc(100vh - 80px);
+        }
+
+        #calendar {
+            min-height: 700px;
+            width: 100%;
+        }
+
+        .card {
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .event-list-item {
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .fc-toolbar-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .modal-content {
+            border-radius: 18px;
+        }
+
+        .btn-theme {
+            background: #6c9f5b;
+            color: #fff;
+            border: none;
+        }
+
+        .btn-theme:hover {
+            background: #5a884c;
+            color: #fff;
+        }
+    </style>
 </head>
 
 <body class="main-bg main-bg-opac main-bg-blur roundedui adminuiux-header-standard adminuiux-sidebar-standard adminuiux-mobile-footer-fill-theme adminuiux-header-transparent theme-pista bg-r-gradient adminuiux-sidebar-fill-none scrollup">
@@ -14,147 +59,302 @@
 {% include 'inventory/includes/header.html' %}
 
 <div class="adminuiux-wrap">
+
     {% include 'inventory/includes/sidebar.html' %}
 
     <main class="adminuiux-content has-sidebar">
 
-        <!-- Header -->
-        <div class="container mt-3">
-            <div class="row align-items-center">
+        <div class="container-fluid mt-3">
+
+            <!-- PAGE HEADER -->
+            <div class="row align-items-center mb-3">
+
                 <div class="col">
-                    <h4>Event Creation</h4>
+                    <h4 class="mb-0">Event Creation</h4>
                 </div>
+
                 <div class="col-auto">
-                    <button class="btn btn-theme" onclick="openEventPanel()">
+                    <button class="btn btn-theme"
+                            onclick="openEventPanel()">
                         + Create Event
                     </button>
                 </div>
+
             </div>
-        </div>
 
-        <div class="container mt-3">
-            <div class="row">
+            <!-- CONTENT -->
+            <div class="row g-3">
 
-                <!-- LEFT: EVENT LIST -->
-                <div class="col-md-4">
-                    <div class="card">
+                <!-- LEFT SIDE -->
+                <div class="col-lg-4">
+
+                    <div class="card h-100">
                         <div class="card-body">
-                            <h6>Events This Month</h6>
-                            <ul id="eventList" class="list-group"></ul>
+
+                            <h6 class="mb-3">
+                                Events This Month
+                            </h6>
+
+                            <ul id="eventList"
+                                class="list-group list-group-flush">
+                            </ul>
+
                         </div>
                     </div>
+
                 </div>
 
-                <!-- RIGHT: CALENDAR -->
-                <div class="col-md-8">
-                    <div class="card">
+                <!-- RIGHT SIDE -->
+                <div class="col-lg-8">
+
+                    <div class="card h-100">
                         <div class="card-body">
+
                             <div id="calendar"></div>
+
                         </div>
                     </div>
+
                 </div>
 
             </div>
-        </div>
 
+        </div>
 
     </main>
+
 </div>
 
-<!-- Slide Panel -->
-<div id="eventPanel" class="transport-panel">
-    <div class="panel-content">
+<!-- CREATE / EDIT EVENT MODAL -->
+<div class="modal fade"
+     id="eventModal"
+     tabindex="-1">
 
-        <h5>Create Event</h5>
+    <div class="modal-dialog modal-dialog-centered modal-lg">
 
-        <input type="hidden" id="event_id">
+        <div class="modal-content border-0 shadow-lg">
 
-        <div class="form-floating mb-3">
-            <input type="text" id="event_name" class="form-control" placeholder="Event Name">
-            <label>Event Name</label>
-        </div>
+            <div class="modal-header">
 
-        <div class="form-floating mb-3">
-            <input type="date" id="from_date" class="form-control">
-            <label>From Date</label>
-        </div>
+                <h5 class="modal-title"
+                    id="modalTitle">
+                    Create Event
+                </h5>
 
-        <div class="form-floating mb-3">
-            <input type="date" id="to_date" class="form-control">
-            <label>To Date</label>
-        </div>
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                </button>
 
-        <div class="form-floating mb-3">
-            <input type="text" id="location" class="form-control">
-            <label>Location</label>
-        </div>
+            </div>
 
-        <div class="d-flex gap-2">
-            <button class="btn btn-theme" onclick="saveEvent()">Save</button>
-            <button class="btn btn-outline-secondary" onclick="closeEventPanel()">Cancel</button>
+            <div class="modal-body">
+
+                <input type="hidden" id="event_id">
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label">
+                            Event Name
+                        </label>
+
+                        <input type="text"
+                               id="event_name"
+                               class="form-control"
+                               placeholder="Enter event name">
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label">
+                            Location
+                        </label>
+
+                        <input type="text"
+                               id="location"
+                               class="form-control"
+                               placeholder="Enter location">
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label">
+                            From Date
+                        </label>
+
+                        <input type="date"
+                               id="from_date"
+                               class="form-control">
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label">
+                            To Date
+                        </label>
+
+                        <input type="date"
+                               id="to_date"
+                               class="form-control">
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    Cancel
+                </button>
+
+                <button type="button"
+                        class="btn btn-theme"
+                        onclick="saveEvent()">
+                    Save Event
+                </button>
+
+            </div>
+
         </div>
 
     </div>
+
 </div>
 
-<div id="eventDetailPanel" class="transport-panel">
-    <div class="panel-content">
+<!-- EVENT DETAILS MODAL -->
+<div class="modal fade"
+     id="eventDetailModal"
+     tabindex="-1">
 
-        <h5>Event Details</h5>
+    <div class="modal-dialog modal-dialog-centered">
 
-        <p><strong>Name:</strong> <span id="d_name"></span></p>
-        <p><strong>From:</strong> <span id="d_from"></span></p>
-        <p><strong>To:</strong> <span id="d_to"></span></p>
-        <p><strong>Location:</strong> <span id="d_location"></span></p>
+        <div class="modal-content border-0 shadow-lg">
 
-        <div class="d-flex gap-2 mt-3">
-            <button class="btn btn-outline-primary" onclick="editEvent()">Edit</button>
-            <button class="btn btn-outline-danger" onclick="deleteEvent()">Delete</button>
-            <button class="btn btn-outline-secondary" onclick="closeEventDetail()">Close</button>
+            <div class="modal-header">
+
+                <h5 class="modal-title">
+                    Event Details
+                </h5>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <p>
+                    <strong>Name:</strong>
+                    <span id="d_name"></span>
+                </p>
+
+                <p>
+                    <strong>From:</strong>
+                    <span id="d_from"></span>
+                </p>
+
+                <p>
+                    <strong>To:</strong>
+                    <span id="d_to"></span>
+                </p>
+
+                <p>
+                    <strong>Location:</strong>
+                    <span id="d_location"></span>
+                </p>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button class="btn btn-outline-primary"
+                        onclick="editEvent()">
+                    Edit
+                </button>
+
+                <button class="btn btn-outline-danger"
+                        onclick="deleteEvent()">
+                    Delete
+                </button>
+
+                <button class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    Close
+                </button>
+
+            </div>
+
         </div>
 
     </div>
+
 </div>
 
 {% include 'inventory/includes/footer.html' %}
 
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
+
 let calendar;
+let currentEvent = null;
+
+const eventModal = new bootstrap.Modal(
+    document.getElementById('eventModal')
+);
+
+const detailModal = new bootstrap.Modal(
+    document.getElementById('eventDetailModal')
+);
 
 document.addEventListener("DOMContentLoaded", function () {
 
-    calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
-        initialView: 'dayGridMonth',
-        events: [],
+    calendar = new FullCalendar.Calendar(
+        document.getElementById('calendar'),
+        {
+            initialView: 'dayGridMonth',
+            height: 'auto',
+            events: [],
 
-        datesSet: function() {
-            loadEvents();   // ✅ THIS IS THE CORRECT PLACE
-        },
+            datesSet: function () {
+                loadEvents();
+            },
 
-        eventClick: function(info) {
-            showEventDetails(info.event.extendedProps);
+            eventClick: function(info) {
+                showEventDetails(info.event.extendedProps);
+            }
         }
-    });
+    );
 
     calendar.render();
 });
 
 function openEventPanel() {
 
-    currentEvent = null;  // ✅ ADD THIS LINE
+    currentEvent = null;
 
-    // 🔥 RESET FORM (IMPORTANT)
+    document.getElementById("modalTitle").innerText =
+        "Create Event";
+
     document.getElementById("event_id").value = "";
     document.getElementById("event_name").value = "";
     document.getElementById("from_date").value = "";
     document.getElementById("to_date").value = "";
     document.getElementById("location").value = "";
 
-    document.getElementById("eventPanel").classList.add("open");
-}
-
-function closeEventPanel() {
-    document.getElementById("eventPanel").classList.remove("open");
+    eventModal.show();
 }
 
 function saveEvent() {
@@ -166,20 +366,25 @@ function saveEvent() {
 
     let valid = true;
 
-    [name, from, to, location].forEach(el => el.classList.remove("is-invalid"));
+    [name, from, to, location].forEach(el => {
+        el.classList.remove("is-invalid");
+    });
 
     if (!name.value.trim()) {
         name.classList.add("is-invalid");
         valid = false;
     }
+
     if (!from.value) {
         from.classList.add("is-invalid");
         valid = false;
     }
+
     if (!to.value) {
         to.classList.add("is-invalid");
         valid = false;
     }
+
     if (!location.value.trim()) {
         location.classList.add("is-invalid");
         valid = false;
@@ -209,79 +414,92 @@ function saveEvent() {
     fetch("{% url 'inventory:add_event' %}", {
         method: "POST",
         body: formData,
-        headers: {"X-CSRFToken": getCookie("csrftoken")}
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken")
+        }
     })
     .then(res => res.json())
     .then(data => {
+
         if (!data.success) {
             alert("Error: " + data.error);
             return;
         }
 
-        closeEventPanel();
+        eventModal.hide();
+
         loadEvents();
 
-        if (currentEvent && currentEvent.id) {
-            alert("Event updated successfully ✅");
-        } else {
-            alert("Event created successfully ✅");
-        }
+        alert(
+            currentEvent && currentEvent.id
+            ? "Event updated successfully ✅"
+            : "Event created successfully ✅"
+        );
 
         currentEvent = null;
-        document.getElementById("event_id").value = "";
     })
     .catch(err => {
         console.error(err);
     });
 }
 
-
 function loadEvents() {
 
-    console.log("LOAD EVENTS CALLED");
-
-    if (!calendar) {
-        console.log("Calendar not ready");
+    if (!calendar || !calendar.view) {
         return;
     }
 
     const view = calendar.view;
 
-    if (!view) {
-        console.log("View not ready");
-        return;
-    }
+    const start =
+        view.currentStart.toISOString().split('T')[0];
 
-    const start = view.currentStart.toISOString().split('T')[0];
-    const end = view.currentEnd.toISOString().split('T')[0];
-
-    console.log("FETCHING:", start, end);
+    const end =
+        view.currentEnd.toISOString().split('T')[0];
 
     fetch(`/event-list/?start=${start}&end=${end}`)
     .then(res => res.json())
     .then(data => {
 
-        console.log("API RESPONSE:", data);
-
         calendar.removeAllEvents();
 
-        const list = document.getElementById("eventList");
+        const list =
+            document.getElementById("eventList");
+
         list.innerHTML = "";
+
+        if (!data.data || data.data.length === 0) {
+
+            list.innerHTML = `
+                <li class="list-group-item text-muted">
+                    No events found
+                </li>
+            `;
+
+            return;
+        }
 
         data.data.forEach(ev => {
 
-            const endDate = new Date(ev.event_date_to);
-            endDate.setDate(endDate.getDate() + 1);
+            const endDate =
+                new Date(ev.event_date_to);
+
+            endDate.setDate(
+                endDate.getDate() + 1
+            );
 
             calendar.addEvent({
                 title: ev.event_name,
                 start: ev.event_date_from,
-                end: endDate.toISOString().split('T')[0],  // ✅ FIXED
-
+                end: endDate.toISOString().split('T')[0],
                 allDay: true,
 
-                backgroundColor: ev.color + "20",
-                borderColor: ev.color,
+                backgroundColor:
+                    (ev.color || "#6c9f5b") + "20",
+
+                borderColor:
+                    ev.color || "#6c9f5b",
+
                 textColor: "#111",
 
                 extendedProps: {
@@ -294,81 +512,126 @@ function loadEvents() {
             });
 
             list.innerHTML += `
-                <li class="list-group-item mb-2"
-                    style="border-left: 5px solid ${ev.color}; background:${ev.color}10">
-                    <div class="fw-semibold">${ev.event_name}</div>
-                    <div class="small text-muted">📍 ${ev.location || "N/A"}</div>
-                    <div class="small">📅 ${ev.event_date_from} → ${ev.event_date_to}</div>
+                <li class="list-group-item event-list-item"
+                    style="
+                        border-left:5px solid ${ev.color || '#6c9f5b'};
+                        background:${ev.color || '#6c9f5b'}10
+                    ">
+                    <div class="fw-semibold">
+                        ${ev.event_name}
+                    </div>
+
+                    <div class="small text-muted">
+                        📍 ${ev.location || "N/A"}
+                    </div>
+
+                    <div class="small">
+                        📅 ${ev.event_date_from}
+                        →
+                        ${ev.event_date_to}
+                    </div>
                 </li>
             `;
         });
     })
     .catch(err => {
-        console.error("FETCH ERROR:", err);
+        console.error(err);
     });
 }
 
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie) {
-        document.cookie.split(';').forEach(cookie => {
-            cookie = cookie.trim();
-            if (cookie.startsWith(name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-            }
-        });
-    }
-    return cookieValue;
-}
-
-let currentEvent = null;
-
 function showEventDetails(event) {
+
     currentEvent = event;
 
-    document.getElementById("d_name").innerText = event.name;
-    document.getElementById("d_from").innerText = event.from;
-    document.getElementById("d_to").innerText = event.to;
-    document.getElementById("d_location").innerText = event.location || "N/A";
+    document.getElementById("d_name").innerText =
+        event.name || "";
 
-    document.getElementById("eventDetailPanel").classList.add("open");
-}
+    document.getElementById("d_from").innerText =
+        event.from || "";
 
-function closeEventDetail() {
-    document.getElementById("eventDetailPanel").classList.remove("open");
+    document.getElementById("d_to").innerText =
+        event.to || "";
+
+    document.getElementById("d_location").innerText =
+        event.location || "N/A";
+
+    detailModal.show();
 }
 
 function editEvent() {
-    closeEventDetail();
 
-    // 🔥 OPEN PANEL WITHOUT RESET
-    document.getElementById("eventPanel").classList.add("open");
+    detailModal.hide();
 
-    document.getElementById("event_id").value = currentEvent.id;
-    document.getElementById("event_name").value = currentEvent.name;
-    document.getElementById("from_date").value = currentEvent.from;
-    document.getElementById("to_date").value = currentEvent.to;
-    document.getElementById("location").value = currentEvent.location;
+    document.getElementById("modalTitle").innerText =
+        "Edit Event";
+
+    document.getElementById("event_id").value =
+        currentEvent.id;
+
+    document.getElementById("event_name").value =
+        currentEvent.name;
+
+    document.getElementById("from_date").value =
+        currentEvent.from;
+
+    document.getElementById("to_date").value =
+        currentEvent.to;
+
+    document.getElementById("location").value =
+        currentEvent.location;
+
+    eventModal.show();
 }
 
 function deleteEvent() {
-    if (!confirm("Delete this event?")) return;
+
+    if (!confirm("Delete this event?")) {
+        return;
+    }
 
     fetch(`/delete-event/${currentEvent.id}/`, {
         method: "POST",
-        headers: {"X-CSRFToken": getCookie("csrftoken")}
+
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken")
+        }
     })
     .then(res => res.json())
     .then(data => {
+
         if (!data.success) {
             alert("Error: " + data.error);
             return;
         }
 
-        closeEventPanel();
+        detailModal.hide();
+
         loadEvents();
+
         alert("Event deleted successfully 🗑️");
     });
+}
+
+function getCookie(name) {
+
+    let cookieValue = null;
+
+    if (document.cookie) {
+
+        document.cookie.split(';').forEach(cookie => {
+
+            cookie = cookie.trim();
+
+            if (cookie.startsWith(name + '=')) {
+
+                cookieValue = decodeURIComponent(
+                    cookie.substring(name.length + 1)
+                );
+            }
+        });
+    }
+
+    return cookieValue;
 }
 
 </script>

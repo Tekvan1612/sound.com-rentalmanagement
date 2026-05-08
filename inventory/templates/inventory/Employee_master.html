@@ -36,7 +36,8 @@
 
                     <div class="asset-toolbar asset-toolbar-inline mb-3 d-flex gap-2">
                         <div class="asset-search-wrap flex-grow-1">
-                            <input type="text" class="form-control asset-search" id="employeeSearch" placeholder="Search employee...">
+                            <input type="text" class="form-control asset-search" id="employeeSearch"
+                                   placeholder="Search employee...">
                         </div>
 
                         <button class="btn btn-theme collapsed asset-add-btn"
@@ -58,35 +59,75 @@
                                     <div class="row">
                                         <div class="col-lg-3">
                                             <div class="form-floating mb-3">
-                                                <input type="number" class="form-control" id="employee_id" name="employee_id" placeholder="Employee ID">
+                                                <select class="form-select"
+                                                        id="employee_type"
+                                                        name="employee_type"
+                                                        required>
+
+                                                    <option value="">Select Employee Type</option>
+
+                                                    <option value="Permanent">Permanent</option>
+                                                    <option value="Temporary">Temporary</option>
+                                                    <option value="Driver">Driver</option>
+                                                    <option value="Freelancer">Freelancer</option>
+                                                    <option value="Vendor Staff">Vendor Staff</option>
+                                                    <option value="Contract Labour">Contract Labour</option>
+                                                    <option value="Delivery Staff">Delivery Staff</option>
+                                                    <option value="Helper">Helper</option>
+                                                    <option value="Peon">Peon</option>
+
+                                                </select>
+
+                                                <label>Employee Type</label>
+                                            </div>
+                                        </div>
+
+
+                                        <div class="col-lg-3">
+                                            <div class="form-floating mb-1">
+                                                <input type="number"
+                                                       class="form-control"
+                                                       id="employee_id"
+                                                       name="employee_id"
+                                                       placeholder="Employee ID">
+
                                                 <label>Employee ID</label>
                                             </div>
+
+                                            <small class="text-muted"
+                                                   id="employeeIdHelp">
+                                                Required only for permanent employees
+                                            </small>
                                         </div>
 
                                         <div class="col-lg-3">
                                             <div class="form-floating mb-3">
-                                                <input type="text" class="form-control" id="name" name="name" placeholder="Name">
+                                                <input type="text" class="form-control" id="name" name="name"
+                                                       placeholder="Name">
                                                 <label>Name</label>
                                             </div>
                                         </div>
 
                                         <div class="col-lg-3">
                                             <div class="form-floating mb-3">
-                                                <input type="email" class="form-control" id="email" name="email" placeholder="Email">
+                                                <input type="email" class="form-control" id="email" name="email"
+                                                       placeholder="Email">
                                                 <label>Email</label>
                                             </div>
                                         </div>
 
                                         <div class="col-lg-3">
                                             <div class="form-floating mb-3">
-                                                <input type="text" class="form-control" id="designation" name="designation" placeholder="Designation">
+                                                <input type="text" class="form-control" id="designation"
+                                                       name="designation" placeholder="Designation">
                                                 <label>Designation</label>
                                             </div>
                                         </div>
 
                                         <div class="col-lg-3">
                                             <div class="form-floating mb-3">
-                                                <input type="number" class="form-control" id="mobile_no" name="mobile_no" placeholder="Mobile Number">
+                                                <input type="number" class="form-control" id="mobile_no"
+                                                       name="mobile_no" placeholder="Mobile Number">
                                                 <label>Mobile Number</label>
                                             </div>
                                         </div>
@@ -105,7 +146,8 @@
 
                                         <div class="col-lg-3">
                                             <div class="form-floating mb-3">
-                                                <input type="date" class="form-control" id="joining_date" name="joining_date">
+                                                <input type="date" class="form-control" id="joining_date"
+                                                       name="joining_date">
                                                 <label>Joining Date</label>
                                             </div>
                                         </div>
@@ -131,14 +173,16 @@
 
                                         <div class="col-lg-3">
                                             <div class="form-floating mb-3">
-                                                <input type="text" class="form-control" id="country" name="country" placeholder="Country">
+                                                <input type="text" class="form-control" id="country" name="country"
+                                                       placeholder="Country">
                                                 <label>Country</label>
                                             </div>
                                         </div>
 
                                         <div class="col-lg-3">
                                             <div class="form-floating mb-3">
-                                                <input type="text" class="form-control" id="state" name="state" placeholder="State">
+                                                <input type="text" class="form-control" id="state" name="state"
+                                                       placeholder="State">
                                                 <label>State</label>
                                             </div>
                                         </div>
@@ -155,40 +199,49 @@
 
                                         <div class="col-lg-6">
                                             <div class="form-floating mb-3">
-                                                <textarea class="form-control" id="p_address" name="p_address" placeholder="Permanent Address" style="height: 90px;"></textarea>
+                                                <textarea class="form-control" id="p_address" name="p_address"
+                                                          placeholder="Permanent Address"
+                                                          style="height: 90px;"></textarea>
                                                 <label>Permanent Address</label>
                                             </div>
                                         </div>
 
                                         <div class="col-lg-6">
                                             <div class="form-floating mb-3">
-                                                <textarea class="form-control" id="c_address" name="c_address" placeholder="Current Address" style="height: 90px;"></textarea>
+                                                <textarea class="form-control" id="c_address" name="c_address"
+                                                          placeholder="Current Address"
+                                                          style="height: 90px;"></textarea>
                                                 <label>Current Address</label>
                                             </div>
                                         </div>
 
                                         <div class="col-lg-4">
                                             <div class="form-floating mb-3">
-                                                <input type="text" class="form-control" id="bloodGroup" name="bloodGroup" placeholder="Blood Group">
+                                                <input type="text" class="form-control" id="bloodGroup"
+                                                       name="bloodGroup" placeholder="Blood Group">
                                                 <label>Blood Group</label>
                                             </div>
                                         </div>
 
                                         <div class="col-lg-4">
                                             <label class="form-label fw-semibold">Profile Photo</label>
-                                            <input type="file" class="form-control mb-3" id="profile_photo" name="profile_photo">
+                                            <input type="file" class="form-control mb-3" id="profile_photo"
+                                                   name="profile_photo">
                                         </div>
 
                                         <div class="col-lg-4">
                                             <label class="form-label fw-semibold">Attachments</label>
-                                            <input type="file" class="form-control mb-3" id="attachments" name="attachments[]" multiple>
+                                            <input type="file" class="form-control mb-3" id="attachments"
+                                                   name="attachments[]" multiple>
                                         </div>
                                     </div>
 
                                     <button type="button" class="btn btn-theme" onclick="submitEmployeeForm()">
                                         <span id="employeeBtnText">Save Employee</span>
                                     </button>
-                                    <button type="button" class="btn btn-outline-theme ms-2" onclick="cancelEmployeeForm()">Cancel</button>
+                                    <button type="button" class="btn btn-outline-theme ms-2"
+                                            onclick="cancelEmployeeForm()">Cancel
+                                    </button>
                                 </form>
                             </div>
                         </div>
@@ -197,21 +250,21 @@
                     <div class="table-responsive">
                         <table class="table asset-table align-middle w-100" id="employeeTable">
                             <thead>
-                                <tr>
-                                    <th style="width:140px;">Action</th>
-                                    <th>Emp ID</th>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Mobile</th>
-                                    <th>Designation</th>
-                                    <th>Joining Date</th>
-                                    <th>Status</th>
-                                </tr>
+                            <tr>
+                                <th style="width:140px;">Action</th>
+                                <th>Emp ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Mobile</th>
+                                <th>Designation</th>
+                                <th>Joining Date</th>
+                                <th>Status</th>
+                            </tr>
                             </thead>
                             <tbody id="employeeTableBody">
-                                <tr>
-                                    <td colspan="8" class="text-center">Loading employees...</td>
-                                </tr>
+                            <tr>
+                                <td colspan="8" class="text-center">Loading employees...</td>
+                            </tr>
                             </tbody>
                         </table>
                     </div>
@@ -221,6 +274,137 @@
         </div>
     </main>
 </div>
+<div class="modal fade" id="employeeDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 overflow-hidden">
+
+            <!-- HEADER -->
+            <div class="modal-header border-0 px-4 pt-4 pb-0">
+                <div>
+                    <span class="badge bg-theme mb-2 px-3 py-2 rounded-pill">
+                        Employee Profile
+                    </span>
+
+                    <h3 class="fw-bold mb-0">
+                        Employee Details
+                    </h3>
+                </div>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- BODY -->
+            <div class="modal-body px-4 pb-4">
+
+                <!-- PROFILE SECTION -->
+                <div class="card border-0 shadow-sm rounded-4 mb-4"
+                     style="background:#f8fcf7;">
+
+                    <div class="card-body p-4">
+
+                        <div class="row align-items-center g-4">
+
+                            <!-- PROFILE IMAGE -->
+                            <div class="col-lg-2 col-md-3 text-center">
+
+                                <img id="employeeProfileImage"
+                                     src=""
+                                     style="
+                                        width:140px;
+                                        height:140px;
+                                        object-fit:cover;
+                                        border-radius:50%;
+                                        display:none;
+                                        border:5px solid #d9ead5;
+                                     ">
+
+                                <div id="employeeProfilePlaceholder"
+                                     class="mx-auto d-flex align-items-center justify-content-center"
+                                     style="
+                                        width:140px;
+                                        height:140px;
+                                        border-radius:50%;
+                                        background:#e3f3df;
+                                        color:#6da85c;
+                                        font-size:55px;
+                                     ">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+
+                            </div>
+
+                            <!-- PROFILE INFO -->
+                            <div class="col-lg-10 col-md-9">
+
+                                <h2 class="fw-bold mb-1"
+                                    id="employeeProfileName">
+                                    -
+                                </h2>
+
+                                <p class="text-muted fs-5 mb-3"
+                                   id="employeeProfileDesignation">
+                                    -
+                                </p>
+
+                                <div class="d-flex flex-wrap gap-2">
+
+                                    <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2">
+                                        Active Employee
+                                    </span>
+
+                                    <span class="badge rounded-pill bg-primary-subtle text-primary px-3 py-2">
+                                        HR Master
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- BASIC INFORMATION -->
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="fw-bold mb-0">
+                        Basic Information
+                    </h5>
+                </div>
+
+                <div class="row g-3 mb-4" id="employeeDetailsGrid">
+                    <!-- Dynamic Content -->
+                </div>
+
+                <!-- ATTACHMENTS -->
+                <div class="d-flex align-items-center justify-content-between mb-3 mt-4">
+                    <h5 class="fw-bold mb-0">
+                        Attachments
+                    </h5>
+                </div>
+
+                <div class="row g-3" id="employeeAttachmentGrid">
+                    <!-- Dynamic Attachments -->
+                </div>
+
+            </div>
+
+            <!-- FOOTER -->
+            <div class="modal-footer border-0 px-4 pb-4">
+
+                <button type="button"
+                        class="btn btn-light rounded-pill px-4"
+                        data-bs-dismiss="modal">
+                    Close
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+</div>
 
 <div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
 
@@ -228,46 +412,46 @@
 <script src="{% static 'inventory/assets/js/app5724.js' %}"></script>
 
 <script>
-let employeeData = [];
+    let employeeData = [];
 
-document.addEventListener("DOMContentLoaded", function () {
-    loadEmployees();
+    document.addEventListener("DOMContentLoaded", function () {
+        loadEmployees();
 
-    document.getElementById("employeeSearch").addEventListener("input", function () {
-        renderEmployees(this.value.trim().toLowerCase());
+        document.getElementById("employeeSearch").addEventListener("input", function () {
+            renderEmployees(this.value.trim().toLowerCase());
+        });
     });
-});
 
-function loadEmployees() {
-   fetch("{% url 'inventory:employee_list' %}")
-        .then(res => res.json())
-        .then(data => {
-            employeeData = data.data || [];
-            renderEmployees();
-        })
-        .catch(err => {
-            console.error(err);
-            document.getElementById("employeeTableBody").innerHTML = `
+    function loadEmployees() {
+        fetch("{% url 'inventory:employee_list' %}")
+            .then(res => res.json())
+            .then(data => {
+                employeeData = data.data || [];
+                renderEmployees();
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById("employeeTableBody").innerHTML = `
                 <tr><td colspan="8" class="text-center text-danger">Failed to load employees</td></tr>
             `;
-        });
-}
-
-function renderEmployees(searchText = "") {
-    const tbody = document.getElementById("employeeTableBody");
-    tbody.innerHTML = "";
-
-    let filtered = employeeData.filter(emp =>
-        JSON.stringify(emp).toLowerCase().includes(searchText)
-    );
-
-    if (!filtered.length) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center">No employees found</td></tr>`;
-        return;
+            });
     }
 
-    filtered.forEach(emp => {
-        tbody.innerHTML += `
+    function renderEmployees(searchText = "") {
+        const tbody = document.getElementById("employeeTableBody");
+        tbody.innerHTML = "";
+
+        let filtered = employeeData.filter(emp =>
+            JSON.stringify(emp).toLowerCase().includes(searchText)
+        );
+
+        if (!filtered.length) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center">No employees found</td></tr>`;
+            return;
+        }
+
+        filtered.forEach(emp => {
+            tbody.innerHTML += `
             <tr>
                 <td>
                     <button class="btn btn-primary btn-sm me-2" onclick="editEmployee(${emp.id})">
@@ -278,7 +462,13 @@ function renderEmployees(searchText = "") {
                     </button>
                 </td>
                 <td>${emp.employee_id || ""}</td>
-                <td>${emp.name || ""}</td>
+                <td>
+    <a href="javascript:void(0)"
+       class="fw-semibold text-decoration-none"
+       onclick="viewEmployeeDetails(${emp.id})">
+        ${emp.name || ""}
+    </a>
+</td>
                 <td>${emp.email || ""}</td>
                 <td>${emp.mobile_no || ""}</td>
                 <td>${emp.designation || ""}</td>
@@ -286,140 +476,483 @@ function renderEmployees(searchText = "") {
                 <td>${emp.status ? "Active" : "Inactive"}</td>
             </tr>
         `;
-    });
-}
-
-function submitEmployeeForm() {
-    const rowId = document.getElementById("edit_employee_row_id").value;
-    const form = document.getElementById("employeeForm");
-    const formData = new FormData(form);
-
-   let url = "{% url 'inventory:add_employee' %}";
-    if (rowId) {
-        formData.append("operation", "update");
-        formData.append("id", rowId);
-        formData.append("emp_id", document.getElementById("employee_id").value);
-        url = "{% url 'inventory:modify_employee' %}";
+        });
     }
 
-    fetch(url, {
-        method: "POST",
-        body: formData,
-        headers: { "X-CSRFToken": getCookie("csrftoken") }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success || data.message) {
-            showToast(data.success || data.message, "success");
-            resetEmployeeForm();
-            bootstrap.Collapse.getOrCreateInstance(document.getElementById("addEmployeeCollapse")).hide();
-            loadEmployees();
-        } else {
-            showToast(data.error || "Failed", "danger");
+    function submitEmployeeForm() {
+        const rowId = document.getElementById("edit_employee_row_id").value;
+        const form = document.getElementById("employeeForm");
+        const formData = new FormData(form);
+
+        let url = "{% url 'inventory:add_employee' %}";
+        if (rowId) {
+            formData.append("operation", "update");
+            formData.append("id", rowId);
+            formData.append("emp_id", document.getElementById("employee_id").value);
+            url = "{% url 'inventory:modify_employee' %}";
         }
-    })
-    .catch(err => {
-        console.error(err);
-        showToast("Error saving employee", "danger");
-    });
-}
 
-function editEmployee(id) {
-    const emp = employeeData.find(e => Number(e.id) === Number(id));
-    if (!emp) return;
+        fetch(url, {
+            method: "POST",
+            body: formData,
+            headers: {"X-CSRFToken": getCookie("csrftoken")}
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success || data.message) {
+                    showToast(data.success || data.message, "success");
+                    resetEmployeeForm();
+                    bootstrap.Collapse.getOrCreateInstance(document.getElementById("addEmployeeCollapse")).hide();
+                    loadEmployees();
+                } else {
+                    showToast(data.error || "Failed", "danger");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast("Error saving employee", "danger");
+            });
+    }
 
-    document.getElementById("edit_employee_row_id").value = emp.id;
-    document.getElementById("employee_id").value = emp.employee_id || "";
-    document.getElementById("name").value = emp.name || "";
-    document.getElementById("email").value = emp.email || "";
-    document.getElementById("designation").value = emp.designation || "";
-    document.getElementById("mobile_no").value = emp.mobile_no || "";
-    document.getElementById("gender").value = emp.gender || "";
-    document.getElementById("joining_date").value = emp.joining_date || "";
-    document.getElementById("dob").value = emp.dob || "";
-    document.getElementById("country").value = emp.country || "";
-    document.getElementById("state").value = emp.state || "";
-    document.getElementById("p_address").value = emp.p_address || "";
-    document.getElementById("c_address").value = emp.c_address || "";
-    document.getElementById("bloodGroup").value = emp.blood_group || "";
-    document.getElementById("status").value = emp.status ? "true" : "false";
+    function viewEmployeeDetails(id) {
 
-    document.getElementById("employeeFormTitle").textContent = "Edit Employee Details";
-    document.getElementById("employeeBtnText").textContent = "Update Employee";
+        const emp = employeeData.find(
+            e => Number(e.id) === Number(id)
+        );
 
-    bootstrap.Collapse.getOrCreateInstance(document.getElementById("addEmployeeCollapse")).show();
-}
+        if (!emp) return;
 
-function deleteEmployee(id) {
-    if (!confirm("Are you sure you want to delete this employee?")) return;
+        // -----------------------------------
+        // IMAGES
+        // -----------------------------------
+        const images = emp.images || [];
 
-    const formData = new FormData();
-    formData.append("operation", "delete");
-    formData.append("id", id);
+        const profileImage = images.length > 0
+            ? images[0]
+            : "";
 
-    fetch("{% url 'inventory:modify_employee' %}", {
-        method: "POST",
-        body: formData,
-        headers: { "X-CSRFToken": getCookie("csrftoken") }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            showToast(data.success, "success");
-            loadEmployees();
+        // -----------------------------------
+        // PROFILE ELEMENTS
+        // -----------------------------------
+        const profileImgTag = document.getElementById("employeeProfileImage");
+
+        const profilePlaceholder = document.getElementById("employeeProfilePlaceholder");
+
+        const profileName = document.getElementById("employeeProfileName");
+
+        const profileDesignation = document.getElementById("employeeProfileDesignation");
+
+        // -----------------------------------
+        // PROFILE DATA
+        // -----------------------------------
+        profileName.textContent = emp.name || "-";
+
+        profileDesignation.textContent = emp.designation || "-";
+
+        // -----------------------------------
+        // PROFILE IMAGE
+        // -----------------------------------
+        if (profileImage) {
+
+            profileImgTag.src = profileImage;
+
+            profileImgTag.style.display = "block";
+
+            profilePlaceholder.style.display = "none";
+
         } else {
-            showToast(data.error || "Delete failed", "danger");
+
+            profileImgTag.src = "";
+
+            profileImgTag.style.display = "none";
+
+            profilePlaceholder.style.display = "flex";
         }
-    })
-    .catch(err => {
-        console.error(err);
-        showToast("Error deleting employee", "danger");
-    });
-}
 
-function resetEmployeeForm() {
-    document.getElementById("employeeForm").reset();
-    document.getElementById("edit_employee_row_id").value = "";
-    document.getElementById("employeeFormTitle").textContent = "New Employee Details";
-    document.getElementById("employeeBtnText").textContent = "Save Employee";
-}
+        // -----------------------------------
+        // EMPLOYEE FIELDS
+        // -----------------------------------
+        const fields = [
 
-function cancelEmployeeForm() {
-    resetEmployeeForm();
-    bootstrap.Collapse.getOrCreateInstance(document.getElementById("addEmployeeCollapse")).hide();
-}
+            ["Employee Type", emp.employee_type, "bi-person-badge"],
 
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
+            ["Employee ID", emp.employee_id, "bi-hash"],
+
+            ["Email", emp.email, "bi-envelope"],
+
+            ["Mobile", emp.mobile_no, "bi-phone"],
+
+            ["Designation", emp.designation, "bi-briefcase"],
+
+            ["Gender", emp.gender, "bi-gender-ambiguous"],
+
+            ["Joining Date", emp.joining_date, "bi-calendar-check"],
+
+            ["Date of Birth", emp.dob, "bi-calendar"],
+
+            ["Reporting", emp.reporting, "bi-person-lines-fill"],
+
+            ["Country", emp.country, "bi-globe"],
+
+            ["State", emp.state, "bi-map"],
+
+            ["Blood Group", emp.blood_group, "bi-droplet"],
+
+            ["Permanent Address", emp.p_address, "bi-geo-alt"],
+
+            ["Current Address", emp.c_address, "bi-house"],
+
+            ["Status", emp.status ? "Active" : "Inactive", "bi-toggle-on"]
+
+        ];
+
+        // -----------------------------------
+        // GRID
+        // -----------------------------------
+        const grid = document.getElementById("employeeDetailsGrid");
+
+        grid.innerHTML = "";
+
+        fields.forEach(([label, value, icon]) => {
+
+            grid.innerHTML += `
+
+        <div class="col-xl-3 col-lg-4 col-md-6">
+
+            <div class="h-100 p-3 rounded-4 shadow-sm"
+                 style="
+                    background:#f8fcf7;
+                    border:1px solid #d9ead5;
+                    transition:0.2s;
+                 ">
+
+                <div class="d-flex align-items-start gap-3">
+
+                    <div class="rounded-4 d-flex align-items-center justify-content-center flex-shrink-0"
+                         style="
+                            width:52px;
+                            height:52px;
+                            background:#e3f3df;
+                            color:#6da85c;
+                            font-size:22px;
+                         ">
+
+                        <i class="bi ${icon}"></i>
+
+                    </div>
+
+                    <div class="overflow-hidden w-100">
+
+                        <div class="small text-uppercase fw-bold text-muted mb-1">
+                            ${label}
+                        </div>
+
+                        <div class="fw-semibold text-dark"
+                             style="
+                                word-break:break-word;
+                                font-size:15px;
+                             ">
+
+                            ${value || "-"}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        `;
+        });
+
+        // -----------------------------------
+        // ATTACHMENTS
+        // -----------------------------------
+        const attachmentGrid = document.getElementById("employeeAttachmentGrid");
+
+        attachmentGrid.innerHTML = "";
+
+        const attachmentImages = images.slice(1);
+
+        if (!attachmentImages.length) {
+
+            attachmentGrid.innerHTML = `
+
+        <div class="col-12">
+
+            <div class="alert alert-light border rounded-4 mb-0">
+                No attachments uploaded.
+            </div>
+
+        </div>
+
+        `;
+
+        } else {
+
+            attachmentImages.forEach((img, index) => {
+
+                attachmentGrid.innerHTML += `
+
+            <div class="col-lg-3 col-md-4 col-sm-6">
+
+                <a href="${img}"
+                   target="_blank"
+                   class="text-decoration-none">
+
+                    <div class="p-2 rounded-4 shadow-sm h-100"
+                         style="
+                            border:1px solid #d9ead5;
+                            background:#f8fcf7;
+                         ">
+
+                        <img src="${img}"
+                             style="
+                                width:100%;
+                                height:180px;
+                                object-fit:cover;
+                                border-radius:14px;
+                             ">
+
+                        <div class="small fw-semibold mt-2 text-center text-dark">
+
+                            Attachment ${index + 1}
+
+                        </div>
+
+                    </div>
+
+                </a>
+
+            </div>
+
+            `;
+            });
+        }
+
+        // -----------------------------------
+        // SHOW MODAL
+        // -----------------------------------
+        bootstrap.Modal.getOrCreateInstance(
+            document.getElementById("employeeDetailsModal")
+        ).show();
+    }
+
+    function editEmployee(id) {
+        const emp = employeeData.find(e => Number(e.id) === Number(id));
+        if (!emp) return;
+
+        document.getElementById("edit_employee_row_id").value = emp.id;
+        document.getElementById("employee_id").value = emp.employee_id || "";
+        document.getElementById("name").value = emp.name || "";
+        document.getElementById("email").value = emp.email || "";
+        document.getElementById("designation").value = emp.designation || "";
+        document.getElementById("mobile_no").value = emp.mobile_no || "";
+        document.getElementById("gender").value = emp.gender || "";
+        document.getElementById("joining_date").value = emp.joining_date || "";
+        document.getElementById("dob").value = emp.dob || "";
+        document.getElementById("country").value = emp.country || "";
+        document.getElementById("state").value = emp.state || "";
+        document.getElementById("p_address").value = emp.p_address || "";
+        document.getElementById("c_address").value = emp.c_address || "";
+        document.getElementById("bloodGroup").value = emp.blood_group || "";
+        document.getElementById("status").value = emp.status ? "true" : "false";
+
+        document.getElementById("employeeFormTitle").textContent = "Edit Employee Details";
+        document.getElementById("employeeBtnText").textContent = "Update Employee";
+
+        bootstrap.Collapse.getOrCreateInstance(document.getElementById("addEmployeeCollapse")).show();
+    }
+
+    function deleteEmployee(id) {
+        if (!confirm("Are you sure you want to delete this employee?")) return;
+
+        const formData = new FormData();
+        formData.append("operation", "delete");
+        formData.append("id", id);
+
+        fetch("{% url 'inventory:modify_employee' %}", {
+            method: "POST",
+            body: formData,
+            headers: {"X-CSRFToken": getCookie("csrftoken")}
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.success, "success");
+                    loadEmployees();
+                } else {
+                    showToast(data.error || "Delete failed", "danger");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast("Error deleting employee", "danger");
+            });
+    }
+
+    function resetEmployeeForm() {
+        document.getElementById("employeeForm").reset();
+        document.getElementById("edit_employee_row_id").value = "";
+        document.getElementById("employeeFormTitle").textContent = "New Employee Details";
+        document.getElementById("employeeBtnText").textContent = "Save Employee";
+    }
+
+    function cancelEmployeeForm() {
+        resetEmployeeForm();
+        bootstrap.Collapse.getOrCreateInstance(document.getElementById("addEmployeeCollapse")).hide();
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
             }
         }
+        return cookieValue;
     }
-    return cookieValue;
-}
 
-function showToast(message, type = "success") {
-    const toastContainer = document.getElementById("toastContainer");
-    const toastHTML = `
+    function showToast(message, type = "success") {
+        const toastContainer = document.getElementById("toastContainer");
+        const toastHTML = `
         <div class="toast align-items-center text-bg-${type} border-0 show mb-2" role="alert">
             <div class="d-flex">
                 <div class="toast-body">${message}</div>
                 <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.closest('.toast').remove()"></button>
             </div>
         </div>`;
-    toastContainer.insertAdjacentHTML("beforeend", toastHTML);
+        toastContainer.insertAdjacentHTML("beforeend", toastHTML);
 
-    setTimeout(() => {
-        const toast = toastContainer.querySelector(".toast");
-        if (toast) toast.remove();
-    }, 2500);
-}
+        setTimeout(() => {
+            const toast = toastContainer.querySelector(".toast");
+            if (toast) toast.remove();
+        }, 2500);
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const employeeType = document.getElementById("employee_type");
+
+        if (employeeType) {
+            employeeType.addEventListener("change", toggleEmployeeIdRequirement);
+            toggleEmployeeIdRequirement();
+        }
+
+    });
+
+    function toggleEmployeeIdRequirement() {
+
+        const employeeType = document.getElementById("employee_type");
+        const employeeId = document.getElementById("employee_id");
+        const helpText = document.getElementById("employeeIdHelp");
+
+        if (!employeeType || !employeeId) return;
+
+        if (employeeType.value === "Permanent") {
+
+            employeeId.required = true;
+            employeeId.placeholder = "Enter Employee ID";
+
+            if (helpText) {
+                helpText.innerHTML = "Employee ID required for permanent staff";
+                helpText.classList.remove("text-muted");
+                helpText.classList.add("text-danger");
+            }
+
+        } else {
+
+            employeeId.required = false;
+            employeeId.value = "";
+            employeeId.placeholder = "Optional";
+
+            if (helpText) {
+                helpText.innerHTML = "Optional for temporary/vendor staff";
+                helpText.classList.remove("text-danger");
+                helpText.classList.add("text-muted");
+            }
+        }
+    }
 </script>
+<style>
+    <style>
+
+#employeeDetailsModal .modal-dialog {
+    max-width: 92%;
+}
+
+#employeeDetailsModal .modal-content {
+    border-radius: 24px;
+}
+
+#employeeDetailsModal .modal-body {
+    max-height: 82vh;
+    overflow-y: auto;
+    padding-top: 10px !important;
+}
+
+#employeeDetailsModal .card-body {
+    padding: 22px !important;
+}
+
+#employeeDetailsModal #employeeDetailsGrid .shadow-sm {
+    padding: 14px !important;
+}
+
+#employeeDetailsModal #employeeDetailsGrid .rounded-4 {
+    border-radius: 18px !important;
+}
+
+#employeeDetailsModal #employeeDetailsGrid .small {
+    font-size: 11px;
+}
+
+#employeeDetailsModal #employeeDetailsGrid .fw-semibold {
+    font-size: 14px !important;
+}
+
+#employeeDetailsModal #employeeDetailsGrid i {
+    font-size: 20px !important;
+}
+
+#employeeDetailsModal #employeeDetailsGrid .rounded-4.d-flex {
+    width: 46px !important;
+    height: 46px !important;
+}
+
+#employeeProfileImage,
+#employeeProfilePlaceholder {
+    width: 110px !important;
+    height: 110px !important;
+}
+
+#employeeProfileName {
+    font-size: 40px;
+    margin-bottom: 4px !important;
+}
+
+#employeeProfileDesignation {
+    font-size: 24px !important;
+    margin-bottom: 10px !important;
+}
+
+#employeeDetailsModal h5 {
+    margin-bottom: 12px !important;
+}
+
+#employeeAttachmentGrid img {
+    height: 120px !important;
+}
+
+</style>
+
 </body>
 </html>
