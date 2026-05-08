@@ -137,4 +137,9 @@ urlpatterns = [
     ),
     path("get-connects/", views.get_connects),
     path("save-connect/", views.save_connect),
+    path(
+        'fetch-vehicle-list/',
+        views.fetch_vehicle_list,
+        name='fetch_vehicle_list'
+    ),
 ]

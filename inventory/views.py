@@ -297,102 +297,425 @@ def delete_user(request, id):
 
 # Employees Module
 def add_employee(request):
+
     username = request.session.get('username')
+
     if request.method == 'POST':
+
         try:
-            # Log data for debugging
+
+            # -------------------------------------------------
+            # DEBUG LOGS
+            # -------------------------------------------------
             print("Received POST data:", request.POST)
             print("Received FILES data:", request.FILES)
 
-            # Validate and extract data
-            employee_id = int(request.POST.get('employee_id').strip())
-            name = request.POST.get('name')
-            email = request.POST.get('email')
-            designation = request.POST.get('designation')
-            mobile_no = int(request.POST.get('mobile_no').strip())
-            gender = request.POST.get('gender')
-            joining_date = datetime.strptime(request.POST.get('joining_date'), '%Y-%m-%d').date()
-            dob = datetime.strptime(request.POST.get('dob'), '%Y-%m-%d').date()
-            reporting_id = request.POST.get('reporting')
-            p_address = request.POST.get('p_address')
-            c_address = request.POST.get('c_address')
-            country = request.POST.get('country')
-            state = request.POST.get('state')
-            status = request.POST.get('status').lower() == 'true'
-            blood_group = request.POST.get('bloodGroup')
+            # -------------------------------------------------
+            # EMPLOYEE TYPE
+            # -------------------------------------------------
+            employee_type = request.POST.get(
+                'employee_type',
+                ''
+            ).strip()
+
+            if not employee_type:
+
+                return JsonResponse({
+                    'error': 'Employee Type is required.'
+                }, status=400)
+
+            # -------------------------------------------------
+            # EMPLOYEE ID
+            # -------------------------------------------------
+            employee_id_raw = request.POST.get(
+                'employee_id',
+                ''
+            ).strip()
+
+            employee_id = None
+
+            # -------------------------------------------------
+            # EMAIL
+            # -------------------------------------------------
+            email_raw = request.POST.get(
+                'email',
+                ''
+            ).strip()
+
+            email = email_raw if email_raw else None
+
+            # -------------------------------------------------
+            # PERMANENT STAFF VALIDATION
+            # -------------------------------------------------
+            if employee_type == 'Permanent':
+
+                # Employee ID mandatory
+                if not employee_id_raw:
+
+                    return JsonResponse({
+                        'error': 'Employee ID is required for permanent employees.'
+                    }, status=400)
+
+                # Email mandatory
+                if not email:
+
+                    return JsonResponse({
+                        'error': 'Email is required for permanent employees.'
+                    }, status=400)
+
+                try:
+
+                    employee_id = int(employee_id_raw)
+
+                except ValueError:
+
+                    return JsonResponse({
+                        'error': 'Employee ID must be numeric.'
+                    }, status=400)
+
+            # -------------------------------------------------
+            # BASIC DETAILS
+            # -------------------------------------------------
+            name = request.POST.get(
+                'name',
+                ''
+            ).strip()
+
+            designation = request.POST.get(
+                'designation',
+                ''
+            ).strip()
+
+            gender = request.POST.get(
+                'gender',
+                ''
+            ).strip() or None
+
+            # -------------------------------------------------
+            # MOBILE NUMBER
+            # -------------------------------------------------
+            mobile_no_raw = request.POST.get(
+                'mobile_no',
+                ''
+            ).strip()
+
+            if not mobile_no_raw:
+
+                return JsonResponse({
+                    'error': 'Mobile number is required.'
+                }, status=400)
+
+            try:
+
+                mobile_no = int(mobile_no_raw)
+
+            except ValueError:
+
+                return JsonResponse({
+                    'error': 'Mobile number must be numeric.'
+                }, status=400)
+
+            # -------------------------------------------------
+            # DATES
+            # -------------------------------------------------
+            joining_date_raw = request.POST.get(
+                'joining_date',
+                ''
+            ).strip()
+
+            dob_raw = request.POST.get(
+                'dob',
+                ''
+            ).strip()
+
+            joining_date = None
+            dob = None
+
+            if joining_date_raw:
+
+                joining_date = datetime.strptime(
+                    joining_date_raw,
+                    '%Y-%m-%d'
+                ).date()
+
+            if dob_raw:
+
+                dob = datetime.strptime(
+                    dob_raw,
+                    '%Y-%m-%d'
+                ).date()
+
+            # -------------------------------------------------
+            # OTHER DETAILS
+            # -------------------------------------------------
+            reporting_id = request.POST.get(
+                'reporting',
+                ''
+            ).strip()
+
+            p_address = request.POST.get(
+                'p_address',
+                ''
+            ).strip() or None
+
+            c_address = request.POST.get(
+                'c_address',
+                ''
+            ).strip() or None
+
+            country = request.POST.get(
+                'country',
+                ''
+            ).strip() or None
+
+            state = request.POST.get(
+                'state',
+                ''
+            ).strip() or None
+
+            status = request.POST.get(
+                'status',
+                'true'
+            ).lower() == 'true'
+
+            blood_group = request.POST.get(
+                'bloodGroup',
+                ''
+            ).strip() or None
+
             created_by = request.session.get('user_id')
-            created_date = datetime.now().replace(tzinfo=None)  # timestamp without timezone
-            profile_photo = request.FILES.get('profile_photo')
-            attachment_images = request.FILES.getlist('attachments[]')
 
-            # Cloudinary upload for profile photo
+            created_date = datetime.now().replace(
+                tzinfo=None
+            )
+
+            # -------------------------------------------------
+            # FILES
+            # -------------------------------------------------
+            profile_photo = request.FILES.get(
+                'profile_photo'
+            )
+
+            attachment_images = request.FILES.getlist(
+                'attachments[]'
+            )
+
+            # -------------------------------------------------
+            # PROFILE PHOTO
+            # -------------------------------------------------
             profile_photo_url = None
+
             if profile_photo:
-                min_size = 5 * 1024  # 5 KB
-                max_size = 5 * 1024 * 1024  # 5 MB
 
-                if profile_photo:
-                    max_size = 5 * 1024 * 1024  # 5 MB
-                    if profile_photo.size > max_size:
-                        return JsonResponse(
-                            {'error': 'Profile photo size must not exceed 5MB.'},
-                            status=400
-                        )
+                max_size = 5 * 1024 * 1024
 
-            # Cloudinary upload for attachments
+                if profile_photo.size > max_size:
+
+                    return JsonResponse({
+                        'error': 'Profile photo size must not exceed 5MB.'
+                    }, status=400)
+
+                upload_result = cloudinary.uploader.upload(
+                    profile_photo,
+                    folder="profilepic/"
+                )
+
+                profile_photo_url = upload_result.get(
+                    'secure_url'
+                )
+
+            # -------------------------------------------------
+            # ATTACHMENTS
+            # -------------------------------------------------
             image_urls = []
-            for image in attachment_images[:2]:  # Limiting to first 2 attachments
-                if image:
-                    upload_result = cloudinary.uploader.upload(image, folder="uploads/")
-                    image_urls.append(upload_result['secure_url'])  # Get the URL of the uploaded image
 
-            # Ensure there are at least two entries in image_urls to avoid index errors
+            for image in attachment_images[:2]:
+
+                if image:
+
+                    upload_result = cloudinary.uploader.upload(
+                        image,
+                        folder="uploads/"
+                    )
+
+                    image_urls.append(
+                        upload_result.get('secure_url')
+                    )
+
             while len(image_urls) < 2:
                 image_urls.append(None)
 
-            # Check for duplicates
+            # -------------------------------------------------
+            # DUPLICATE CHECK
+            # -------------------------------------------------
             with connection.cursor() as cursor:
+
                 cursor.execute("""
-                               SELECT COUNT(*)
-                               FROM employee
-                               WHERE employee_id = %s
-                                  OR email = %s
-                                  OR mobile_no = %s
-                               """, [employee_id, email, mobile_no])
+                    SELECT COUNT(*)
+                    FROM employee
+                    WHERE
+                        (%s IS NOT NULL AND employee_id = %s)
+                        OR
+                        (%s IS NOT NULL AND email = %s)
+                        OR
+                        mobile_no = %s
+                """, [
+
+                    employee_id,
+                    employee_id,
+
+                    email,
+                    email,
+
+                    mobile_no
+
+                ])
+
                 duplicate_count = cursor.fetchone()[0]
 
             if duplicate_count > 0:
-                return JsonResponse({'error': 'Employee with this ID, email, or mobile number already exists.'},
-                                    status=400)
 
-            # Fetch reporting name
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT name FROM employee WHERE id = %s", [reporting_id])
-                reporting_name = cursor.fetchone()
-                if reporting_name is None:
-                    return JsonResponse({'error': 'Invalid reporting ID.'}, status=400)
-                reporting_name = reporting_name[0]
+                return JsonResponse({
+                    'error': 'Employee with this Employee ID, email, or mobile number already exists.'
+                }, status=400)
 
-            # Call stored procedure
-            try:
+            # -------------------------------------------------
+            # REPORTING NAME
+            # -------------------------------------------------
+            reporting_name = None
+
+            if reporting_id:
+
                 with connection.cursor() as cursor:
-                    cursor.callproc('add_employee', [
-                        employee_id, name, email, designation, mobile_no, gender,
-                        joining_date, dob, reporting_name, p_address, c_address, country, state,
-                        status, blood_group, created_by, created_date,
-                        profile_photo_url, image_urls[0], image_urls[1]
-                    ])
-            except IntegrityError as e:
-                return JsonResponse({'error': 'Integrity error occurred: ' + str(e)}, status=400)
 
-            return JsonResponse({'success': 'Employee added successfully'}, status=200)
+                    cursor.execute("""
+                        SELECT name
+                        FROM employee
+                        WHERE id = %s
+                    """, [reporting_id])
+
+                    reporting_row = cursor.fetchone()
+
+                if reporting_row is None:
+
+                    return JsonResponse({
+                        'error': 'Invalid reporting ID.'
+                    }, status=400)
+
+                reporting_name = reporting_row[0]
+
+            # -------------------------------------------------
+            # POSTGRESQL FUNCTION
+            # -------------------------------------------------
+            try:
+
+                with connection.cursor() as cursor:
+
+                    cursor.callproc('add_employee', [
+
+                        employee_id,
+                        employee_type,
+
+                        name,
+                        email,
+                        designation,
+                        mobile_no,
+                        gender,
+
+                        joining_date,
+                        dob,
+
+                        reporting_name,
+
+                        p_address,
+                        c_address,
+
+                        country,
+                        state,
+
+                        status,
+
+                        blood_group,
+
+                        created_by,
+                        created_date,
+
+                        profile_photo_url,
+
+                        image_urls[0],
+                        image_urls[1]
+
+                    ])
+
+            except IntegrityError as e:
+
+                return JsonResponse({
+                    'error': 'Integrity error occurred: ' + str(e)
+                }, status=400)
+
+            # -------------------------------------------------
+            # SUCCESS
+            # -------------------------------------------------
+            return JsonResponse({
+                'success': 'Employee added successfully'
+            }, status=200)
 
         except Exception as e:
+
             print(f"An unexpected error occurred: {str(e)}")
-            return JsonResponse({'error': 'An unexpected error occurred: ' + str(e)}, status=500)
 
-    return render(request, 'inventory/Employee_master.html', {'employees': get_all_employees(), 'username': username})
+            return JsonResponse({
+                'error': 'An unexpected error occurred: ' + str(e)
+            }, status=500)
 
+    return render(
+        request,
+        'inventory/Employee_master.html',
+        {
+            'employees': get_all_employees(),
+            'username': username
+        }
+    )
+
+def fetch_vehicle_list(request):
+
+    try:
+
+        with connection.cursor() as cursor:
+
+            cursor.execute("""
+                SELECT
+                    id,
+                    vehicle_number,
+                    vehicle_name
+                FROM public.transport_master
+                WHERE status = true
+                ORDER BY vehicle_number
+            """)
+
+            rows = cursor.fetchall()
+
+        vehicles = []
+
+        for row in rows:
+
+            vehicles.append({
+                "id": row[0],
+                "vehicle_no": row[1],
+                "vehicle_name": row[2]
+            })
+
+        return JsonResponse({
+            "vehicles": vehicles
+        })
+
+    except Exception as e:
+
+        print("FETCH VEHICLE LIST ERROR:", str(e))
+
+        return JsonResponse({
+            "error": str(e)
+        }, status=500)
 
 def get_all_employees():
     with connection.cursor() as cursor:
@@ -415,105 +738,72 @@ def employee_dropdown(request):
 
 
 def employee_list(request):
-    employee_listing = []
     try:
         with connection.cursor() as cursor:
-            # Fetch employee details
-            cursor.execute("SELECT * FROM get_employee_details()")
+            cursor.execute("""
+                SELECT
+                    e.id,
+                    e.employee_id,
+                    e.employee_type,
+                    e.name,
+                    e.email,
+                    e.mobile_no,
+                    e.designation,
+                    e.gender,
+                    e.joining_date,
+                    e.dob,
+                    e.reporting,
+                    e.p_address,
+                    e.c_address,
+                    e.country,
+                    e.state,
+                    e.blood_group,
+                    e.status,
+                    COALESCE(
+                        json_agg(ei.images) FILTER (WHERE ei.images IS NOT NULL),
+                        '[]'
+                    ) AS images
+                FROM public.employee e
+                LEFT JOIN public.employee_images ei
+                    ON ei.employee_id = e.id
+                GROUP BY e.id
+                ORDER BY e.id DESC
+            """)
+
             rows = cursor.fetchall()
-            # print('Check the employee Details:', rows)
 
-            for index, row in enumerate(rows):
-                # print('Check the for loop')
-                # Log row structure for debugging
-                logger.debug(f"Row data: {row}")
+        data = []
 
-                # Extract each field from the row
-                employee_id = row[1]
-                name = row[2]
-                email = row[3]
-                designation = row[4]
-                mobile_no = row[5]
-                gender = row[6]
-                joining_date = row[7].strftime('%Y-%m-%d') if row[7] else None
-                dob = row[8].strftime('%Y-%m-%d') if row[8] else None
-                reporting_name = row[9]
-                p_address = row[10]
-                c_address = row[11]
-                country = row[12]
-                state = row[13]
-                status = row[14]
-                blood_group = row[15]
-                created_by = row[16]  # Assuming this is created_by, adjust as necessary
-                created_date = row[17].strftime('%Y-%m-%d') if row[17] else None  # Format created_date
-                profile_pic = row[18]  # Profile picture path
-                attachments = row[19] or []  # Attachments array
-                # print('Fetch the Form DATA:', employee_id,name,email, designation,mobile_no, gender, joining_date, dob, reporting_name, p_address, c_address, country,
-                # profile_pic, attachments)
+        for row in rows:
+            data.append({
+                "id": row[0],
+                "employee_id": row[1],
+                "employee_type": row[2],
+                "name": row[3],
+                "email": row[4],
+                "mobile_no": row[5],
+                "designation": row[6],
+                "gender": row[7],
+                "joining_date": row[8].strftime("%Y-%m-%d") if row[8] else "",
+                "dob": row[9].strftime("%Y-%m-%d") if row[9] else "",
+                "reporting": row[10],
+                "p_address": row[11],
+                "c_address": row[12],
+                "country": row[13],
+                "state": row[14],
+                "blood_group": row[15],
+                "status": row[16],
+                "images": row[17] or []
+            })
 
-                # Handle profile picture URL
-                if profile_pic:
-                    # If the profile_pic already contains a full URL (e.g., Cloudinary URL)
-                    if profile_pic.startswith('http://') or profile_pic.startswith('https://'):
-                        image_url = profile_pic  # Use the URL as is
-                    else:
-                        # Otherwise, assume it's a local file path and construct the media URL
-                        image_url = f'{settings.MEDIA_URL}{profile_pic}'.replace('\\', '/')
-                else:
-                    # Fallback to default profile picture if none is provided
-                    image_url = f'{settings.MEDIA_URL}profilepic/default.jpg'
-
-                # Handle attachments (array of images)
-                attachment_urls = []
-                for attachment in attachments:
-                    if attachment:
-                        attachment_url = os.path.join(settings.MEDIA_URL, attachment).replace('\\', '/')
-                        attachment_urls.append(attachment_url)
-
-                # Add employee details to the list
-                employee_listing.append({
-                    'sr_no': index + 1,
-                    'id': row[0],
-                    'employee_id': employee_id,
-                    'name': name,
-                    'email': email,
-                    'mobile_no': mobile_no,
-                    'designation': designation,
-                    'gender': gender,
-                    'joining_date': joining_date,
-                    'dob': dob,
-                    'reporting': reporting_name,
-                    'p_address': p_address,
-                    'c_address': c_address,
-                    'country': country,
-                    'state': state,
-                    'status': status,
-                    'blood_group': blood_group,
-                    'created_by': created_by,
-                    'created_date': created_date,
-                    'profile_pic': image_url,
-                    'attachments': attachment_urls  # List of attachment URLs
-                })
-            # print('Check the Employee Listing:', employee_listing)
+        return JsonResponse({
+            "data": data
+        })
 
     except Exception as e:
-        logger.error("An error occurred while fetching the employee list: %s", str(e), exc_info=True)
-        return JsonResponse({'error': 'An error occurred while fetching the employee list: ' + str(e)}, status=500)
-
-    # Pagination
-    page = int(request.GET.get('page', 1))
-    page_size = int(request.GET.get('page_size', 10))
-    paginator = Paginator(employee_listing, page_size)
-    page_obj = paginator.get_page(page)
-
-    response = {
-        'data': list(page_obj.object_list),
-        'total_items': paginator.count,
-        'total_pages': paginator.num_pages,
-        'current_page': page_obj.number,
-    }
-
-    return JsonResponse(response)
+        return JsonResponse({
+            "error": str(e)
+        }, status=500)
 
 
 @csrf_exempt
@@ -2295,23 +2585,34 @@ def add_event(request):
         print("RAW POST:", request.POST)
         print("USER ID:", request.session.get("user_id"))
 
+        event_id = request.POST.get("event_id")
+        event_name = request.POST.get("event_name")
+        from_date = request.POST.get("from_date")
+        to_date = request.POST.get("to_date")
+        location = request.POST.get("location")
+        user_id = request.session.get("user_id")
+
+        if event_id:
+            event_id = int(event_id)
+        else:
+            event_id = None
+
+        if not user_id:
+            return JsonResponse({
+                "success": False,
+                "error": "User session expired. Please login again."
+            })
+
         with connection.cursor() as cursor:
-            event_id = request.POST.get("event_id")
-
-            if event_id:
-                event_id = int(event_id)
-            else:
-                event_id = None
-
             cursor.execute(
                 "SELECT manage_event(%s, %s, %s, %s, %s, %s)",
                 [
                     event_id,
-                    request.POST.get("event_name"),
-                    request.POST.get("from_date"),
-                    request.POST.get("to_date"),
-                    request.POST.get("location"),
-                    request.session.get("user_id")
+                    user_id,
+                    event_name,
+                    from_date,
+                    to_date,
+                    location
                 ]
             )
 
@@ -2959,82 +3260,222 @@ def add_job(request):
         client_name = request.POST.get('client_name')
         contact_person_name = request.POST.get('contact_person_name')
         contact_person_number = request.POST.get('contact_person_number')
+        venue_name = request.POST.get('venue_name')
         venue_address = request.POST.get('venue_address')
         status = request.POST.get('status')
 
-        crew_type = ','.join(request.POST.getlist('crew_type'))
-        no_of_container = request.POST.get('no_of_container')
-        employee = ','.join(request.POST.getlist('prep_sheet'))
-
-        setup_date = request.POST.get('setup_date')
-        rehearsal_date = request.POST.get('rehearsal_date')
-        start_date = request.POST.get('start_date')
-        end_date = request.POST.get('end_date')
+        crew_type = request.POST.get('crew_type')
+        setup_date = request.POST.get('setup_date') or None
+        rehearsal_date = request.POST.get('rehearsal_date') or None
+        start_date = request.POST.get('start_date') or None
+        end_date = request.POST.get('end_date') or None
         total_days = request.POST.get('total_days')
 
         amount_row = request.POST.get('amount_row')
         discount = request.POST.get('discount')
         discounted_amount = request.POST.get('discounted_amount')
         total_amount = request.POST.get('total_amount')
+        input_notes = request.POST.get('input_notes')
 
-        category_name = request.POST.getlist('category_name')
-        equipment_ids = request.POST.getlist('equipment_name')
-        quantities = request.POST.getlist('quantity')
-        number_of_days = request.POST.getlist('number_of_days')
-        amounts = request.POST.getlist('amount')
+        equipment_location = request.POST.get('equipment_location')
+        equipment_incharge = request.POST.get('equipment_incharge')
+        equipment_rehearsal_date = request.POST.get('equipment_rehearsal_date') or None
+        equipment_event_date = request.POST.get('equipment_event_date') or None
 
-        try:
-            equipment_ids = [int(eid) for eid in equipment_ids if eid]
-        except ValueError:
-            return JsonResponse({
-                'success': False,
-                'error': 'Invalid equipment selected.'
-            }, status=400)
+        equipment_categories = request.POST.getlist('equipment_category[]')
+        equipment_ids = request.POST.getlist('equipment_name[]')
+        equipment_qtys = request.POST.getlist('equipment_qty[]')
+        rental_prices = request.POST.getlist('rental_price[]')
+        equipment_totals = request.POST.getlist('equipment_total[]')
+        equipment_notes = request.POST.getlist('equipment_notes[]')
 
         created_by = request.session.get('user_id')
-        created_date = datetime.now()
+
+        if not created_by:
+            return JsonResponse({
+                'success': False,
+                'error': 'User session expired. Please login again.'
+            }, status=401)
 
         try:
-            with connection.cursor() as cursor:
-                cursor.callproc(
-                    'jobs_master_list',
-                    (
-                        'CREATE',
-                        None,
-                        None,
-                        title,
-                        client_name,
-                        contact_person_name,
-                        contact_person_number,
-                        venue_address,
-                        status,
-                        crew_type,
-                        no_of_container,
-                        employee,
-                        setup_date,
-                        rehearsal_date,
-                        start_date,
-                        end_date,
-                        total_days,
-                        amount_row,
-                        discount,
-                        discounted_amount,
-                        total_amount,
-                        category_name,
-                        equipment_ids,
-                        quantities,
-                        number_of_days,
-                        amounts,
-                        created_by,
-                        created_date
-                    )
-                )
-                data = cursor.fetchall()
+            with transaction.atomic():
+                with connection.cursor() as cursor:
 
-            return JsonResponse({
-                'success': True,
-                'data': data
-            })
+                    # =====================================================
+                    # CASE 1: QUOTATION SAVE IN TEMP TABLES
+                    # =====================================================
+                    if status == 'Quotation':
+
+                        cursor.execute("""
+                            SELECT public.manage_temp_job(
+                                %s, %s,
+                                %s, %s, %s, %s, %s,
+                                %s, %s, %s,
+                                %s, %s, %s, %s,
+                                %s, %s, %s, %s, %s,
+                                %s, %s
+                            )
+                        """, [
+                            'CREATE_QUOTATION',
+                            None,
+
+                            title,
+                            client_name,
+                            contact_person_name,
+                            contact_person_number,
+                            status,
+
+                            venue_name,
+                            venue_address,
+                            crew_type,
+
+                            setup_date,
+                            rehearsal_date,
+                            start_date,
+                            end_date,
+
+                            total_days,
+                            amount_row,
+                            discount,
+                            discounted_amount,
+                            total_amount,
+
+                            created_by,
+                            input_notes
+                        ])
+
+                        temp_id = cursor.fetchone()[0]
+
+                        for index, equipment_id in enumerate(equipment_ids):
+                            if not equipment_id:
+                                continue
+
+                            cursor.execute("""
+                                SELECT equipment_name
+                                FROM public.equipment_list
+                                WHERE id = %s
+                            """, [equipment_id])
+
+                            equipment_row = cursor.fetchone()
+                            equipment_name = equipment_row[0] if equipment_row else ''
+
+                            cursor.execute("""
+                                INSERT INTO public.temp_equipment_details (
+                                    temp_id,
+                                    equipment_detail_id,
+                                    location,
+                                    incharge,
+                                    equipment_setup_date,
+                                    equipment_rehearsal_date,
+                                    equipment_name,
+                                    quantity,
+                                    equipment_unit_price,
+                                    equipment_total,
+                                    equipment_notes
+                                )
+                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            """, [
+                                temp_id,
+                                equipment_id,
+                                equipment_location,
+                                equipment_incharge,
+                                equipment_event_date,
+                                equipment_rehearsal_date,
+                                equipment_name,
+                                equipment_qtys[index] if index < len(equipment_qtys) else '',
+                                rental_prices[index] if index < len(rental_prices) else '',
+                                equipment_totals[index] if index < len(equipment_totals) else '',
+                                equipment_notes[index] if index < len(equipment_notes) else ''
+                            ])
+
+                        return JsonResponse({
+                            'success': True,
+                            'message': 'Quotation saved successfully.',
+                            'temp_id': temp_id
+                        })
+
+                    # =====================================================
+                    # CASE 2: DIRECT PROFORMA / PREPSHEET / DELIVERY
+                    # SAVE IN JOBS TABLES
+                    # =====================================================
+                    else:
+
+                        cursor.execute("""
+                            SELECT public.manage_job(
+                                %s, %s, %s, %s, %s,
+                                %s, %s, %s, %s, %s,
+                                %s, %s, %s, %s, %s,
+                                %s, %s, %s, %s, %s,
+                                %s, %s
+                            )
+                        """, [
+                            'CREATE_DIRECT_JOB',
+                            None,
+                            None,
+                            None,
+                            None,
+
+                            title,
+                            client_name,
+                            contact_person_name,
+                            contact_person_number,
+                            status,
+
+                            venue_address,
+                            crew_type,
+                            setup_date,
+                            rehearsal_date,
+                            start_date,
+
+                            end_date,
+                            total_days,
+                            amount_row,
+                            discount,
+                            discounted_amount,
+
+                            total_amount,
+                            created_by
+                        ])
+
+                        job_id = cursor.fetchone()[0]
+
+                        for index, equipment_id in enumerate(equipment_ids):
+                            if not equipment_id:
+                                continue
+
+                            cursor.execute("""
+                                SELECT equipment_name
+                                FROM public.equipment_list
+                                WHERE id = %s
+                            """, [equipment_id])
+
+                            equipment_row = cursor.fetchone()
+                            equipment_name = equipment_row[0] if equipment_row else ''
+
+                            cursor.execute("""
+                                INSERT INTO public.job_details (
+                                    job_id,
+                                    category_name,
+                                    equipment_name,
+                                    quantity,
+                                    number_of_days,
+                                    amount
+                                )
+                                VALUES (%s, %s, %s, %s, %s, %s)
+                            """, [
+                                job_id,
+                                equipment_categories[index] if index < len(equipment_categories) else '',
+                                equipment_name,
+                                equipment_qtys[index] if index < len(equipment_qtys) else '',
+                                total_days,
+                                equipment_totals[index] if index < len(equipment_totals) else ''
+                            ])
+
+                        return JsonResponse({
+                            'success': True,
+                            'message': f'{status} job saved successfully.',
+                            'job_id': job_id
+                        })
 
         except Exception as e:
             print("ADD_JOB ERROR:", str(e))
@@ -3047,6 +3488,64 @@ def add_job(request):
         'username': username
     })
 
+
+def convert_to_proforma(request, temp_id):
+    try:
+        with transaction.atomic():
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT public.manage_job(%s, %s, %s, %s, %s)",
+                    [
+                        'CONVERT_TO_PROFORMA',
+                        temp_id,
+                        None,
+                        None,
+                        None
+                    ]
+                )
+
+                job_id = cursor.fetchone()[0]
+
+        return redirect('inventory:job_book')
+
+    except Exception as e:
+        print("CONVERT_TO_PROFORMA ERROR:", str(e))
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+def create_split_job(request, job_id):
+    if request.method != 'POST':
+        return redirect('inventory:job_book')
+
+    section = request.POST.get('job_section')
+
+    try:
+        with transaction.atomic():
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT public.manage_job(%s, %s, %s, %s, %s)",
+                    [
+                        'CREATE_SPLIT',
+                        None,
+                        None,
+                        job_id,
+                        section
+                    ]
+                )
+
+                split_job_id = cursor.fetchone()[0]
+
+        return redirect('inventory:job_book')
+
+    except Exception as e:
+        print("CREATE_SPLIT_JOB ERROR:", str(e))
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
 
 def fetch_client_name(request):
     with connection.cursor() as cursor:
@@ -3080,37 +3579,27 @@ def fetch_client_name(request):
 def fetch_venue_name(request):
     query = request.GET.get('query', '').strip()
 
-    if not query:
-        return JsonResponse({
-            'venue_names': []
-        })
-
     with connection.cursor() as cursor:
         cursor.execute("""
             SELECT DISTINCT venue_name
             FROM public.connects
-            WHERE venue_name ILIKE %s
-              AND venue_name IS NOT NULL
+            WHERE venue_name IS NOT NULL
+              AND TRIM(venue_name) <> ''
+              AND venue_name ILIKE %s
             ORDER BY venue_name
+            LIMIT 20
         """, [f'%{query}%'])
 
-        venue_names = [
-            {'name': row[0]}
-            for row in cursor.fetchall()
-        ]
+        rows = cursor.fetchall()
 
     return JsonResponse({
-        'venue_names': venue_names
+        "venue_names": [{"name": row[0]} for row in rows]
     })
+
 
 
 def fetch_venue_address(request):
     venue_name = request.GET.get('venue_name', '').strip()
-
-    if not venue_name:
-        return JsonResponse({
-            'venue_address': ''
-        })
 
     with connection.cursor() as cursor:
         cursor.execute("""
@@ -3120,10 +3609,10 @@ def fetch_venue_address(request):
             LIMIT 1
         """, [venue_name])
 
-        result = cursor.fetchone()
+        row = cursor.fetchone()
 
     return JsonResponse({
-        'venue_address': result[0] if result else ''
+        "venue_address": row[0] if row else ""
     })
 
 
@@ -3178,34 +3667,29 @@ def fetch_master_categories(request):
     })
 
 
-def fetch_equipment_names(request):
-    category_name = request.GET.get('category_name')
 
-    if not category_name:
-        return JsonResponse({
-            'error': 'Category name is required.'
-        }, status=400)
+def fetch_equipment_names(request):
 
     with connection.cursor() as cursor:
         cursor.execute("""
-            SELECT DISTINCT ON (e.equipment_name)
-                e.id,
-                e.equipment_name
-            FROM public.equipment_list e
-            JOIN public.stock_details s
-                ON e.id = s.equipment_id
-            WHERE e.category_type = %s
-              AND s.unit > 0
-            ORDER BY e.equipment_name, s.id DESC
-        """, [category_name])
+            SELECT id, equipment_name
+            FROM public.equipment_list
+            WHERE status = TRUE
+            ORDER BY equipment_name
+        """)
 
         rows = cursor.fetchall()
 
+    print("TOTAL ROWS:", len(rows))
+
+    for row in rows[:10]:
+        print(row)
+
     return JsonResponse({
-        'equipment_names': [
+        "equipment_names": [
             {
-                'id': row[0],
-                'equipment_name': row[1]
+                "id": row[0],
+                "name": row[1]
             }
             for row in rows
         ]
@@ -3213,32 +3697,43 @@ def fetch_equipment_names(request):
 
 
 def fetch_rental_price(request):
-    equipment_id = request.GET.get('equipment_id')
+    equipment_id = request.GET.get("equipment_id")
 
     if not equipment_id:
         return JsonResponse({
-            'error': 'Invalid request'
+            "error": "Equipment ID is required"
         }, status=400)
 
     with connection.cursor() as cursor:
         cursor.execute("""
-            SELECT rental_price
-            FROM public.stock_details
-            WHERE equipment_id = %s
-            ORDER BY id DESC
+            SELECT
+                mc.category_name,
+                sc.name AS sub_category_name,
+                COALESCE(MAX(sd.rental_price), 0) AS rental_price
+            FROM public.equipment_list el
+            JOIN public.sub_category sc
+                ON el.sub_category_id = sc.id
+            JOIN public.master_category mc
+                ON sc.category_id = mc.category_id
+            LEFT JOIN public.stock_details sd
+                ON sd.equipment_id = el.id
+            WHERE el.id = %s
+            GROUP BY mc.category_name, sc.name
             LIMIT 1
         """, [equipment_id])
 
         row = cursor.fetchone()
 
-    if row:
+    if not row:
         return JsonResponse({
-            'rental_price': row[0]
-        })
+            "error": "Equipment not found"
+        }, status=404)
 
     return JsonResponse({
-        'error': 'Stock details not found'
-    }, status=404)
+        "category_name": row[0],
+        "sub_category_name": row[1],
+        "rental_price": float(row[2])
+    })
 
 
 def get_employee_name(request):
@@ -3263,94 +3758,91 @@ def get_employee_name(request):
 
 
 def jobs_list(request):
-    jobs_listing = []
-    processed_job_reference_nos = set()
-
     try:
         with connection.cursor() as cursor:
-            cursor.callproc(
-                'jobs_master_list',
-                [
-                    'READ',
-                    None, None, None, None, None, None, None, None,
-                    None, None, None, None, None, None, None, None,
-                    None, None, None, None, None, None, None, None,
-                    None, None, None
-                ]
-            )
+            cursor.execute("""
+                SELECT
+                    id,
+                    'QUOTATION' AS record_type,
+                    job_reference_no,
+                    quotation_no,
+                    main_job_no,
+                    job_order_no,
+                    title,
+                    client_name,
+                    venue_name,
+                    status,
+                    created_date
+                FROM public.temp
 
-            jobs = cursor.fetchall()
-            columns = [col[0] for col in cursor.description]
+                UNION ALL
 
-            for job in jobs:
-                job_dict = dict(zip(columns, job))
-                job_reference_no = job_dict.get('job_reference_no')
+                SELECT
+                    id,
+                    'JOB' AS record_type,
+                    job_reference_no,
+                    quotation_no,
+                    main_job_no,
+                    job_order_no,
+                    title,
+                    client_name,
+                    NULL AS venue_name,
+                    status,
+                    created_date
+                FROM public.jobs
 
-                if job_reference_no not in processed_job_reference_nos:
-                    jobs_listing.append(job_dict)
-                    processed_job_reference_nos.add(job_reference_no)
+                ORDER BY created_date DESC NULLS LAST, id DESC
+            """)
 
-        return JsonResponse(jobs_listing, safe=False)
+            rows = cursor.fetchall()
+
+        data = []
+
+        for row in rows:
+            data.append({
+                "id": row[0],
+                "record_type": row[1],
+                "job_reference_no": row[2],
+                "quotation_no": row[3],
+                "main_job_no": row[4],
+                "job_order_no": row[5],
+                "title": row[6],
+                "client_name": row[7],
+                "venue_name": row[8],
+                "status": row[9],
+                "created_date": row[10].strftime("%Y-%m-%d") if row[10] else ""
+            })
+
+        return JsonResponse(data, safe=False)
 
     except Exception as e:
-        print("JOBS_LIST ERROR:", str(e))
-        return JsonResponse({
-            'error': str(e)
-        }, status=500)
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 def get_status_counts(request):
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT COUNT(*)
-            FROM (
-                SELECT job_reference_no, status
-                FROM public.temp
-                WHERE status = 'Porforma'
-                GROUP BY job_reference_no, status
-            ) AS unique_perfoma
-        """)
-        perfoma_count = cursor.fetchone()[0]
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT
+                    (SELECT COUNT(*) FROM public.temp WHERE status = 'Quotation') AS quotation_count,
+                    (SELECT COUNT(*) FROM public.temp WHERE status = 'Proforma') AS proforma_count,
+                    (SELECT COUNT(*) FROM public.temp WHERE status = 'Prepsheet') AS prepsheet_count,
+                    (SELECT COUNT(*) FROM public.jobs WHERE status = 'Delivery Challan') AS deliveryChallan_count,
+                    (SELECT COUNT(*) FROM public.jobs) AS job_count
+            """)
 
-        cursor.execute("""
-            SELECT COUNT(*)
-            FROM (
-                SELECT job_reference_no, status
-                FROM public.temp
-                WHERE status = 'Prepsheet'
-                GROUP BY job_reference_no, status
-            ) AS unique_prepsheets
-        """)
-        prepsheet_count = cursor.fetchone()[0]
+            row = cursor.fetchone()
 
-        cursor.execute("""
-            SELECT COUNT(*)
-            FROM (
-                SELECT job_reference_no, status
-                FROM public.temp
-                WHERE status = 'Quotation'
-                GROUP BY job_reference_no, status
-            ) AS unique_quotations
-        """)
-        quotation_count = cursor.fetchone()[0]
+        return JsonResponse({
+            "quotation_count": row[0] or 0,
+            "proforma_count": row[1] or 0,
+            "prepsheet_count": row[2] or 0,
+            "deliveryChallan_count": row[3] or 0,
+            "job_count": row[4] or 0
+        })
 
-        cursor.execute("""
-            SELECT COUNT(*)
-            FROM (
-                SELECT job_reference_no, status
-                FROM public.temp
-                WHERE status = 'Delivery Challan'
-                GROUP BY job_reference_no, status
-            ) AS unique_deliveries
-        """)
-        delivery_challan_count = cursor.fetchone()[0]
-
-    return JsonResponse({
-        'perfoma_count': perfoma_count,
-        'prepsheet_count': prepsheet_count,
-        'quatation_count': quotation_count,
-        'deliveryChallan_count': delivery_challan_count,
-    })
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 def update_jobs(request, id):
