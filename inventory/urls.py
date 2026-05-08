@@ -142,4 +142,9 @@ urlpatterns = [
         views.fetch_vehicle_list,
         name='fetch_vehicle_list'
     ),
+    path('crew-master/', views.crew_master_page, name='crew_master'),
+    path('crew-list/', views.crew_list, name='crew_list'),
+    path('add-crew/', views.add_crew, name='add_crew'),
+    path('update-crew/<int:crew_id>/', views.update_crew, name='update_crew'),
+    path('delete-crew/<int:crew_id>/', views.delete_crew, name='delete_crew'),
 ]

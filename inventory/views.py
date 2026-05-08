@@ -2556,14 +2556,41 @@ def add_crew(request):
 
     return JsonResponse({"success": True, "message": "Saved successfully"})
 
-
 def crew_list(request):
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM get_crew_list()")
-        columns = [col[0] for col in cursor.description]
-        rows = cursor.fetchall()
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT
+                    cm.crew_id,
+                    cm.crew_designation,
+                    cm.status,
+                    COALESCE(um.user_name, '-') AS created_by_name,
+                    cm.created_date
+                FROM public.crew_master cm
+                LEFT JOIN public.user_master um
+                    ON um.user_id = cm.created_by
+                WHERE cm.status = true
+                ORDER BY cm.crew_id DESC
+            """)
 
-    return JsonResponse({"data": [dict(zip(columns, row)) for row in rows]})
+            rows = cursor.fetchall()
+
+        data = []
+
+        for row in rows:
+            data.append({
+                "crew_id": row[0],
+                "crew_designation": row[1],
+                "status": row[2],
+                "created_by": row[3],
+                "created_date": row[4].strftime("%Y-%m-%d %H:%M:%S") if row[4] else ""
+            })
+
+        return JsonResponse({"data": data})
+
+    except Exception as e:
+        print("CREW LIST ERROR:", str(e))
+        return JsonResponse({"data": [], "error": str(e)}, status=500)
 
 
 def delete_crew(request, id):
@@ -4027,3 +4054,69 @@ def get_driver_list(request):
         "success": True
     })
 
+def update_crew(request, crew_id):
+    if request.method == "POST":
+        try:
+            crew_designation = request.POST.get("crew_designation", "").strip()
+            status = request.POST.get("status", "true").lower() == "true"
+            updated_by = request.session.get("user_id")
+
+            if not crew_designation:
+                return JsonResponse({
+                    "success": False,
+                    "message": "Crew designation is required."
+                })
+
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT *
+                    FROM public.manage_crew(%s, %s, %s, %s, %s)
+                """, ['update', crew_id, crew_designation, status, updated_by])
+
+                row = cursor.fetchone()
+
+            return JsonResponse({
+                "success": row[6],
+                "message": row[5]
+            })
+
+        except Exception as e:
+            return JsonResponse({
+                "success": False,
+                "message": str(e)
+            }, status=500)
+
+    return JsonResponse({
+        "success": False,
+        "message": "Invalid request method"
+    }, status=405)
+
+
+def delete_crew(request, crew_id):
+    if request.method == "POST":
+        try:
+            deleted_by = request.session.get("user_id")
+
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT *
+                    FROM public.manage_crew(%s, %s, %s, %s, %s)
+                """, ['delete', crew_id, None, None, deleted_by])
+
+                row = cursor.fetchone()
+
+            return JsonResponse({
+                "success": row[6],
+                "message": row[5]
+            })
+
+        except Exception as e:
+            return JsonResponse({
+                "success": False,
+                "message": str(e)
+            }, status=500)
+
+    return JsonResponse({
+        "success": False,
+        "message": "Invalid request method"
+    }, status=405)

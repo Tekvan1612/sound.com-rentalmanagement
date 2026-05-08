@@ -14,7 +14,6 @@
 
     <main class="adminuiux-content has-sidebar">
 
-        <!-- Header -->
         <div class="container mt-3">
             <div class="row gx-3 align-items-center">
                 <div class="col">
@@ -46,43 +45,49 @@
                                     <input type="text"
                                            id="designation"
                                            class="form-control"
-                                           placeholder="Designation">
+                                           placeholder="Crew Designation">
                                     <label>Crew Designation</label>
                                 </div>
                             </div>
                         </div>
 
-                        <button class="btn btn-theme" onclick="saveCrew()">Submit</button>
-                        <button class="btn btn-outline-theme ms-2"
-                                onclick="cancelCrewForm()">Cancel</button>
+                        <button type="button" class="btn btn-theme" onclick="saveCrew()">
+                            Submit
+                        </button>
+
+                        <button type="button" class="btn btn-outline-theme ms-2" onclick="cancelCrewForm()">
+                            Cancel
+                        </button>
 
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Table -->
         <div class="container mt-3">
-            <div class="card">
+            <div class="card asset-master-card">
                 <div class="card-body">
+
                     <div class="table-responsive">
                         <table class="table table-bordered align-middle text-center">
                             <thead>
-                                <tr>
-                                    <th>Sr No.</th>
-                                    <th>Crew Designation</th>
-                                    <th>Created By</th>
-                                    <th>Created Date</th>
-                                    <th>Action</th>
-                                </tr>
+                            <tr>
+                                <th>Sr No.</th>
+                                <th>Crew Designation</th>
+                                <th>Created By</th>
+                                <th>Created Date</th>
+                                <th>Action</th>
+                            </tr>
                             </thead>
+
                             <tbody id="crewTableBody">
-                                <tr>
-                                    <td colspan="5">Loading...</td>
-                                </tr>
+                            <tr>
+                                <td colspan="5">Loading...</td>
+                            </tr>
                             </tbody>
                         </table>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -90,72 +95,73 @@
     </main>
 </div>
 
-
-
 {% include 'inventory/includes/footer.html' %}
 <script src="{% static 'inventory/assets/js/app5724.js' %}"></script>
 
-<!-- JS -->
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     loadCrew();
 });
 
-// Panel controls
 function saveCrew() {
-
     const formData = new FormData();
 
     const crewId = document.getElementById("crew_id").value;
+    const designation = document.getElementById("designation").value.trim();
 
-    if (crewId) {
-        formData.append("id", crewId);  // ✅ edit mode
+    if (!designation) {
+        alert("Crew designation is required.");
+        return;
     }
 
-    formData.append("designation", document.getElementById("designation").value);
+    formData.append("crew_designation", designation);
+    formData.append("status", "true");
 
-    fetch("{% url 'inventory:add_crew' %}", {
+    let url = "{% url 'inventory:add_crew' %}";
+
+    if (crewId) {
+        url = `/update-crew/${crewId}/`;
+    }
+
+    fetch(url, {
         method: "POST",
         body: formData,
-        headers: {"X-CSRFToken": getCookie("csrftoken")}
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken")
+        }
     })
     .then(res => res.json())
     .then(data => {
+        alert(data.message || "Saved successfully");
 
-        alert(data.message);
+        if (data.success) {
+            bootstrap.Collapse
+                .getOrCreateInstance(document.getElementById("addCrewCollapse"))
+                .hide();
 
-        // ✅ CLOSE COLLAPSE
-        bootstrap.Collapse
-            .getOrCreateInstance(document.getElementById("addCrewCollapse"))
-            .hide();
-
-        resetCrew();
-        loadCrew();
+            resetCrew();
+            loadCrew();
+        }
+    })
+    .catch(error => {
+        console.error("Crew save error:", error);
+        alert("Error while saving crew.");
     });
 }
 
-function cancelCrewForm() {
-
-    resetCrew();
-
-    document.getElementById("crewFormTitle").innerText = "Add Crew";
-
-    bootstrap.Collapse
-        .getOrCreateInstance(document.getElementById("addCrewCollapse"))
-        .hide();
-}
-
-// Load Crew List
 function loadCrew() {
     fetch("{% url 'inventory:crew_list' %}")
     .then(res => res.json())
     .then(data => {
-
         const tbody = document.getElementById("crewTableBody");
         tbody.innerHTML = "";
 
         if (!data.data || !data.data.length) {
-            tbody.innerHTML = `<tr><td colspan="5">No data found</td></tr>`;
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5">No data found</td>
+                </tr>
+            `;
             return;
         }
 
@@ -163,21 +169,23 @@ function loadCrew() {
             tbody.innerHTML += `
                 <tr>
                     <td>${index + 1}</td>
-                    <td>${item.designation}</td>
-                    <td>${item.created_by}</td>
-                    <td>${item.created_date}</td>
+                    <td>${item.crew_designation || "-"}</td>
+                    <td>${item.created_by || "-"}</td>
+                    <td>${item.created_date || "-"}</td>
                     <td>
                         <div class="d-flex justify-content-center gap-2">
 
-                            <button class="btn btn-sm btn-outline-primary"
-                                title="Edit"
-                                onclick='editCrew(${item.id}, ${JSON.stringify(item.designation)})'>
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-primary"
+                                    title="Edit"
+                                    onclick='editCrew(${item.crew_id}, ${JSON.stringify(item.crew_designation || "")})'>
                                 <i class="bi bi-pencil-square"></i>
                             </button>
 
-                            <button class="btn btn-sm btn-outline-danger"
-                                title="Delete"
-                                onclick="deleteCrew(${item.id})">
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger"
+                                    title="Delete"
+                                    onclick="deleteCrew(${item.crew_id})">
                                 <i class="bi bi-trash"></i>
                             </button>
 
@@ -186,67 +194,78 @@ function loadCrew() {
                 </tr>
             `;
         });
+    })
+    .catch(error => {
+        console.error("Crew load error:", error);
+
+        document.getElementById("crewTableBody").innerHTML = `
+            <tr>
+                <td colspan="5" class="text-danger">Failed to load crew.</td>
+            </tr>
+        `;
     });
 }
 
-// Edit Crew
 function editCrew(id, designation) {
-
     document.getElementById("crew_id").value = id;
     document.getElementById("designation").value = designation;
-
-    // ✅ Change title
     document.getElementById("crewFormTitle").innerText = "Edit Crew";
 
-    // ✅ Open collapse
     bootstrap.Collapse
         .getOrCreateInstance(document.getElementById("addCrewCollapse"))
         .show();
 }
 
-// Delete Crew
 function deleteCrew(id) {
     if (!confirm("Are you sure you want to delete?")) return;
 
     fetch(`/delete-crew/${id}/`, {
         method: "POST",
-        headers: {"X-CSRFToken": getCookie("csrftoken")}
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken")
+        }
     })
     .then(res => res.json())
     .then(data => {
-        alert(data.message);
-        loadCrew();
+        alert(data.message || "Deleted successfully");
+
+        if (data.success) {
+            loadCrew();
+        }
+    })
+    .catch(error => {
+        console.error("Crew delete error:", error);
+        alert("Error while deleting crew.");
     });
 }
 
 function cancelCrewForm() {
-
     resetCrew();
-
-    document.getElementById("crewFormTitle").innerText = "Add Crew";
 
     bootstrap.Collapse
         .getOrCreateInstance(document.getElementById("addCrewCollapse"))
         .hide();
 }
 
-// Reset Form
 function resetCrew() {
     document.getElementById("crew_id").value = "";
     document.getElementById("designation").value = "";
+    document.getElementById("crewFormTitle").innerText = "Add Crew";
 }
 
-// CSRF Helper
 function getCookie(name) {
     let cookieValue = null;
+
     if (document.cookie) {
-        document.cookie.split(';').forEach(cookie => {
+        document.cookie.split(";").forEach(cookie => {
             cookie = cookie.trim();
-            if (cookie.startsWith(name + '=')) {
+
+            if (cookie.startsWith(name + "=")) {
                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
             }
         });
     }
+
     return cookieValue;
 }
 </script>
