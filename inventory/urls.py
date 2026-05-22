@@ -147,4 +147,17 @@ urlpatterns = [
     path('add-crew/', views.add_crew, name='add_crew'),
     path('update-crew/<int:crew_id>/', views.update_crew, name='update_crew'),
     path('delete-crew/<int:crew_id>/', views.delete_crew, name='delete_crew'),
+    path(
+        'get-equipment-meta/<int:equipment_id>/',
+        views.get_equipment_meta,
+        name='get_equipment_meta'
+    ),
+    path('split-jobs-list/<int:job_id>/', views.split_jobs_list, name='split_jobs_list'),
+    path('create-split-job/<int:job_id>/', views.create_split_job, name='create_split_job'),
+
+    path(
+        "get-split-jobs/<int:parent_job_id>/",
+        views.get_split_jobs,
+        name="get_split_jobs"
+    ),
 ]

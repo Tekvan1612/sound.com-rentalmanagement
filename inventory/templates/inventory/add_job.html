@@ -262,8 +262,24 @@
 
                 <div class="card-body">
 
-                    <form method="POST" id="jobForm" action="{% url 'inventory:add_job' %}" onsubmit="saveJobAjax(event)">
+                    <form method="POST" id="jobForm" action="{% url 'inventory:add_job' %}"
+                          onsubmit="saveJobAjax(event)">
                         {% csrf_token %}
+                        <input type="hidden"
+                               name="edit_id"
+                               id="edit_id"
+                               value="{{ edit_id|default:'' }}">
+
+                        <input type="hidden"
+                               name="edit_type"
+                               id="edit_type"
+                               value="{{ edit_type|default:'' }}">
+
+                        <input type="hidden"
+                               name="co_jobs_json"
+                               id="co_jobs_json"
+                               value="[]">
+
 
                         <div class="card border overflow-hidden mb-4" id="smartwizard">
                             <ul class="nav">
@@ -458,6 +474,54 @@
 
                                         <div class="wizard-panel">
 
+                                            {% if not edit_mode or edit_type == "job" %}
+                                            <div class="card border-0 bg-theme-1-subtle mb-4" id="splitJobCard">
+                                                <div class="card-body">
+
+                                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                                        <div>
+                                                            <h5 class="mb-1">
+                                                                <i class="bi bi-diagram-3 me-2"></i>
+                                                                Co Jobs / Section Wise Equipment
+                                                            </h5>
+                                                            <small class="text-muted">
+                                                                Create ballroom / section-wise job and assign separate equipment.
+                                                            </small>
+                                                        </div>
+
+                                                        <button type="button"
+                                                                class="btn btn-theme btn-sm"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#splitJobModal">
+                                                            <i class="bi bi-plus-circle me-1"></i>
+                                                            Add Co Job
+                                                        </button>
+                                                    </div>
+
+                                                    <div class="table-responsive">
+                                                        <table class="table table-hover align-middle mb-0">
+                                                            <thead class="table-light">
+                                                            <tr>
+                                                                <th>Co Job No</th>
+                                                                <th>Section / Ballroom</th>
+                                                                <th>Status</th>
+                                                                <th class="text-center" style="width:120px;">Action</th>
+                                                            </tr>
+                                                            </thead>
+                                                            <tbody id="splitJobTableBody">
+                                                            <tr>
+                                                                <td colspan="4" class="text-center text-muted py-4">
+                                                                    Loading co jobs...
+                                                                </td>
+                                                            </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                            {% endif %}
+
                                             <div class="equipment-zone-card mb-4">
                                                 <div class="row g-3">
                                                     <div class="col-lg-3 col-md-6">
@@ -495,6 +559,21 @@
                                                     </div>
                                                 </div>
                                             </div>
+
+
+                                            {% if not edit_mode or edit_type == "job" %}
+                                            <div class="row mb-3" id="coJobEquipmentSelectorWrap">
+                                                <div class="col-lg-4 col-md-6">
+                                                    <label class="form-label">Select Co Job / Section</label>
+                                                    <select class="form-select" id="selected_split_id" name="selected_split_id">
+                                                        <option value="">Main Job Equipment</option>
+                                                    </select>
+                                                    <small class="text-muted">
+                                                        Select a co job before adding equipment. Leave blank for main job equipment.
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            {% endif %}
 
                                             <div class="d-flex justify-content-between align-items-center mb-3">
                                                 <div>
@@ -936,6 +1015,79 @@
     </div>
 </div>
 
+<div class="modal fade" id="splitJobModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content rounded-4">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Create Co Job / Section</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Section / Ballroom Name <span class="text-danger">*</span></label>
+                        <input type="text"
+                               class="form-control"
+                               id="splitJobSection"
+                               placeholder="Example: Ballroom A">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Location / Zone</label>
+                        <input type="text"
+                               class="form-control"
+                               id="splitLocation"
+                               placeholder="Example: Ballroom A - Left Wing">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Incharge</label>
+                        <input type="text"
+                               class="form-control"
+                               id="splitIncharge"
+                               placeholder="Enter incharge name">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Rehearsal Date</label>
+                        <input type="date"
+                               class="form-control"
+                               id="splitRehearsalDate">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Event Date</label>
+                        <input type="date"
+                               class="form-control"
+                               id="splitEventDate">
+                    </div>
+                </div>
+
+                <div class="alert alert-info mt-3 mb-0">
+                    These details will auto-fill in the Equipment section when this co job is selected.
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal">
+                    Cancel
+                </button>
+
+                <button type="button"
+                        class="btn btn-theme"
+                        onclick="createSplitJob()">
+                    Create Co Job
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
 {% include 'inventory/includes/footer.html' %}
 
 
@@ -1193,49 +1345,6 @@
                 if (window.jQuery && $('#smartwizard').length) {
                     $('#smartwizard').smartWizard("fixHeight");
                 }
-            });
-        }
-
-
-        // =====================================================
-        // ADD TRANSPORT ROW
-        // =====================================================
-        const addTransportBtn = document.getElementById("addTransportationRow");
-
-        if (addTransportBtn) {
-            addTransportBtn.addEventListener("click", function () {
-                const tbody = document.getElementById("transportation-table-body");
-                if (!tbody) return;
-
-                const row = `
-                    <tr>
-                        <td>
-                            <input type="text" class="form-control" name="vehicle_no">
-                        </td>
-                        <td>
-                            <input type="text" class="form-control" name="driver_name">
-                        </td>
-                        <td>
-                            <input type="text" class="form-control" name="from_location">
-                        </td>
-                        <td>
-                            <input type="text" class="form-control" name="to_location">
-                        </td>
-                        <td>
-                            <input type="number" class="form-control" name="transport_amount">
-                        </td>
-                        <td>
-                            <input type="text" class="form-control" name="transport_notes">
-                        </td>
-                        <td>
-                            <button type="button" class="btn btn-sm btn-danger remove-row">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-
-                tbody.insertAdjacentHTML("beforeend", row);
             });
         }
 
@@ -2114,191 +2223,216 @@
 
     document.addEventListener("DOMContentLoaded", function () {
 
-    const transportRows =
-        document.getElementById("transportRows");
+        const transportRows =
+            document.getElementById("transportRows");
 
-    const addTransportationRow =
-        document.getElementById("addTransportationRow");
+        const addTransportationRow =
+            document.getElementById("addTransportationRow");
 
-    let driversData = [];
-    let vehiclesData = [];
+        let driversData = [];
+        let vehiclesData = [];
 
-    // =========================================
-    // FETCH DRIVER LIST
-    // =========================================
-    async function loadDrivers() {
+        // =========================================
+        // FETCH DRIVER LIST
+        // =========================================
+        async function loadDrivers() {
 
-        try {
+            try {
 
-            const response = await fetch(
-                "{% url 'inventory:employee_list' %}"
-            );
+                const response = await fetch(
+                    "{% url 'inventory:employee_list' %}"
+                );
 
-            const data = await response.json();
+                const data = await response.json();
 
-            driversData = (data.data || []).filter(
-                emp =>
-                    emp.designation &&
-                    emp.designation.toLowerCase().includes("driver")
-            );
+                driversData = (data.data || []).filter(
+                    emp =>
+                        emp.designation &&
+                        emp.designation.toLowerCase().includes("driver")
+                );
 
-            populateAllDriverDropdowns();
+                populateAllDriverDropdowns();
 
-        } catch (error) {
+            } catch (error) {
 
-            console.error("Driver load error:", error);
+                console.error("Driver load error:", error);
+            }
         }
-    }
 
-    // =========================================
-    // FETCH VEHICLE LIST
-    // =========================================
-    async function loadVehicles() {
+        // =========================================
+        // FETCH VEHICLE LIST
+        // =========================================
+        async function loadVehicles() {
 
-        try {
+            try {
 
-            const response = await fetch(
-                "{% url 'inventory:fetch_vehicle_list' %}"
-            );
+                const response = await fetch(
+                    "{% url 'inventory:fetch_vehicle_list' %}"
+                );
 
-            const data = await response.json();
+                const data = await response.json();
 
-            vehiclesData = data.vehicles || [];
+                vehiclesData = data.vehicles || [];
 
-            populateAllVehicleDropdowns();
+                populateAllVehicleDropdowns();
 
-        } catch (error) {
+            } catch (error) {
 
-            console.error("Vehicle load error:", error);
+                console.error("Vehicle load error:", error);
+            }
         }
-    }
 
-    // =========================================
-    // POPULATE DRIVER DROPDOWN
-    // =========================================
-    function populateDriverDropdown(select) {
+        // =========================================
+        // POPULATE DRIVER DROPDOWN
+        // =========================================
+        function populateDriverDropdown(select) {
 
-        if (!select) return;
+            if (!select) return;
 
-        select.innerHTML = `
+            const selectedValue = select.getAttribute("data-selected") || select.value || "";
+
+            select.innerHTML = `
             <option value="">Select Driver</option>
         `;
 
-        driversData.forEach(driver => {
+            driversData.forEach(driver => {
 
-            select.innerHTML += `
+                const selected = String(driver.name) === String(selectedValue) ? "selected" : "";
+
+                select.innerHTML += `
                 <option value="${driver.name}"
-                        data-mobile="${driver.mobile_no}">
+                        data-mobile="${driver.mobile_no}"
+                        ${selected}>
                     ${driver.name}
                 </option>
             `;
-        });
-    }
+            });
 
-    // =========================================
-    // POPULATE VEHICLE DROPDOWN
-    // =========================================
-    function populateVehicleDropdown(select) {
+            if (selectedValue && !Array.from(select.options).some(option => option.value === selectedValue)) {
+                select.innerHTML += `
+                <option value="${selectedValue}" selected>
+                    ${selectedValue}
+                </option>
+            `;
+            }
+        }
 
-        if (!select) return;
+        // =========================================
+        // POPULATE VEHICLE DROPDOWN
+        // =========================================
+        function populateVehicleDropdown(select) {
 
-        select.innerHTML = `
+            if (!select) return;
+
+            const selectedValue = select.getAttribute("data-selected") || select.value || "";
+
+            select.innerHTML = `
             <option value="">Select Vehicle</option>
         `;
 
-        vehiclesData.forEach(vehicle => {
+            vehiclesData.forEach(vehicle => {
 
-            select.innerHTML += `
-                <option value="${vehicle.vehicle_no}">
+                const selected = String(vehicle.vehicle_no) === String(selectedValue) ? "selected" : "";
+
+                select.innerHTML += `
+                <option value="${vehicle.vehicle_no}" ${selected}>
                     ${vehicle.vehicle_no}
                 </option>
             `;
-        });
-    }
+            });
 
-    // =========================================
-    // POPULATE ALL DRIVER DROPDOWNS
-    // =========================================
-    function populateAllDriverDropdowns() {
-
-        document.querySelectorAll(
-            'select[name="driver_name[]"]'
-        ).forEach(select => {
-
-            populateDriverDropdown(select);
-
-        });
-    }
-
-    // =========================================
-    // POPULATE ALL VEHICLE DROPDOWNS
-    // =========================================
-    function populateAllVehicleDropdowns() {
-
-        document.querySelectorAll(
-            'select[name="vehicle_number[]"]'
-        ).forEach(select => {
-
-            populateVehicleDropdown(select);
-
-        });
-    }
-
-    // =========================================
-    // TRANSPORT TYPE
-    // =========================================
-    function getTransportType() {
-
-        return document.querySelector(
-            ".transport-type:checked"
-        )?.value || "Own Vehicle";
-    }
-
-    // =========================================
-    // SHOW/HIDE FIELDS
-    // =========================================
-    function refreshTransportFields() {
-
-        const type = getTransportType();
-
-        document.querySelectorAll(".transport-row").forEach(row => {
-
-            row.querySelectorAll(".own-vehicle-field")
-                .forEach(field => {
-
-                    field.classList.toggle(
-                        "d-none",
-                        type !== "Own Vehicle"
-                    );
-                });
-
-            row.querySelectorAll(".outside-vehicle-field")
-                .forEach(field => {
-
-                    field.classList.toggle(
-                        "d-none",
-                        type !== "Outside Vehicle"
-                    );
-                });
-        });
-
-        if (window.jQuery && $("#smartwizard").length) {
-
-            $("#smartwizard").smartWizard("fixHeight");
+            if (selectedValue && !Array.from(select.options).some(option => option.value === selectedValue)) {
+                select.innerHTML += `
+                <option value="${selectedValue}" selected>
+                    ${selectedValue}
+                </option>
+            `;
+            }
         }
-    }
 
-    // =========================================
-    // CREATE TRANSPORT ROW
-    // =========================================
-    function createTransportRow() {
+        // =========================================
+        // POPULATE ALL DRIVER DROPDOWNS
+        // =========================================
+        function populateAllDriverDropdowns() {
 
-        const row = document.createElement("div");
+            document.querySelectorAll(
+                'select[name="driver_name[]"]'
+            ).forEach(select => {
 
-        row.className =
-            "transport-row row g-3 align-items-end mb-3";
+                populateDriverDropdown(select);
 
-        row.innerHTML = `
+            });
+        }
+
+        // =========================================
+        // POPULATE ALL VEHICLE DROPDOWNS
+        // =========================================
+        function populateAllVehicleDropdowns() {
+
+            document.querySelectorAll(
+                'select[name="vehicle_number[]"]'
+            ).forEach(select => {
+
+                populateVehicleDropdown(select);
+
+            });
+        }
+
+        // =========================================
+        // TRANSPORT TYPE
+        // =========================================
+        function getTransportType() {
+
+            return document.querySelector(
+                ".transport-type:checked"
+            )?.value || "Own Vehicle";
+        }
+
+        // =========================================
+        // SHOW/HIDE FIELDS
+        // =========================================
+        function refreshTransportFields() {
+
+            const type = getTransportType();
+
+            document.querySelectorAll(".transport-row").forEach(row => {
+
+                row.querySelectorAll(".own-vehicle-field")
+                    .forEach(field => {
+
+                        field.classList.toggle(
+                            "d-none",
+                            type !== "Own Vehicle"
+                        );
+                    });
+
+                row.querySelectorAll(".outside-vehicle-field")
+                    .forEach(field => {
+
+                        field.classList.toggle(
+                            "d-none",
+                            type !== "Outside Vehicle"
+                        );
+                    });
+            });
+
+            if (window.jQuery && $("#smartwizard").length) {
+
+                $("#smartwizard").smartWizard("fixHeight");
+            }
+        }
+
+        // =========================================
+        // CREATE TRANSPORT ROW
+        // =========================================
+        function createTransportRow() {
+
+            const row = document.createElement("div");
+
+            row.className =
+                "transport-row row g-3 align-items-end mb-3";
+
+            row.innerHTML = `
 
             <div class="col-lg-4 col-md-6 own-vehicle-field">
 
@@ -2409,158 +2543,815 @@
             </div>
         `;
 
-        populateDriverDropdown(
-            row.querySelector(
-                'select[name="driver_name[]"]'
-            )
-        );
-
-        populateVehicleDropdown(
-            row.querySelector(
-                'select[name="vehicle_number[]"]'
-            )
-        );
-
-        return row;
-    }
-
-    // =========================================
-    // DRIVER CHANGE
-    // =========================================
-    document.addEventListener("change", function (event) {
-
-        if (
-            event.target.name !== "driver_name[]"
-        ) return;
-
-        const selected =
-            event.target.selectedOptions[0];
-
-        const mobile =
-            selected.getAttribute("data-mobile");
-
-        const row =
-            event.target.closest(".transport-row");
-
-        const contactInput =
-            row.querySelector(
-                'input[name="contact_number[]"]'
+            populateDriverDropdown(
+                row.querySelector(
+                    'select[name="driver_name[]"]'
+                )
             );
 
-        if (contactInput) {
+            populateVehicleDropdown(
+                row.querySelector(
+                    'select[name="vehicle_number[]"]'
+                )
+            );
 
-            contactInput.value = mobile || "";
+            return row;
         }
-    });
 
-    // =========================================
-    // TRANSPORT TYPE CHANGE
-    // =========================================
-    document.querySelectorAll(".transport-type")
-        .forEach(radio => {
+        // =========================================
+        // DRIVER CHANGE
+        // =========================================
+        document.addEventListener("change", function (event) {
 
-            radio.addEventListener(
-                "change",
-                refreshTransportFields
-            );
-        });
+            if (
+                event.target.name !== "driver_name[]"
+            ) return;
 
-    // =========================================
-    // ADD ROW
-    // =========================================
-    if (addTransportationRow) {
+            const selected =
+                event.target.selectedOptions[0];
 
-        addTransportationRow.addEventListener(
-            "click",
-            function () {
+            const mobile =
+                selected.getAttribute("data-mobile");
 
-                transportRows.appendChild(
-                    createTransportRow()
+            const row =
+                event.target.closest(".transport-row");
+
+            const contactInput =
+                row.querySelector(
+                    'input[name="contact_number[]"]'
                 );
 
-                refreshTransportFields();
+            if (contactInput) {
+
+                contactInput.value = mobile || "";
             }
-        );
-    }
-window.saveJobAjax = function(event) {
-    event.preventDefault();
+        });
 
-    const jobForm = document.getElementById("jobForm");
-    const formData = new FormData(jobForm);
+        // =========================================
+        // TRANSPORT TYPE CHANGE
+        // =========================================
+        document.querySelectorAll(".transport-type")
+            .forEach(radio => {
 
-    fetch(jobForm.action, {
-        method: "POST",
-        body: formData,
-        headers: {
-            "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
-            "X-Requested-With": "XMLHttpRequest"
+                radio.addEventListener(
+                    "change",
+                    refreshTransportFields
+                );
+            });
+
+        // =========================================
+        // ADD ROW
+        // =========================================
+        if (addTransportationRow) {
+
+            addTransportationRow.addEventListener(
+                "click",
+                function () {
+
+                    transportRows.appendChild(
+                        createTransportRow()
+                    );
+
+                    refreshTransportFields();
+                }
+            );
         }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            let message = data.message || "Quotation saved successfully.";
+        window.saveJobAjax = function (event) {
+            event.preventDefault();
 
-            if (data.quotation_no) {
-                message += "\nQuotation No: " + data.quotation_no;
+            const jobForm = document.getElementById("jobForm");
+            const formData = new FormData(jobForm);
+
+            fetch(jobForm.action, {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        let message = data.message || "Quotation saved successfully.";
+
+                        if (data.quotation_no) {
+                            message += "\nQuotation No: " + data.quotation_no;
+                        }
+
+                        alert(message);
+                        window.location.href = "{% url 'inventory:job_book' %}";
+                    } else {
+                        alert(data.error || "Something went wrong.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Save job error:", error);
+                    alert("Error while saving job.");
+                });
+        };
+
+        // =========================================
+        // REMOVE ROW
+        // =========================================
+        document.addEventListener("click", function (event) {
+
+            if (
+                !event.target.closest(
+                    ".remove-transport-row"
+                )
+            ) return;
+
+            const row =
+                event.target.closest(".transport-row");
+
+            if (
+                transportRows.querySelectorAll(
+                    ".transport-row"
+                ).length > 1
+            ) {
+
+                row.remove();
+
+            } else {
+
+                row.querySelectorAll("input")
+                    .forEach(input => input.value = "");
+
+                row.querySelectorAll("select")
+                    .forEach(select => select.value = "");
             }
 
-            alert(message);
-            window.location.href = "{% url 'inventory:job_book' %}";
-        } else {
-            alert(data.error || "Something went wrong.");
-        }
-    })
-    .catch(error => {
-        console.error("Save job error:", error);
-        alert("Error while saving job.");
-    });
-};
+            refreshTransportFields();
+        });
 
-    // =========================================
-    // REMOVE ROW
-    // =========================================
-    document.addEventListener("click", function (event) {
+        // =========================================
+        // INITIAL LOAD
+        // =========================================
+        loadDrivers();
 
-        if (
-            !event.target.closest(
-                ".remove-transport-row"
-            )
-        ) return;
-
-        const row =
-            event.target.closest(".transport-row");
-
-        if (
-            transportRows.querySelectorAll(
-                ".transport-row"
-            ).length > 1
-        ) {
-
-            row.remove();
-
-        } else {
-
-            row.querySelectorAll("input")
-                .forEach(input => input.value = "");
-
-            row.querySelectorAll("select")
-                .forEach(select => select.value = "");
-        }
+        loadVehicles();
 
         refreshTransportFields();
+
     });
 
-    // =========================================
-    // INITIAL LOAD
-    // =========================================
-    loadDrivers();
 
-    loadVehicles();
+    // =====================================================
+    // EDIT MODE DATA BINDING
+    // Keeps already-added selected values visible in all wizard tabs.
+    // =====================================================
+    document.addEventListener("DOMContentLoaded", function () {
+        const editMode = "{{ edit_mode|yesno:'true,false' }}";
+        if (editMode !== "true") return;
 
-    refreshTransportFields();
+        const jobData = {{ job_data|safe }};
+        const equipmentData = {{ equipment_data|safe }};
+        const crewData = {{ crew_data|safe }};
+        const subVendorData = {{ sub_vendor_data|safe }};
+        const transportData = {{ transport_data|safe }};
 
-});
+        function safe(value) {
+            return value === null || value === undefined ? "" : value;
+        }
+
+        function escapeHtmlEdit(value) {
+            return String(safe(value))
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function setValue(id, value) {
+            const el = document.getElementById(id);
+            if (el) el.value = safe(value);
+        }
+
+        function getJobValue(...keys) {
+            for (const key of keys) {
+                if (jobData && jobData[key] !== undefined && jobData[key] !== null) {
+                    return jobData[key];
+                }
+            }
+            return "";
+        }
+
+        // ---------------- GENERAL DETAILS ----------------
+        if (jobData && Object.keys(jobData).length) {
+            setValue("titleInput", getJobValue("title"));
+            setValue("venueAddressDropdown", getJobValue("venue_name", "venue", "venueName"));
+            setValue("venueAddressInput", getJobValue("venue_address"));
+            setValue("clientNameDropdown", getJobValue("client_name"));
+            setValue("clientContactNumber", getJobValue("contact_person_number"));
+            setValue("prepDate", getJobValue("setup_date"));
+            setValue("outDate", getJobValue("rehearsal_date"));
+            setValue("showStart", getJobValue("show_start_date", "event_date", "start_date"));
+            setValue("showEnd", getJobValue("show_end_date", "dismantle_date", "end_date"));
+            setValue("status", getJobValue("status"));
+            setValue("crewQuantity", getJobValue("crew_type"));
+            setValue("inputNotes", getJobValue("notes", "input_notes"));
+            setValue("number_of_days", getJobValue("total_days"));
+            setValue("total_amount", getJobValue("amount_row"));
+            setValue("discount", getJobValue("discount"));
+            setValue("discounted_amount", getJobValue("amount_after_discount", "discounted_amount"));
+            setValue("total_amount_cal", getJobValue("total_amount"));
+
+            const contactName = getJobValue("contact_person_name");
+            const clientName = getJobValue("client_name");
+            const contactSelect = document.getElementById("clientContactName");
+
+            if (contactSelect && contactName) {
+                contactSelect.innerHTML = `
+                    <option value="">Select Contact Person</option>
+                    <option value="${escapeHtmlEdit(contactName)}" selected>${escapeHtmlEdit(contactName)}</option>
+                `;
+            }
+
+            if (clientName && typeof fetchContactPersons === "function") {
+                fetchContactPersons(clientName);
+                setTimeout(function () {
+                    const select = document.getElementById("clientContactName");
+                    if (!select) return;
+
+                    const exists = Array.from(select.options).some(option => option.value === String(contactName));
+                    if (!exists && contactName) {
+                        select.innerHTML += `<option value="${escapeHtmlEdit(contactName)}">${escapeHtmlEdit(contactName)}</option>`;
+                    }
+                    select.value = contactName || "";
+                    setValue("clientContactNumber", getJobValue("contact_person_number"));
+                }, 500);
+            }
+        }
+
+        // ---------------- EQUIPMENT ----------------
+        const equipmentTbody = document.getElementById("equipmentTableBody");
+        if (equipmentTbody && Array.isArray(equipmentData) && equipmentData.length) {
+            equipmentTbody.innerHTML = "";
+
+            const first = equipmentData[0] || {};
+            setValue("equipment_location", first.location || first.equipment_location || "");
+            setValue("equipment_incharge", first.incharge || first.equipment_incharge || "");
+            setValue("equipment_rehearsal_date", first.equipment_rehearsal_date || first.rehearsal_date || "");
+            setValue("equipment_event_date", first.equipment_event_date || first.equipment_setup_date || first.event_date || "");
+
+            window.editSelectedSplitId = first.split_id || first.selected_split_id || "";
+
+            equipmentData.forEach(item => {
+                const equipmentId = item.equipment_detail_id || item.equipment_id || "";
+                const equipmentName = item.equipment_name || item.name || "Selected Equipment";
+
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>
+                        <input type="text"
+                               class="form-control category_name"
+                               name="equipment_category[]"
+                               value="${escapeHtmlEdit(item.category_name || item.equipment_category || "")}"
+                               readonly>
+                    </td>
+                    <td>
+                        <input type="text"
+                               class="form-control sub_category_name"
+                               name="equipment_sub_category[]"
+                               value="${escapeHtmlEdit(item.sub_category_name || item.equipment_sub_category || "")}"
+                               readonly>
+                    </td>
+                    <td>
+                        <select class="form-select equipment_select"
+                                name="equipment_name[]"
+                                data-selected="${escapeHtmlEdit(equipmentId)}">
+                            <option value="${escapeHtmlEdit(equipmentId)}" selected>${escapeHtmlEdit(equipmentName)}</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="number"
+                               class="form-control equipment_qty"
+                               name="equipment_qty[]"
+                               min="1"
+                               value="${escapeHtmlEdit(item.quantity || item.equipment_qty || "")}">
+                    </td>
+                    <td>
+                        <input type="number"
+                               class="form-control rental_price"
+                               name="rental_price[]"
+                               value="${escapeHtmlEdit(item.equipment_unit_price || item.rental_price || "") }"
+                               readonly>
+                    </td>
+                    <td>
+                        <input type="number"
+                               class="form-control equipment_total"
+                               name="equipment_total[]"
+                               value="${escapeHtmlEdit(item.equipment_total || item.total || "") }"
+                               readonly>
+                    </td>
+                    <td>
+                        <input type="text"
+                               class="form-control"
+                               name="equipment_notes[]"
+                               value="${escapeHtmlEdit(item.equipment_notes || item.notes || "") }"
+                               placeholder="Notes">
+                    </td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-danger remove-equipment-row">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                `;
+
+                equipmentTbody.appendChild(row);
+            });
+        }
+
+        // ---------------- CREW ----------------
+        const crewTbody = document.getElementById("crew-allocation-table-body");
+        if (crewTbody && Array.isArray(crewData) && crewData.length) {
+            crewTbody.innerHTML = "";
+
+            crewData.forEach(item => {
+                crewTbody.insertAdjacentHTML("beforeend", `
+                    <tr>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-danger remove-row">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                        <td>
+                            <div class="crew-type-wrapper">
+                                <input type="text"
+                                       class="form-control crew-type-input"
+                                       name="crew_type[]"
+                                       value="${escapeHtmlEdit(item.crew_type || "") }"
+                                       autocomplete="off">
+                            </div>
+                        </td>
+                        <td><input type="number" class="form-control crew-days" name="crew_no_of_days[]" value="${escapeHtmlEdit(item.crew_no_of_days || item.no_of_days || "") }"></td>
+                        <td><input type="number" class="form-control crew-charge" name="perday_charges[]" value="${escapeHtmlEdit(item.perday_charges || item.per_day || "") }"></td>
+                        <td><input type="number" class="form-control crew-total" name="crew_total[]" value="${escapeHtmlEdit(item.total || item.crew_total || "") }" readonly></td>
+                        <td><input type="text" class="form-control" name="crew_notes[]" value="${escapeHtmlEdit(item.crew_notes || item.notes || "") }"></td>
+                    </tr>
+                `);
+            });
+        }
+
+        // ---------------- SUB VENDOR ----------------
+        const subTbody = document.getElementById("sub-vendor-table");
+        if (subTbody && Array.isArray(subVendorData) && subVendorData.length) {
+            subTbody.innerHTML = "";
+
+            subVendorData.forEach(item => {
+                subTbody.insertAdjacentHTML("beforeend", `
+                    <tr>
+                        <td><input type="text" name="vendor-name" class="form-control" value="${escapeHtmlEdit(item.vendor_name || "") }"></td>
+                        <td><input type="text" name="equipment-name" class="form-control" value="${escapeHtmlEdit(item.sub_equipment_name || item.equipment_name || "") }"></td>
+                        <td><input type="number" name="quantity" class="form-control" value="${escapeHtmlEdit(item.sub_quantity || item.quantity || "") }"></td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-danger remove-sub-vendor-row">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+
+        // ---------------- TRANSPORT ----------------
+        const transportRows = document.getElementById("transportRows");
+        if (transportRows && Array.isArray(transportData) && transportData.length) {
+            transportRows.innerHTML = "";
+
+            transportData.forEach(item => {
+                const isOutside = item.outside_driver_name || item.outside_contact_number || item.outside_vehicle_number;
+                const transportType = isOutside ? "Outside Vehicle" : "Own Vehicle";
+
+                const selectedRadio = document.querySelector(`.transport-type[value="${transportType}"]`);
+                if (selectedRadio) selectedRadio.checked = true;
+
+                transportRows.insertAdjacentHTML("beforeend", `
+                    <div class="transport-row row g-3 align-items-end mb-3">
+                        <div class="col-lg-4 col-md-6 own-vehicle-field ${isOutside ? "d-none" : ""}">
+                            <label class="form-label">Driver Name</label>
+                            <select class="form-select"
+                                    name="driver_name[]"
+                                    data-selected="${escapeHtmlEdit(item.driver_name || "")}">
+                                <option value="${escapeHtmlEdit(item.driver_name || "")}" selected>${escapeHtmlEdit(item.driver_name || "Select Driver")}</option>
+                            </select>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6 own-vehicle-field ${isOutside ? "d-none" : ""}">
+                            <label class="form-label">Contact Number</label>
+                            <input type="text" class="form-control" name="contact_number[]" value="${escapeHtmlEdit(item.contact_number || "")}">
+                        </div>
+
+                        <div class="col-lg-3 col-md-6 own-vehicle-field ${isOutside ? "d-none" : ""}">
+                            <label class="form-label">Vehicle Number</label>
+                            <select class="form-select"
+                                    name="vehicle_number[]"
+                                    data-selected="${escapeHtmlEdit(item.vehicle_number || "")}">
+                                <option value="${escapeHtmlEdit(item.vehicle_number || "")}" selected>${escapeHtmlEdit(item.vehicle_number || "Select Vehicle")}</option>
+                            </select>
+                        </div>
+
+                        <div class="col-lg-4 col-md-6 outside-vehicle-field ${isOutside ? "" : "d-none"}">
+                            <label class="form-label">Outside Driver Name</label>
+                            <input type="text" class="form-control" name="outside_driver_name[]" value="${escapeHtmlEdit(item.outside_driver_name || "")}">
+                        </div>
+
+                        <div class="col-lg-3 col-md-6 outside-vehicle-field ${isOutside ? "" : "d-none"}">
+                            <label class="form-label">Outside Contact Number</label>
+                            <input type="text" class="form-control" name="outside_contact_number[]" value="${escapeHtmlEdit(item.outside_contact_number || "")}">
+                        </div>
+
+                        <div class="col-lg-3 col-md-6 outside-vehicle-field ${isOutside ? "" : "d-none"}">
+                            <label class="form-label">Outside Vehicle Number</label>
+                            <input type="text" class="form-control" name="outside_vehicle_number[]" value="${escapeHtmlEdit(item.outside_vehicle_number || "")}">
+                        </div>
+
+                        <div class="col-auto">
+                            <button type="button" class="btn btn-success save-transport-row">
+                                <i class="bi bi-save"></i>
+                            </button>
+                        </div>
+
+                        <div class="col-auto">
+                            <button type="button" class="btn btn-danger remove-transport-row">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                `);
+            });
+        }
+
+        setTimeout(function () {
+            if (typeof populateAllDriverDropdowns === "function") populateAllDriverDropdowns();
+            if (typeof populateAllVehicleDropdowns === "function") populateAllVehicleDropdowns();
+            if (window.jQuery && $("#smartwizard").length) {
+                $("#smartwizard").smartWizard("fixHeight");
+            }
+        }, 700);
+    });
+
+    // =====================================================
+    // CO JOB LOGIC - WORKS IN ADD JOB + EDIT JOB
+    // Location/Incharge/Rehearsal/Event Date are tied to selected co job.
+    // =====================================================
+    let localCoJobs = [];
+    let remoteCoJobs = [];
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const editMode = "{{ edit_mode|yesno:'true,false' }}";
+        const editType = "{{ edit_type|default:'' }}";
+
+        const splitSelect = document.getElementById("selected_split_id");
+        if (splitSelect) {
+            splitSelect.addEventListener("change", function () {
+                applySelectedCoJobDetails(this.value || "");
+            });
+        }
+
+        if (editMode === "true" && editType === "job") {
+            loadSplitJobs();
+        } else {
+            renderLocalCoJobs();
+        }
+    });
+
+    function getSplitModalValues() {
+        return {
+            section_name: document.getElementById("splitJobSection")?.value.trim() || "",
+            location: document.getElementById("splitLocation")?.value.trim() || "",
+            incharge: document.getElementById("splitIncharge")?.value.trim() || "",
+            rehearsal_date: document.getElementById("splitRehearsalDate")?.value || "",
+            event_date: document.getElementById("splitEventDate")?.value || ""
+        };
+    }
+
+    function setEquipmentSectionDetails(item) {
+        document.getElementById("equipment_location").value = item?.location || "";
+        document.getElementById("equipment_incharge").value = item?.incharge || "";
+        document.getElementById("equipment_rehearsal_date").value = item?.rehearsal_date || "";
+        document.getElementById("equipment_event_date").value = item?.event_date || "";
+    }
+
+    function applySelectedCoJobDetails(splitId) {
+        if (!splitId) {
+            return;
+        }
+
+        let selected = null;
+
+        if (String(splitId).startsWith("local_")) {
+            selected = localCoJobs.find(item => String(item.temp_id) === String(splitId));
+        } else {
+            selected = remoteCoJobs.find(item => String(item.split_id) === String(splitId));
+        }
+
+        if (selected) {
+            setEquipmentSectionDetails(selected);
+        }
+    }
+
+    function loadSplitJobs() {
+        const jobId = "{{ edit_id|default:'' }}";
+        const tbody = document.getElementById("splitJobTableBody");
+        const splitSelect = document.getElementById("selected_split_id");
+
+        if (!tbody || !splitSelect) return;
+
+        splitSelect.innerHTML = `<option value="">Main Job Equipment</option>`;
+
+        if (!jobId) {
+            renderLocalCoJobs();
+            return;
+        }
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center text-muted py-4">
+                    Loading co jobs...
+                </td>
+            </tr>
+        `;
+
+        fetch(`/get-split-jobs/${jobId}/`)
+            .then(res => res.json())
+            .then(data => {
+                const splitJobs = data.split_jobs || data.data || [];
+                remoteCoJobs = splitJobs.map(item => ({
+                    split_id: item.split_id || item.id || "",
+                    split_job_no: item.split_job_no || item.job_order_no || "-",
+                    section_name: item.section_name || item.job_section || "-",
+                    location: item.location || "",
+                    incharge: item.incharge || "",
+                    rehearsal_date: item.rehearsal_date || "",
+                    event_date: item.event_date || "",
+                    status: item.status || "Active"
+                }));
+
+                tbody.innerHTML = "";
+
+                if (!remoteCoJobs.length) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4">
+                                No co jobs created yet.
+                            </td>
+                        </tr>
+                    `;
+                }
+
+                remoteCoJobs.forEach(item => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="fw-semibold text-success">${escapeHtmlLocal(item.split_job_no)}</td>
+                            <td>
+                                <div class="fw-semibold">${escapeHtmlLocal(item.section_name)}</div>
+                                <small class="text-muted">
+                                    ${escapeHtmlLocal(item.location || "-")} |
+                                    ${escapeHtmlLocal(item.incharge || "-")}
+                                </small>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">${escapeHtmlLocal(item.status)}</span>
+                            </td>
+                            <td class="text-center">
+                                <button type="button"
+                                        class="btn btn-sm btn-theme"
+                                        onclick="selectCoJob('${item.split_id}')">
+                                    Select
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+
+                    splitSelect.innerHTML += `
+                        <option value="${item.split_id}">
+                            ${escapeHtmlLocal(item.split_job_no)} - ${escapeHtmlLocal(item.section_name)}
+                        </option>
+                    `;
+                });
+
+                if (window.editSelectedSplitId) {
+                    splitSelect.value = String(window.editSelectedSplitId);
+                    applySelectedCoJobDetails(String(window.editSelectedSplitId));
+                }
+            })
+            .catch(error => {
+                console.error("Load co jobs error:", error);
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center text-danger py-4">
+                            Failed to load co jobs.
+                        </td>
+                    </tr>
+                `;
+            });
+    }
+
+    function createSplitJob() {
+        const editId = document.getElementById("edit_id")?.value || "";
+        const editType = document.getElementById("edit_type")?.value || "";
+        const values = getSplitModalValues();
+
+        if (!values.section_name) {
+            alert("Please enter section / ballroom name.");
+            return;
+        }
+
+        // EDIT JOB MODE: save co job directly in DB
+        if (editId && editType === "job") {
+            const bodyParams = new URLSearchParams({
+                job_section: values.section_name,
+                location: values.location,
+                incharge: values.incharge,
+                rehearsal_date: values.rehearsal_date,
+                event_date: values.event_date
+            });
+
+            fetch(`/create-split-job/${editId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+                    "X-Requested-With": "XMLHttpRequest",
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: bodyParams
+            })
+            .then(async response => {
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || "Failed to create co job.");
+                }
+
+                return data;
+            })
+            .then(data => {
+                closeSplitJobModal();
+
+                const newSplitId = data.split_id || data.split_job_id || "";
+
+                loadSplitJobs();
+
+                setTimeout(function () {
+                    const splitSelect = document.getElementById("selected_split_id");
+
+                    if (splitSelect && newSplitId) {
+                        splitSelect.value = String(newSplitId);
+                        setEquipmentSectionDetails({
+                            location: values.location,
+                            incharge: values.incharge,
+                            rehearsal_date: values.rehearsal_date,
+                            event_date: values.event_date
+                        });
+                    }
+                }, 400);
+            })
+            .catch(error => {
+                console.error("Create co job error:", error);
+                alert(error.message || "Error while creating co job.");
+            });
+
+            return;
+        }
+
+        // ADD JOB MODE: keep co job locally until main job is saved
+        const tempId = "local_" + Date.now();
+
+        localCoJobs.push({
+            temp_id: tempId,
+            section_name: values.section_name,
+            location: values.location,
+            incharge: values.incharge,
+            rehearsal_date: values.rehearsal_date,
+            event_date: values.event_date,
+            split_job_no: "Will generate after save"
+        });
+
+        syncLocalCoJobsJson();
+        closeSplitJobModal();
+        renderLocalCoJobs();
+
+        const splitSelect = document.getElementById("selected_split_id");
+        if (splitSelect) {
+            splitSelect.value = tempId;
+            setEquipmentSectionDetails(values);
+        }
+    }
+
+    function renderLocalCoJobs() {
+        const tbody = document.getElementById("splitJobTableBody");
+        const splitSelect = document.getElementById("selected_split_id");
+
+        if (!tbody || !splitSelect) return;
+
+        tbody.innerHTML = "";
+        splitSelect.innerHTML = `<option value="">Main Job Equipment</option>`;
+
+        if (!localCoJobs.length) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-4">
+                        No co jobs added yet.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        localCoJobs.forEach(item => {
+            tbody.innerHTML += `
+                <tr>
+                    <td class="fw-semibold text-warning">${escapeHtmlLocal(item.split_job_no)}</td>
+                    <td>
+                        <div class="fw-semibold">${escapeHtmlLocal(item.section_name)}</div>
+                        <small class="text-muted">
+                            ${escapeHtmlLocal(item.location || "-")} |
+                            ${escapeHtmlLocal(item.incharge || "-")}
+                        </small>
+                    </td>
+                    <td>
+                        <span class="badge bg-warning text-dark">Pending Save</span>
+                    </td>
+                    <td class="text-center">
+                        <button type="button"
+                                class="btn btn-sm btn-theme"
+                                onclick="selectCoJob('${item.temp_id}')">
+                            Select
+                        </button>
+                        <button type="button"
+                                class="btn btn-sm btn-danger"
+                                onclick="removeLocalCoJob('${item.temp_id}')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+
+            splitSelect.innerHTML += `
+                <option value="${item.temp_id}">
+                    ${escapeHtmlLocal(item.section_name)}
+                </option>
+            `;
+        });
+    }
+
+    function selectCoJob(splitId) {
+        const splitSelect = document.getElementById("selected_split_id");
+
+        if (splitSelect) {
+            splitSelect.value = splitId || "";
+        }
+
+        applySelectedCoJobDetails(splitId || "");
+
+        const equipmentTitle = document.querySelector("#wizard_Equipment .h6");
+        if (equipmentTitle) {
+            equipmentTitle.scrollIntoView({behavior: "smooth", block: "center"});
+        }
+    }
+
+    function removeLocalCoJob(tempId) {
+        localCoJobs = localCoJobs.filter(item => item.temp_id !== tempId);
+
+        const splitSelect = document.getElementById("selected_split_id");
+        if (splitSelect && splitSelect.value === tempId) {
+            splitSelect.value = "";
+        }
+
+        syncLocalCoJobsJson();
+        renderLocalCoJobs();
+    }
+
+    function syncLocalCoJobsJson() {
+        const input = document.getElementById("co_jobs_json");
+
+        if (input) {
+            input.value = JSON.stringify(localCoJobs);
+        }
+    }
+
+    function closeSplitJobModal() {
+        const modalEl = document.getElementById("splitJobModal");
+        const modal = bootstrap.Modal.getInstance(modalEl);
+
+        if (modal) {
+            modal.hide();
+        }
+
+        ["splitJobSection", "splitLocation", "splitIncharge", "splitRehearsalDate", "splitEventDate"].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = "";
+        });
+    }
+
+    function escapeHtmlLocal(value) {
+        const div = document.createElement("div");
+        div.textContent = value || "";
+        return div.innerHTML;
+    }
 
 </script>
 

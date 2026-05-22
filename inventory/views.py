@@ -14,6 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 import cloudinary
 import cloudinary.api
 import cloudinary.uploader
+from django.views.decorators.http import require_POST
 from psycopg2 import IntegrityError
 from django.conf import settings
 from django.core.paginator import Paginator
@@ -1012,8 +1013,7 @@ def add_category(request):
         description = request.POST.get('description', '')
         status = request.POST.get('status') == '1'
         created_by = request.session.get('user_id')
-        created_date = datetime.datetime.now()
-
+        created_date = datetime.now()
         try:
             with connection.cursor() as cursor:
                 cursor.execute(
@@ -3282,6 +3282,54 @@ def job_book_list(request):
 def add_job(request):
     username = request.session.get('username')
 
+    edit_id = request.GET.get('edit_id') or request.POST.get('edit_id')
+    edit_type = request.GET.get('edit_type') or request.POST.get('edit_type')
+
+    job_data = {}
+    equipment_data = []
+    crew_data = []
+    transport_data = []
+    sub_vendor_data = []
+
+    def create_co_jobs(cursor, job_id, created_by, co_jobs):
+        split_map = {}
+
+        for co_job in co_jobs:
+            temp_id = co_job.get("temp_id")
+            section_name = co_job.get("section_name")
+
+            if not section_name:
+                continue
+
+            cursor.execute("SELECT public.generate_co_job_no(%s)", [job_id])
+            split_job_no = cursor.fetchone()[0]
+
+            cursor.execute("""
+                INSERT INTO public.job_split_master (
+                    parent_job_id,
+                    split_job_no,
+                    section_name,
+                    status,
+                    created_by,
+                    created_date
+                )
+                VALUES (%s, %s, %s, %s, %s, NOW())
+                RETURNING split_id
+            """, [
+                job_id,
+                split_job_no,
+                section_name,
+                "Active",
+                created_by
+            ])
+
+            split_id = cursor.fetchone()[0]
+
+            if temp_id:
+                split_map[temp_id] = split_id
+
+        return split_map
+
     if request.method == 'POST':
         title = request.POST.get('title')
         client_name = request.POST.get('client_name')
@@ -3309,12 +3357,37 @@ def add_job(request):
         equipment_rehearsal_date = request.POST.get('equipment_rehearsal_date') or None
         equipment_event_date = request.POST.get('equipment_event_date') or None
 
+        selected_split_id = request.POST.get('selected_split_id') or None
+        co_jobs_json = request.POST.get("co_jobs_json", "[]")
+
+        try:
+            co_jobs = json.loads(co_jobs_json)
+        except Exception:
+            co_jobs = []
+
         equipment_categories = request.POST.getlist('equipment_category[]')
         equipment_ids = request.POST.getlist('equipment_name[]')
         equipment_qtys = request.POST.getlist('equipment_qty[]')
         rental_prices = request.POST.getlist('rental_price[]')
         equipment_totals = request.POST.getlist('equipment_total[]')
         equipment_notes = request.POST.getlist('equipment_notes[]')
+
+        crew_types = request.POST.getlist('crew_type[]')
+        crew_days = request.POST.getlist('crew_no_of_days[]')
+        perday_charges = request.POST.getlist('perday_charges[]')
+        crew_totals = request.POST.getlist('crew_total[]')
+        crew_notes = request.POST.getlist('crew_notes[]')
+
+        vendor_names = request.POST.getlist('vendor-name')
+        sub_equipment_names = request.POST.getlist('equipment-name')
+        sub_quantities = request.POST.getlist('quantity')
+
+        driver_names = request.POST.getlist('driver_name[]')
+        contact_numbers = request.POST.getlist('contact_number[]')
+        vehicle_numbers = request.POST.getlist('vehicle_number[]')
+        outside_driver_names = request.POST.getlist('outside_driver_name[]')
+        outside_contact_numbers = request.POST.getlist('outside_contact_number[]')
+        outside_vehicle_numbers = request.POST.getlist('outside_vehicle_number[]')
 
         created_by = request.session.get('user_id')
 
@@ -3328,181 +3401,459 @@ def add_job(request):
             with transaction.atomic():
                 with connection.cursor() as cursor:
 
-                    # =====================================================
-                    # CASE 1: QUOTATION SAVE IN TEMP TABLES
-                    # =====================================================
-                    if status == 'Quotation':
-
-                        cursor.execute("""
-                            SELECT public.manage_temp_job(
-                                %s, %s,
-                                %s, %s, %s, %s, %s,
-                                %s, %s, %s,
-                                %s, %s, %s, %s,
-                                %s, %s, %s, %s, %s,
-                                %s, %s
-                            )
-                        """, [
-                            'CREATE_QUOTATION',
-                            None,
-
-                            title,
-                            client_name,
-                            contact_person_name,
-                            contact_person_number,
-                            status,
-
-                            venue_name,
-                            venue_address,
-                            crew_type,
-
-                            setup_date,
-                            rehearsal_date,
-                            start_date,
-                            end_date,
-
-                            total_days,
-                            amount_row,
-                            discount,
-                            discounted_amount,
-                            total_amount,
-
-                            created_by,
-                            input_notes
-                        ])
-
-                        temp_id = cursor.fetchone()[0]
-
-                        for index, equipment_id in enumerate(equipment_ids):
-                            if not equipment_id:
-                                continue
-
+                    if edit_id and edit_type == 'temp':
+                        if status == 'Proforma':
                             cursor.execute("""
-                                SELECT equipment_name
-                                FROM public.equipment_list
-                                WHERE id = %s
-                            """, [equipment_id])
-
-                            equipment_row = cursor.fetchone()
-                            equipment_name = equipment_row[0] if equipment_row else ''
-
-                            cursor.execute("""
-                                INSERT INTO public.temp_equipment_details (
-                                    temp_id,
-                                    equipment_detail_id,
-                                    location,
-                                    incharge,
-                                    equipment_setup_date,
-                                    equipment_rehearsal_date,
-                                    equipment_name,
-                                    quantity,
-                                    equipment_unit_price,
-                                    equipment_total,
-                                    equipment_notes
+                                SELECT public.manage_job(
+                                    %s, %s, %s, %s, %s,
+                                    %s, %s, %s, %s, %s,
+                                    %s, %s, %s, %s, %s,
+                                    %s, %s, %s, %s, %s,
+                                    %s, %s
                                 )
-                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                             """, [
-                                temp_id,
-                                equipment_id,
+                                'CONVERT_TO_PROFORMA',
+                                int(edit_id),
+                                None,
+                                None,
+                                None,
+                                title,
+                                client_name,
+                                contact_person_name,
+                                contact_person_number,
+                                'Proforma',
+                                venue_address,
+                                crew_type,
+                                setup_date,
+                                rehearsal_date,
+                                start_date,
+                                end_date,
+                                total_days,
+                                amount_row,
+                                discount,
+                                discounted_amount,
+                                total_amount,
+                                created_by
+                            ])
+
+                            job_id = cursor.fetchone()[0]
+
+                            cursor.execute("""
+                                UPDATE public.jobs
+                                SET venue_name = %s,
+                                    notes = %s
+                                WHERE id = %s
+                            """, [venue_name, input_notes, job_id])
+
+                            split_map = create_co_jobs(cursor, job_id, created_by, co_jobs)
+
+                            real_selected_split_id = selected_split_id
+                            if selected_split_id and str(selected_split_id).startswith("local_"):
+                                real_selected_split_id = split_map.get(selected_split_id)
+
+                            save_job_child_rows(
+                                cursor,
+                                job_id,
                                 equipment_location,
                                 equipment_incharge,
                                 equipment_event_date,
                                 equipment_rehearsal_date,
-                                equipment_name,
-                                equipment_qtys[index] if index < len(equipment_qtys) else '',
-                                rental_prices[index] if index < len(rental_prices) else '',
-                                equipment_totals[index] if index < len(equipment_totals) else '',
-                                equipment_notes[index] if index < len(equipment_notes) else ''
-                            ])
+                                equipment_categories,
+                                equipment_ids,
+                                equipment_qtys,
+                                rental_prices,
+                                equipment_totals,
+                                equipment_notes,
+                                crew_types,
+                                crew_days,
+                                perday_charges,
+                                crew_totals,
+                                crew_notes,
+                                vendor_names,
+                                sub_equipment_names,
+                                sub_quantities,
+                                driver_names,
+                                contact_numbers,
+                                vehicle_numbers,
+                                outside_driver_names,
+                                outside_contact_numbers,
+                                outside_vehicle_numbers,
+                                real_selected_split_id
+                            )
 
-                        return JsonResponse({
-                            'success': True,
-                            'message': 'Quotation saved successfully.',
-                            'temp_id': temp_id
-                        })
-
-                    # =====================================================
-                    # CASE 2: DIRECT PROFORMA / PREPSHEET / DELIVERY
-                    # SAVE IN JOBS TABLES
-                    # =====================================================
-                    else:
+                            return JsonResponse({
+                                'success': True,
+                                'message': 'Quotation converted to Proforma successfully.',
+                                'job_id': job_id
+                            })
 
                         cursor.execute("""
-                            SELECT public.manage_job(
-                                %s, %s, %s, %s, %s,
-                                %s, %s, %s, %s, %s,
-                                %s, %s, %s, %s, %s,
-                                %s, %s, %s, %s, %s,
-                                %s, %s
-                            )
+                            UPDATE public.temp
+                            SET
+                                title = %s,
+                                client_name = %s,
+                                contact_person_name = %s,
+                                contact_person_number = %s,
+                                status = %s,
+                                venue_name = %s,
+                                venue_address = %s,
+                                crew_type = %s,
+                                setup_date = %s,
+                                rehearsal_date = %s,
+                                event_date = %s,
+                                dismantle_date = %s,
+                                total_days = %s,
+                                amount_row = %s,
+                                discount = %s,
+                                amount_after_discount = %s,
+                                total_amount = %s,
+                                notes = %s
+                            WHERE id = %s
                         """, [
-                            'CREATE_DIRECT_JOB',
-                            None,
-                            None,
-                            None,
-                            None,
-
                             title,
                             client_name,
                             contact_person_name,
                             contact_person_number,
                             status,
-
+                            venue_name,
                             venue_address,
                             crew_type,
                             setup_date,
                             rehearsal_date,
                             start_date,
-
                             end_date,
                             total_days,
                             amount_row,
                             discount,
                             discounted_amount,
-
                             total_amount,
-                            created_by
+                            input_notes,
+                            edit_id
                         ])
 
-                        job_id = cursor.fetchone()[0]
+                        cursor.execute("DELETE FROM public.temp_equipment_details WHERE temp_id = %s", [edit_id])
+                        cursor.execute("DELETE FROM public.temp_crew_allocation WHERE temp_id = %s", [edit_id])
+                        cursor.execute("DELETE FROM public.temp_sub_vendor WHERE temp_id = %s", [edit_id])
+                        cursor.execute("DELETE FROM public.temp_transportation_allocation WHERE temp_id = %s", [edit_id])
 
-                        for index, equipment_id in enumerate(equipment_ids):
-                            if not equipment_id:
-                                continue
-
-                            cursor.execute("""
-                                SELECT equipment_name
-                                FROM public.equipment_list
-                                WHERE id = %s
-                            """, [equipment_id])
-
-                            equipment_row = cursor.fetchone()
-                            equipment_name = equipment_row[0] if equipment_row else ''
-
-                            cursor.execute("""
-                                INSERT INTO public.job_details (
-                                    job_id,
-                                    category_name,
-                                    equipment_name,
-                                    quantity,
-                                    number_of_days,
-                                    amount
-                                )
-                                VALUES (%s, %s, %s, %s, %s, %s)
-                            """, [
-                                job_id,
-                                equipment_categories[index] if index < len(equipment_categories) else '',
-                                equipment_name,
-                                equipment_qtys[index] if index < len(equipment_qtys) else '',
-                                total_days,
-                                equipment_totals[index] if index < len(equipment_totals) else ''
-                            ])
+                        save_temp_child_rows(
+                            cursor,
+                            edit_id,
+                            equipment_location,
+                            equipment_incharge,
+                            equipment_event_date,
+                            equipment_rehearsal_date,
+                            equipment_categories,
+                            equipment_ids,
+                            equipment_qtys,
+                            rental_prices,
+                            equipment_totals,
+                            equipment_notes,
+                            crew_types,
+                            crew_days,
+                            perday_charges,
+                            crew_totals,
+                            crew_notes,
+                            vendor_names,
+                            sub_equipment_names,
+                            sub_quantities,
+                            driver_names,
+                            contact_numbers,
+                            vehicle_numbers,
+                            outside_driver_names,
+                            outside_contact_numbers,
+                            outside_vehicle_numbers
+                        )
 
                         return JsonResponse({
                             'success': True,
-                            'message': f'{status} job saved successfully.',
-                            'job_id': job_id
+                            'message': 'Quotation updated successfully.',
+                            'temp_id': edit_id
                         })
+
+                    if edit_id and edit_type == 'job':
+                        cursor.execute("""
+                            UPDATE public.jobs
+                            SET
+                                title = %s,
+                                client_name = %s,
+                                contact_person_name = %s,
+                                contact_person_number = %s,
+                                status = %s,
+                                venue_name = %s,
+                                venue_address = %s,
+                                crew_type = %s,
+                                setup_date = %s,
+                                rehearsal_date = %s,
+                                show_start_date = %s,
+                                show_end_date = %s,
+                                total_days = %s,
+                                amount_row = %s,
+                                discount = %s,
+                                amount_after_discount = %s,
+                                total_amount = %s,
+                                notes = %s
+                            WHERE id = %s
+                        """, [
+                            title,
+                            client_name,
+                            contact_person_name,
+                            contact_person_number,
+                            status,
+                            venue_name,
+                            venue_address,
+                            crew_type,
+                            setup_date,
+                            rehearsal_date,
+                            start_date,
+                            end_date,
+                            total_days,
+                            amount_row,
+                            discount,
+                            discounted_amount,
+                            total_amount,
+                            input_notes,
+                            edit_id
+                        ])
+
+                        split_map = create_co_jobs(cursor, edit_id, created_by, co_jobs)
+
+                        real_selected_split_id = selected_split_id
+                        if selected_split_id and str(selected_split_id).startswith("local_"):
+                            real_selected_split_id = split_map.get(selected_split_id)
+
+                        if real_selected_split_id:
+                            cursor.execute("""
+                                DELETE FROM public.job_equipment_details
+                                WHERE job_id = %s AND split_id = %s
+                            """, [edit_id, real_selected_split_id])
+                        else:
+                            cursor.execute("""
+                                DELETE FROM public.job_equipment_details
+                                WHERE job_id = %s AND split_id IS NULL
+                            """, [edit_id])
+
+                        cursor.execute("DELETE FROM public.job_crew_allocation WHERE job_id = %s", [edit_id])
+                        cursor.execute("DELETE FROM public.job_sub_vendor WHERE job_id = %s", [edit_id])
+                        cursor.execute("DELETE FROM public.job_transportation_allocation WHERE job_id = %s", [edit_id])
+
+                        save_job_child_rows(
+                            cursor,
+                            edit_id,
+                            equipment_location,
+                            equipment_incharge,
+                            equipment_event_date,
+                            equipment_rehearsal_date,
+                            equipment_categories,
+                            equipment_ids,
+                            equipment_qtys,
+                            rental_prices,
+                            equipment_totals,
+                            equipment_notes,
+                            crew_types,
+                            crew_days,
+                            perday_charges,
+                            crew_totals,
+                            crew_notes,
+                            vendor_names,
+                            sub_equipment_names,
+                            sub_quantities,
+                            driver_names,
+                            contact_numbers,
+                            vehicle_numbers,
+                            outside_driver_names,
+                            outside_contact_numbers,
+                            outside_vehicle_numbers,
+                            real_selected_split_id
+                        )
+
+                        return JsonResponse({
+                            'success': True,
+                            'message': f'{status} updated successfully.',
+                            'job_id': edit_id
+                        })
+
+                    if status == 'Quotation':
+                        quotation_no = generate_quotation_no()
+
+                        cursor.execute("""
+                            INSERT INTO public.temp (
+                                job_reference_no,
+                                title,
+                                client_name,
+                                contact_person_name,
+                                contact_person_number,
+                                status,
+                                venue_name,
+                                venue_address,
+                                crew_type,
+                                setup_date,
+                                rehearsal_date,
+                                event_date,
+                                dismantle_date,
+                                total_days,
+                                amount_row,
+                                discount,
+                                amount_after_discount,
+                                total_amount,
+                                created_by,
+                                created_date,
+                                notes,
+                                quotation_no
+                            )
+                            VALUES (
+                                %s, %s, %s, %s, %s,
+                                %s, %s, %s, %s, %s,
+                                %s, %s, %s, %s, %s,
+                                %s, %s, %s, %s, NOW(),
+                                %s, %s
+                            )
+                            RETURNING id
+                        """, [
+                            quotation_no,
+                            title,
+                            client_name,
+                            contact_person_name,
+                            contact_person_number,
+                            status,
+                            venue_name,
+                            venue_address,
+                            crew_type,
+                            setup_date,
+                            rehearsal_date,
+                            start_date,
+                            end_date,
+                            total_days,
+                            amount_row,
+                            discount,
+                            discounted_amount,
+                            total_amount,
+                            created_by,
+                            input_notes,
+                            quotation_no
+                        ])
+
+                        temp_id = cursor.fetchone()[0]
+
+                        save_temp_child_rows(
+                            cursor,
+                            temp_id,
+                            equipment_location,
+                            equipment_incharge,
+                            equipment_event_date,
+                            equipment_rehearsal_date,
+                            equipment_categories,
+                            equipment_ids,
+                            equipment_qtys,
+                            rental_prices,
+                            equipment_totals,
+                            equipment_notes,
+                            crew_types,
+                            crew_days,
+                            perday_charges,
+                            crew_totals,
+                            crew_notes,
+                            vendor_names,
+                            sub_equipment_names,
+                            sub_quantities,
+                            driver_names,
+                            contact_numbers,
+                            vehicle_numbers,
+                            outside_driver_names,
+                            outside_contact_numbers,
+                            outside_vehicle_numbers
+                        )
+
+                        return JsonResponse({
+                            'success': True,
+                            'message': 'Quotation saved successfully.',
+                            'quotation_no': quotation_no,
+                            'temp_id': temp_id
+                        })
+
+                    cursor.execute("""
+                        SELECT public.manage_job(
+                            %s, %s, %s, %s, %s,
+                            %s, %s, %s, %s, %s,
+                            %s, %s, %s, %s, %s,
+                            %s, %s, %s, %s, %s,
+                            %s, %s
+                        )
+                    """, [
+                        'CREATE_DIRECT_JOB',
+                        None,
+                        None,
+                        None,
+                        None,
+                        title,
+                        client_name,
+                        contact_person_name,
+                        contact_person_number,
+                        status,
+                        venue_address,
+                        crew_type,
+                        setup_date,
+                        rehearsal_date,
+                        start_date,
+                        end_date,
+                        total_days,
+                        amount_row,
+                        discount,
+                        discounted_amount,
+                        total_amount,
+                        created_by
+                    ])
+
+                    job_id = cursor.fetchone()[0]
+
+                    cursor.execute("""
+                        UPDATE public.jobs
+                        SET venue_name = %s,
+                            notes = %s
+                        WHERE id = %s
+                    """, [venue_name, input_notes, job_id])
+
+                    split_map = create_co_jobs(cursor, job_id, created_by, co_jobs)
+
+                    real_selected_split_id = selected_split_id
+                    if selected_split_id and str(selected_split_id).startswith("local_"):
+                        real_selected_split_id = split_map.get(selected_split_id)
+
+                    save_job_child_rows(
+                        cursor,
+                        job_id,
+                        equipment_location,
+                        equipment_incharge,
+                        equipment_event_date,
+                        equipment_rehearsal_date,
+                        equipment_categories,
+                        equipment_ids,
+                        equipment_qtys,
+                        rental_prices,
+                        equipment_totals,
+                        equipment_notes,
+                        crew_types,
+                        crew_days,
+                        perday_charges,
+                        crew_totals,
+                        crew_notes,
+                        vendor_names,
+                        sub_equipment_names,
+                        sub_quantities,
+                        driver_names,
+                        contact_numbers,
+                        vehicle_numbers,
+                        outside_driver_names,
+                        outside_contact_numbers,
+                        outside_vehicle_numbers,
+                        real_selected_split_id
+                    )
+
+                    return JsonResponse({
+                        'success': True,
+                        'message': f'{status} job saved successfully.',
+                        'job_id': job_id
+                    })
 
         except Exception as e:
             print("ADD_JOB ERROR:", str(e))
@@ -3511,10 +3862,580 @@ def add_job(request):
                 'error': str(e)
             }, status=500)
 
+    if edit_id and edit_type:
+        with connection.cursor() as cursor:
+            if edit_type == 'temp':
+                cursor.execute("SELECT * FROM public.temp WHERE id = %s", [edit_id])
+                columns = [col[0] for col in cursor.description]
+                row = cursor.fetchone()
+                job_data = dict(zip(columns, row)) if row else {}
+
+                cursor.execute("""
+                    SELECT *
+                    FROM public.temp_equipment_details
+                    WHERE temp_id = %s
+                    ORDER BY id
+                """, [edit_id])
+                columns = [col[0] for col in cursor.description]
+                equipment_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
+
+                cursor.execute("""
+                    SELECT *
+                    FROM public.temp_crew_allocation
+                    WHERE temp_id = %s
+                    ORDER BY id
+                """, [edit_id])
+                columns = [col[0] for col in cursor.description]
+                crew_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
+
+                cursor.execute("""
+                    SELECT *
+                    FROM public.temp_transportation_allocation
+                    WHERE temp_id = %s
+                    ORDER BY id
+                """, [edit_id])
+                columns = [col[0] for col in cursor.description]
+                transport_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
+
+                cursor.execute("""
+                    SELECT *
+                    FROM public.temp_sub_vendor
+                    WHERE temp_id = %s
+                    ORDER BY id
+                """, [edit_id])
+                columns = [col[0] for col in cursor.description]
+                sub_vendor_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
+
+            else:
+                cursor.execute("SELECT * FROM public.jobs WHERE id = %s", [edit_id])
+                columns = [col[0] for col in cursor.description]
+                row = cursor.fetchone()
+                job_data = dict(zip(columns, row)) if row else {}
+
+                cursor.execute("""
+                    SELECT *
+                    FROM public.job_equipment_details
+                    WHERE job_id = %s
+                      AND split_id IS NULL
+                    ORDER BY id
+                """, [edit_id])
+                columns = [col[0] for col in cursor.description]
+                equipment_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
+
+                cursor.execute("""
+                    SELECT *
+                    FROM public.job_crew_allocation
+                    WHERE job_id = %s
+                    ORDER BY id
+                """, [edit_id])
+                columns = [col[0] for col in cursor.description]
+                crew_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
+
+                cursor.execute("""
+                    SELECT *
+                    FROM public.job_transportation_allocation
+                    WHERE job_id = %s
+                    ORDER BY id
+                """, [edit_id])
+                columns = [col[0] for col in cursor.description]
+                transport_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
+
+                cursor.execute("""
+                    SELECT *
+                    FROM public.job_sub_vendor
+                    WHERE job_id = %s
+                    ORDER BY id
+                """, [edit_id])
+                columns = [col[0] for col in cursor.description]
+                sub_vendor_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
+
     return render(request, 'inventory/add_job.html', {
-        'username': username
+        'username': username,
+        'edit_id': edit_id,
+        'edit_type': edit_type,
+        'edit_mode': bool(edit_id),
+        'job_data': json.dumps(job_data, default=str),
+        'equipment_data': json.dumps(equipment_data, default=str),
+        'crew_data': json.dumps(crew_data, default=str),
+        'transport_data': json.dumps(transport_data, default=str),
+        'sub_vendor_data': json.dumps(sub_vendor_data, default=str)
     })
 
+def get_equipment_meta(request, equipment_id):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT
+                    mc.category_name,
+                    sc.name AS sub_category_name,
+                    el.equipment_name
+                FROM public.equipment_list el
+                LEFT JOIN public.sub_category sc
+                    ON sc.id = el.sub_category_id
+                LEFT JOIN public.master_category mc
+                    ON mc.category_id = sc.category_id
+                WHERE el.id = %s
+            """, [equipment_id])
+
+            row = cursor.fetchone()
+
+        if not row:
+            return JsonResponse({
+                "category_name": "",
+                "sub_category_name": "",
+                "equipment_name": ""
+            })
+
+        return JsonResponse({
+            "category_name": row[0] or "",
+            "sub_category_name": row[1] or "",
+            "equipment_name": row[2] or ""
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "error": str(e)
+        }, status=500)
+
+def generate_quotation_no():
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT public.generate_quotation_no()")
+        return cursor.fetchone()[0]
+
+
+def save_temp_child_rows(
+    cursor,
+    temp_id,
+    equipment_location,
+    equipment_incharge,
+    equipment_event_date,
+    equipment_rehearsal_date,
+    equipment_categories,
+    equipment_ids,
+    equipment_qtys,
+    rental_prices,
+    equipment_totals,
+    equipment_notes,
+    crew_types,
+    crew_days,
+    perday_charges,
+    crew_totals,
+    crew_notes,
+    vendor_names,
+    sub_equipment_names,
+    sub_quantities,
+    driver_names,
+    contact_numbers,
+    vehicle_numbers,
+    outside_driver_names,
+    outside_contact_numbers,
+    outside_vehicle_numbers
+):
+    for index, equipment_id in enumerate(equipment_ids):
+        if not equipment_id:
+            continue
+
+        cursor.execute("""
+            SELECT equipment_name
+            FROM public.equipment_list
+            WHERE id = %s
+        """, [equipment_id])
+
+        equipment_row = cursor.fetchone()
+        equipment_name = equipment_row[0] if equipment_row else ''
+
+        cursor.execute("""
+            INSERT INTO public.temp_equipment_details (
+                temp_id,
+                equipment_detail_id,
+                location,
+                incharge,
+                equipment_setup_date,
+                equipment_rehearsal_date,
+                equipment_name,
+                quantity,
+                equipment_unit_price,
+                equipment_total,
+                equipment_notes
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, [
+            temp_id,
+            equipment_id,
+            equipment_location,
+            equipment_incharge,
+            equipment_event_date,
+            equipment_rehearsal_date,
+            equipment_name,
+            equipment_qtys[index] if index < len(equipment_qtys) else '',
+            rental_prices[index] if index < len(rental_prices) else '',
+            equipment_totals[index] if index < len(equipment_totals) else '',
+            equipment_notes[index] if index < len(equipment_notes) else ''
+        ])
+
+    for index, crew_type in enumerate(crew_types):
+        if not crew_type:
+            continue
+
+        cursor.execute("""
+            INSERT INTO public.temp_crew_allocation (
+                temp_id,
+                crew_type,
+                crew_no_of_days,
+                perday_charges,
+                total,
+                crew_notes
+            )
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, [
+            temp_id,
+            crew_type,
+            crew_days[index] if index < len(crew_days) else '',
+            perday_charges[index] if index < len(perday_charges) else '',
+            crew_totals[index] if index < len(crew_totals) else '',
+            crew_notes[index] if index < len(crew_notes) else ''
+        ])
+
+    for index, vendor_name in enumerate(vendor_names):
+        if not vendor_name:
+            continue
+
+        cursor.execute("""
+            INSERT INTO public.temp_sub_vendor (
+                temp_id,
+                vendor_name,
+                sub_equipment_name,
+                sub_quantity
+            )
+            VALUES (%s, %s, %s, %s)
+        """, [
+            temp_id,
+            vendor_name,
+            sub_equipment_names[index] if index < len(sub_equipment_names) else '',
+            sub_quantities[index] if index < len(sub_quantities) else ''
+        ])
+
+    total_rows = max(
+        len(driver_names),
+        len(outside_driver_names),
+        len(vehicle_numbers),
+        len(outside_vehicle_numbers)
+    )
+
+    for index in range(total_rows):
+        cursor.execute("""
+            INSERT INTO public.temp_transportation_allocation (
+                temp_id,
+                driver_name,
+                contact_number,
+                vehicle_number,
+                outside_driver_name,
+                outside_contact_number,
+                outside_vehicle_number
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, [
+            temp_id,
+            driver_names[index] if index < len(driver_names) else '',
+            contact_numbers[index] if index < len(contact_numbers) else '',
+            vehicle_numbers[index] if index < len(vehicle_numbers) else '',
+            outside_driver_names[index] if index < len(outside_driver_names) else '',
+            outside_contact_numbers[index] if index < len(outside_contact_numbers) else '',
+            outside_vehicle_numbers[index] if index < len(outside_vehicle_numbers) else ''
+        ])
+
+def save_job_child_rows(
+    cursor,
+    job_id,
+    equipment_location,
+    equipment_incharge,
+    equipment_event_date,
+    equipment_rehearsal_date,
+    equipment_categories,
+    equipment_ids,
+    equipment_qtys,
+    rental_prices,
+    equipment_totals,
+    equipment_notes,
+    crew_types,
+    crew_days,
+    perday_charges,
+    crew_totals,
+    crew_notes,
+    vendor_names,
+    sub_equipment_names,
+    sub_quantities,
+    driver_names,
+    contact_numbers,
+    vehicle_numbers,
+    outside_driver_names,
+    outside_contact_numbers,
+    outside_vehicle_numbers,
+    selected_split_id=None
+):
+    # =====================================================
+    # EQUIPMENT DETAILS
+    # =====================================================
+    for index, equipment_id in enumerate(equipment_ids):
+        if not equipment_id:
+            continue
+
+        cursor.execute("""
+            SELECT
+                el.equipment_name,
+                mc.category_name,
+                sc.name AS sub_category_name
+            FROM public.equipment_list el
+            LEFT JOIN public.sub_category sc
+                ON sc.id = el.sub_category_id
+            LEFT JOIN public.master_category mc
+                ON mc.category_id = sc.category_id
+            WHERE el.id = %s
+        """, [equipment_id])
+
+        equipment_row = cursor.fetchone()
+
+        equipment_name = equipment_row[0] if equipment_row else ''
+        category_name = equipment_row[1] if equipment_row else ''
+        sub_category_name = equipment_row[2] if equipment_row else ''
+
+        cursor.execute("""
+            INSERT INTO public.job_equipment_details (
+                job_id,
+                split_id,
+                equipment_detail_id,
+                location,
+                incharge,
+                equipment_setup_date,
+                equipment_rehearsal_date,
+                equipment_name,
+                quantity,
+                equipment_unit_price,
+                equipment_total,
+                equipment_notes,
+                category_name,
+                sub_category_name
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, [
+            job_id,
+            selected_split_id,
+            equipment_id,
+            equipment_location,
+            equipment_incharge,
+            equipment_event_date,
+            equipment_rehearsal_date,
+            equipment_name,
+            equipment_qtys[index] if index < len(equipment_qtys) else '',
+            rental_prices[index] if index < len(rental_prices) else '',
+            equipment_totals[index] if index < len(equipment_totals) else '',
+            equipment_notes[index] if index < len(equipment_notes) else '',
+            category_name,
+            sub_category_name
+        ])
+
+    # =====================================================
+    # CREW ALLOCATION
+    # keep crew at main job level only
+    # =====================================================
+    if not selected_split_id:
+        for index, crew_type in enumerate(crew_types):
+            if not crew_type:
+                continue
+
+            cursor.execute("""
+                INSERT INTO public.job_crew_allocation (
+                    job_id,
+                    crew_type,
+                    crew_no_of_days,
+                    perday_charges,
+                    total,
+                    crew_notes
+                )
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, [
+                job_id,
+                crew_type,
+                crew_days[index] if index < len(crew_days) else '',
+                perday_charges[index] if index < len(perday_charges) else '',
+                crew_totals[index] if index < len(crew_totals) else '',
+                crew_notes[index] if index < len(crew_notes) else ''
+            ])
+
+        # =====================================================
+        # SUB VENDOR
+        # =====================================================
+        for index, vendor_name in enumerate(vendor_names):
+            if not vendor_name:
+                continue
+
+            cursor.execute("""
+                INSERT INTO public.job_sub_vendor (
+                    job_id,
+                    vendor_name,
+                    sub_equipment_name,
+                    sub_quantity
+                )
+                VALUES (%s, %s, %s, %s)
+            """, [
+                job_id,
+                vendor_name,
+                sub_equipment_names[index] if index < len(sub_equipment_names) else '',
+                sub_quantities[index] if index < len(sub_quantities) else ''
+            ])
+
+        # =====================================================
+        # TRANSPORTATION
+        # =====================================================
+        total_rows = max(
+            len(driver_names),
+            len(outside_driver_names),
+            len(vehicle_numbers),
+            len(outside_vehicle_numbers)
+        )
+
+        for index in range(total_rows):
+            cursor.execute("""
+                INSERT INTO public.job_transportation_allocation (
+                    job_id,
+                    driver_name,
+                    contact_number,
+                    vehicle_number,
+                    outside_driver_name,
+                    outside_contact_number,
+                    outside_vehicle_number
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, [
+                job_id,
+                driver_names[index] if index < len(driver_names) else '',
+                contact_numbers[index] if index < len(contact_numbers) else '',
+                vehicle_numbers[index] if index < len(vehicle_numbers) else '',
+                outside_driver_names[index] if index < len(outside_driver_names) else '',
+                outside_contact_numbers[index] if index < len(outside_contact_numbers) else '',
+                outside_vehicle_numbers[index] if index < len(outside_vehicle_numbers) else ''
+            ])
+
+def split_jobs_list(request, job_id):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT
+                    id,
+                    job_order_no,
+                    job_section,
+                    status
+                FROM public.jobs
+                WHERE parent_job_id = %s
+                ORDER BY split_no ASC
+            """, [job_id])
+
+            rows = cursor.fetchall()
+
+        data = [
+            {
+                "id": row[0],
+                "job_order_no": row[1],
+                "job_section": row[2],
+                "status": row[3]
+            }
+            for row in rows
+        ]
+
+        return JsonResponse({"data": data})
+
+    except Exception as e:
+        return JsonResponse({"data": [], "error": str(e)}, status=500)
+
+
+@require_POST
+def create_split_job(request, job_id):
+    section_name = request.POST.get("job_section", "").strip()
+
+    if not section_name:
+        return JsonResponse({
+            "success": False,
+            "error": "Section / ballroom name is required."
+        }, status=400)
+
+    try:
+        with transaction.atomic():
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT public.generate_co_job_no(%s)",
+                    [job_id]
+                )
+                split_job_no = cursor.fetchone()[0]
+
+                cursor.execute("""
+                    INSERT INTO public.job_split_master
+                    (
+                        parent_job_id,
+                        split_job_no,
+                        section_name,
+                        status,
+                        created_by,
+                        created_date
+                    )
+                    VALUES (%s, %s, %s, %s, %s, NOW())
+                    RETURNING split_id
+                """, [
+                    job_id,
+                    split_job_no,
+                    section_name,
+                    "Active",
+                    request.session.get("user_id")
+                ])
+
+                split_id = cursor.fetchone()[0]
+
+        return JsonResponse({
+            "success": True,
+            "message": "Co job created successfully.",
+            "split_id": split_id,
+            "split_job_no": split_job_no,
+            "section_name": section_name
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "success": False,
+            "error": str(e)
+        }, status=500)
+
+def get_split_jobs(request, parent_job_id):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT
+                    split_id,
+                    split_job_no,
+                    section_name,
+                    status
+                FROM public.job_split_master
+                WHERE parent_job_id = %s
+                ORDER BY split_id ASC
+            """, [parent_job_id])
+
+            rows = cursor.fetchall()
+
+        return JsonResponse({
+            "split_jobs": [
+                {
+                    "split_id": row[0],
+                    "split_job_no": row[1],
+                    "section_name": row[2],
+                    "status": row[3],
+                }
+                for row in rows
+            ]
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "split_jobs": [],
+            "error": str(e)
+        }, status=500)
 
 def convert_to_proforma(request, temp_id):
     try:
@@ -3537,38 +4458,6 @@ def convert_to_proforma(request, temp_id):
 
     except Exception as e:
         print("CONVERT_TO_PROFORMA ERROR:", str(e))
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
-
-
-def create_split_job(request, job_id):
-    if request.method != 'POST':
-        return redirect('inventory:job_book')
-
-    section = request.POST.get('job_section')
-
-    try:
-        with transaction.atomic():
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT public.manage_job(%s, %s, %s, %s, %s)",
-                    [
-                        'CREATE_SPLIT',
-                        None,
-                        None,
-                        job_id,
-                        section
-                    ]
-                )
-
-                split_job_id = cursor.fetchone()[0]
-
-        return redirect('inventory:job_book')
-
-    except Exception as e:
-        print("CREATE_SPLIT_JOB ERROR:", str(e))
         return JsonResponse({
             'success': False,
             'error': str(e)
@@ -3788,56 +4677,59 @@ def jobs_list(request):
     try:
         with connection.cursor() as cursor:
             cursor.execute("""
-                SELECT
-                    id,
-                    'QUOTATION' AS record_type,
-                    job_reference_no,
-                    quotation_no,
-                    main_job_no,
-                    job_order_no,
-                    title,
-                    client_name,
-                    venue_name,
-                    status,
-                    created_date
-                FROM public.temp
+                SELECT *
+                FROM (
+                    SELECT
+                        t.id,
+                        t.job_reference_no AS job_reference_no,
+                        t.quotation_no AS quotation_no,
+                        NULL AS main_job_no,
+                        NULL AS job_order_no,
+                        t.title,
+                        t.client_name,
+                        t.venue_name,
+                        t.status,
+                        t.created_date,
+                        'temp' AS source_type
+                    FROM public.temp t
+                    WHERE t.status = 'Quotation'
 
-                UNION ALL
+                    UNION ALL
 
-                SELECT
-                    id,
-                    'JOB' AS record_type,
-                    job_reference_no,
-                    quotation_no,
-                    main_job_no,
-                    job_order_no,
-                    title,
-                    client_name,
-                    NULL AS venue_name,
-                    status,
-                    created_date
-                FROM public.jobs
-
-                ORDER BY created_date DESC NULLS LAST, id DESC
+                    SELECT
+                        j.id,
+                        COALESCE(j.job_order_no, j.job_reference_no) AS job_reference_no,
+                        j.quotation_no,
+                        j.main_job_no,
+                        j.job_order_no,
+                        j.title,
+                        j.client_name,
+                        NULL AS venue_name,
+                        j.status,
+                        j.created_date,
+                        'job' AS source_type
+                    FROM public.jobs j
+                    WHERE j.parent_job_id IS NULL
+                ) x
+                ORDER BY x.created_date DESC NULLS LAST, x.id DESC
             """)
 
             rows = cursor.fetchall()
 
         data = []
-
         for row in rows:
             data.append({
                 "id": row[0],
-                "record_type": row[1],
-                "job_reference_no": row[2],
-                "quotation_no": row[3],
-                "main_job_no": row[4],
-                "job_order_no": row[5],
-                "title": row[6],
-                "client_name": row[7],
-                "venue_name": row[8],
-                "status": row[9],
-                "created_date": row[10].strftime("%Y-%m-%d") if row[10] else ""
+                "job_reference_no": row[1],
+                "quotation_no": row[2],
+                "main_job_no": row[3],
+                "job_order_no": row[4],
+                "title": row[5],
+                "client_name": row[6],
+                "venue_name": row[7],
+                "status": row[8],
+                "created_date": row[9].strftime("%Y-%m-%d") if row[9] else "",
+                "source_type": row[10],
             })
 
         return JsonResponse(data, safe=False)

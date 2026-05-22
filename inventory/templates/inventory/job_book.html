@@ -241,7 +241,7 @@
                     <td>
                         <button type="button"
                                 class="btn btn-primary btn-sm me-1"
-                                onclick="editJob('${id}')">
+                                onclick="editJob('${id}', '${status}')">
                             <i class="bi bi-pencil-fill"></i>
                         </button>
                         <button type="button"
@@ -301,10 +301,24 @@
         window.location.href = `/job-details/?job_id=${id}`;
     }
 
-    function editJob(id) {
-        if (!id) return;
-        window.location.href = `/job-book/add/?edit_id=${id}`;
+function editJob(id, status = "") {
+
+    if (!id) return;
+
+    status = String(status || "").toLowerCase();
+
+    // quotation → temp
+    if (status.includes("quotation")) {
+        window.location.href =
+            `/job-book/add/?edit_type=temp&edit_id=${id}`;
     }
+
+    // proforma/prepsheet/delivery → jobs
+    else {
+        window.location.href =
+            `/job-book/add/?edit_type=job&edit_id=${id}`;
+    }
+}
 
     function deleteJob(id, jobNo) {
         if (!id) return;
