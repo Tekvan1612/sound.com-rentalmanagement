@@ -1489,10 +1489,8 @@
                         document.getElementById("equipmentFormTitle").textContent = "New Equipment Details";
 
                         cancelEquipmentForm();
-
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 700);
+                        loadEquipmentList();
+                        loadEquipmentSubcategories();
                     })
                     .catch(error => {
                         console.error("Equipment save error:", error);
@@ -1526,9 +1524,8 @@
             .then(data => {
                 if (data.status === "success") {
                     showToast(data.message || "Equipment deleted successfully", "success");
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 700);
+                    loadEquipmentList();
+                    loadEquipmentSubcategories();
                 } else {
                     showToast(data.message || "Failed to delete equipment", "danger");
                 }
@@ -1845,9 +1842,13 @@
             .then(data => {
                 if (data.success) {
                     showToast(data.message || "Category saved successfully", "success");
+
                     resetCategoryForm();
-                    bootstrap.Collapse.getOrCreateInstance(document.getElementById("addCategoryCollapse")).hide();
-                    refreshCategoryTable();
+                    bootstrap.Collapse.getOrCreateInstance(
+                        document.getElementById("addCategoryCollapse")
+                    ).hide();
+
+                    loadMasterCategories();
                     loadCategoryDropdowns();
                 } else {
                     showToast(data.message || "Failed to save category", "danger");
@@ -2108,16 +2109,87 @@
             .then(res => res.json())
             .then(data => {
                 showToast(data.message || "Saved", data.success ? "success" : "danger");
+
                 if (data.success) {
                     resetSubcategoryForm();
-                    bootstrap.Collapse.getOrCreateInstance(document.getElementById("addSubcategoryCollapse")).hide();
-                    refreshSubcategoryTable();
-                    loadCategoryDropdowns();
+
+                    bootstrap.Collapse.getOrCreateInstance(
+                        document.getElementById("addSubcategoryCollapse")
+                    ).hide();
+
+                    // Clear filter so new record is visible
+                    const filter = document.getElementById("subcategoryCategoryFilter");
+                    if (filter) {
+                        filter.value = "";
+                    }
+
+                    loadSubcategories();
+                    loadEquipmentSubcategories();
                 }
             })
             .catch(error => {
                 console.error("Subcategory save error:", error);
                 showToast("Failed to save subcategory", "danger");
+            });
+    }
+
+    function loadEquipmentList() {
+        fetch("/equipment_list/?subcategory_id=0", {
+            method: "GET",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                destroyEquipmentTable();
+
+                const tbody = document.getElementById("equipmentTableBody");
+                tbody.innerHTML = "";
+
+                const equipments = data.equipments || [];
+
+                if (!equipments.length) {
+                    tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="table-empty">No equipment found.</td>
+                </tr>
+            `;
+                } else {
+                    equipments.forEach(item => {
+                        tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <button type="button" class="btn btn-success btn-sm me-1"
+                                    onclick="openStockForm('${item.id}', '${escapeHtml(item.equipment_name)}')">
+                                <i class="bi bi-box-seam"></i>
+                            </button>
+
+                            <button type="button" class="btn btn-primary btn-sm me-1"
+                                    onclick="openEquipmentEditForm('${item.id}')">
+                                <i class="bi bi-pencil-fill"></i>
+                            </button>
+
+                            <button type="button" class="btn btn-danger btn-sm"
+                                    onclick="deleteEquipment('${item.id}', '${escapeHtml(item.equipment_name)}')">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                        </td>
+                        <td>${escapeHtml(item.equipment_name || "")}</td>
+                        <td>${escapeHtml(item.sub_category_name || "")}</td>
+                        <td>${escapeHtml(item.category_type || "")}</td>
+                        <td>${escapeHtml(item.created_by || "")}</td>
+                        <td>${escapeHtml(item.created_date || "")}</td>
+                    </tr>
+                `;
+                    });
+                }
+
+                initEquipmentTable();
+            })
+            .catch(error => {
+                console.error("Equipment reload error:", error);
+                showToast("Failed to refresh equipment table", "danger");
             });
     }
 
