@@ -427,6 +427,7 @@
             .then(res => res.json())
             .then(data => {
                 employeeData = data.data || [];
+                loadReportingDropdown();
                 renderEmployees();
             })
             .catch(err => {
@@ -742,29 +743,180 @@
     }
 
     function editEmployee(id) {
-        const emp = employeeData.find(e => Number(e.id) === Number(id));
-        if (!emp) return;
+        const emp = employeeData.find(
+            e => String(e.id) === String(id)
+        );
 
-        document.getElementById("edit_employee_row_id").value = emp.id;
-        document.getElementById("employee_id").value = emp.employee_id || "";
-        document.getElementById("name").value = emp.name || "";
-        document.getElementById("email").value = emp.email || "";
-        document.getElementById("designation").value = emp.designation || "";
-        document.getElementById("mobile_no").value = emp.mobile_no || "";
-        document.getElementById("gender").value = emp.gender || "";
-        document.getElementById("joining_date").value = emp.joining_date || "";
-        document.getElementById("dob").value = emp.dob || "";
-        document.getElementById("country").value = emp.country || "";
-        document.getElementById("state").value = emp.state || "";
-        document.getElementById("p_address").value = emp.p_address || "";
-        document.getElementById("c_address").value = emp.c_address || "";
-        document.getElementById("bloodGroup").value = emp.blood_group || "";
-        document.getElementById("status").value = emp.status ? "true" : "false";
+        if (!emp) {
+            showToast("Employee not found", "danger");
+            return;
+        }
 
-        document.getElementById("employeeFormTitle").textContent = "Edit Employee Details";
-        document.getElementById("employeeBtnText").textContent = "Update Employee";
+        console.log("Editing Employee:", emp);
 
-        bootstrap.Collapse.getOrCreateInstance(document.getElementById("addEmployeeCollapse")).show();
+        // Set operation
+        document.getElementById("operation").value = "update";
+        document.getElementById("edit_employee_row_id").value = emp.id || "";
+
+        // Fill form fields
+        document.getElementById("employee_type").value =
+            emp.employee_type || "";
+
+        document.getElementById("employee_id").value =
+            emp.employee_id || "";
+
+        document.getElementById("name").value =
+            emp.name || "";
+
+        document.getElementById("email").value =
+            emp.email || "";
+
+        document.getElementById("designation").value =
+            emp.designation || "";
+
+        document.getElementById("mobile_no").value =
+            emp.mobile_no || "";
+
+        document.getElementById("gender").value =
+            emp.gender || "";
+
+        document.getElementById("joining_date").value =
+            emp.joining_date || "";
+
+        document.getElementById("dob").value =
+            emp.dob || "";
+
+        document.getElementById("country").value =
+            emp.country || "";
+
+        document.getElementById("state").value =
+            emp.state || "";
+
+        document.getElementById("p_address").value =
+            emp.p_address || "";
+
+        document.getElementById("c_address").value =
+            emp.c_address || "";
+
+        document.getElementById("bloodGroup").value =
+            emp.blood_group || "";
+
+        document.getElementById("status").value =
+            emp.status ? "true" : "false";
+
+        // =====================================
+        // REPORTING PERSON FIX
+        // =====================================
+        setTimeout(() => {
+
+            const reportingDropdown =
+                document.getElementById("reporting");
+
+            if (!reportingDropdown) {
+                console.error("Reporting dropdown not found");
+                return;
+            }
+
+            const reportingName = String(
+                emp.reporting ||
+                emp.reporting_id ||
+                ""
+            ).trim();
+
+            console.log("Reporting Name:", reportingName);
+
+            reportingDropdown.value = "";
+
+            let found = false;
+
+            for (let option of reportingDropdown.options) {
+
+                console.log(
+                    "Checking:",
+                    option.text.trim()
+                );
+
+                if (
+                    option.text.trim().toLowerCase() ===
+                    reportingName.toLowerCase()
+                ) {
+                    reportingDropdown.value =
+                        option.value;
+
+                    found = true;
+
+                    console.log(
+                        "Selected Reporting:",
+                        option.text
+                    );
+
+                    break;
+                }
+            }
+
+            // If not found, add dynamically
+            if (!found && reportingName) {
+
+                const newOption =
+                    new Option(
+                        reportingName,
+                        reportingName,
+                        true,
+                        true
+                    );
+
+                reportingDropdown.add(newOption);
+
+                reportingDropdown.value =
+                    reportingName;
+
+                console.log(
+                    "Added reporting dynamically:",
+                    reportingName
+                );
+            }
+
+        }, 500);
+
+        // Show edit form
+        document.getElementById(
+            "employeeFormTitle"
+        ).innerText = "Edit Employee Details";
+
+        document.getElementById(
+            "employeeBtnText"
+        ).innerText = "Update Employee";
+
+        // Open collapse
+        const collapseElement =
+            document.getElementById(
+                "addEmployeeCollapse"
+            );
+
+        if (collapseElement) {
+            bootstrap.Collapse
+                .getOrCreateInstance(
+                    collapseElement
+                )
+                .show();
+        }
+
+        toggleEmployeeIdRequirement();
+
+        // Scroll top
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+    }
+
+
+    function resetEmployeeForm() {
+        document.getElementById("employeeForm").reset();
+        document.getElementById("edit_employee_row_id").value = "";
+        document.getElementById("operation").value = "add";
+        document.getElementById("employeeFormTitle").textContent = "New Employee Details";
+        document.getElementById("employeeBtnText").textContent = "Save Employee";
     }
 
     function deleteEmployee(id) {
@@ -794,12 +946,6 @@
             });
     }
 
-    function resetEmployeeForm() {
-        document.getElementById("employeeForm").reset();
-        document.getElementById("edit_employee_row_id").value = "";
-        document.getElementById("employeeFormTitle").textContent = "New Employee Details";
-        document.getElementById("employeeBtnText").textContent = "Save Employee";
-    }
 
     function cancelEmployeeForm() {
         resetEmployeeForm();
@@ -881,76 +1027,94 @@
             }
         }
     }
+
+    function loadReportingDropdown() {
+        const reporting = document.getElementById("reporting");
+        if (!reporting) return;
+
+        const currentValue = reporting.value;
+
+        reporting.innerHTML = `<option value="">Select Reporting Person</option>`;
+
+        employeeData.forEach(emp => {
+            reporting.innerHTML += `
+            <option value="${emp.id}">
+                ${emp.name || ""}
+            </option>
+        `;
+        });
+
+        reporting.value = currentValue;
+    }
+
 </script>
 <style>
-    <style>
+    #employeeDetailsModal .modal-dialog {
+        max-width: 92%;
+    }
 
-#employeeDetailsModal .modal-dialog {
-    max-width: 92%;
-}
+    #employeeDetailsModal .modal-content {
+        border-radius: 24px;
+    }
 
-#employeeDetailsModal .modal-content {
-    border-radius: 24px;
-}
+    #employeeDetailsModal .modal-body {
+        max-height: 82vh;
+        overflow-y: auto;
+        padding-top: 10px !important;
+    }
 
-#employeeDetailsModal .modal-body {
-    max-height: 82vh;
-    overflow-y: auto;
-    padding-top: 10px !important;
-}
+    #employeeDetailsModal .card-body {
+        padding: 22px !important;
+    }
 
-#employeeDetailsModal .card-body {
-    padding: 22px !important;
-}
+    #employeeDetailsModal #employeeDetailsGrid .shadow-sm {
+        padding: 14px !important;
+    }
 
-#employeeDetailsModal #employeeDetailsGrid .shadow-sm {
-    padding: 14px !important;
-}
+    #employeeDetailsModal #employeeDetailsGrid .rounded-4 {
+        border-radius: 18px !important;
+    }
 
-#employeeDetailsModal #employeeDetailsGrid .rounded-4 {
-    border-radius: 18px !important;
-}
+    #employeeDetailsModal #employeeDetailsGrid .small {
+        font-size: 11px;
+    }
 
-#employeeDetailsModal #employeeDetailsGrid .small {
-    font-size: 11px;
-}
+    #employeeDetailsModal #employeeDetailsGrid .fw-semibold {
+        font-size: 14px !important;
+    }
 
-#employeeDetailsModal #employeeDetailsGrid .fw-semibold {
-    font-size: 14px !important;
-}
+    #employeeDetailsModal #employeeDetailsGrid i {
+        font-size: 20px !important;
+    }
 
-#employeeDetailsModal #employeeDetailsGrid i {
-    font-size: 20px !important;
-}
+    #employeeDetailsModal #employeeDetailsGrid .rounded-4.d-flex {
+        width: 46px !important;
+        height: 46px !important;
+    }
 
-#employeeDetailsModal #employeeDetailsGrid .rounded-4.d-flex {
-    width: 46px !important;
-    height: 46px !important;
-}
+    #employeeProfileImage,
+    #employeeProfilePlaceholder {
+        width: 110px !important;
+        height: 110px !important;
+    }
 
-#employeeProfileImage,
-#employeeProfilePlaceholder {
-    width: 110px !important;
-    height: 110px !important;
-}
+    #employeeProfileName {
+        font-size: 40px;
+        margin-bottom: 4px !important;
+    }
 
-#employeeProfileName {
-    font-size: 40px;
-    margin-bottom: 4px !important;
-}
+    #employeeProfileDesignation {
+        font-size: 24px !important;
+        margin-bottom: 10px !important;
+    }
 
-#employeeProfileDesignation {
-    font-size: 24px !important;
-    margin-bottom: 10px !important;
-}
+    #employeeDetailsModal h5 {
+        margin-bottom: 12px !important;
+    }
 
-#employeeDetailsModal h5 {
-    margin-bottom: 12px !important;
-}
-
-#employeeAttachmentGrid img {
-    height: 120px !important;
-}
+    #employeeAttachmentGrid img {
+        height: 120px !important;
+    }
 
 </style>
 
