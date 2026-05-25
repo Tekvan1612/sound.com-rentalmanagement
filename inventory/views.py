@@ -1583,105 +1583,124 @@ def equipment_list(request):
             'error': str(e)
         })
 
+@csrf_exempt
 def insert_vendor(request):
-    if request.method == 'POST':
-        try:
-            equipment_id = request.POST.get('equipment_id')
-            warehouse_id = request.POST.get('warehouse_id')
-            vendor_name = request.POST.get('vendor_name')
-            purchase_date = request.POST.get('purchase_date')
-            unit_price = request.POST.get('unit_price')
-            rental_price = request.POST.get('rental_price')
-            reference_no = request.POST.get('reference_no')
-            unit = int(request.POST.get('unit', 1))
+    if request.method != 'POST':
+        return JsonResponse({
+            'success': False,
+            'message': 'Invalid request method'
+        }, status=405)
 
-            serial_numbers = request.POST.getlist('serial_no[]')
-            barcode_numbers = request.POST.getlist('barcode_no[]')
+    try:
+        equipment_id = request.POST.get('equipmentId')
+        warehouse_id = request.POST.get('warehouse_id')
+        vendor_name = request.POST.get('vendor_name')
+        purchase_date = request.POST.get('purchase_date')
+        unit_price = request.POST.get('unit_price')
+        rental_price = request.POST.get('rental_price')
+        reference_no = request.POST.get('reference_no')
+        unit = request.POST.get('unitValue')
 
-            attachment = request.FILES.get('attachment')
-            attachment_path = None
-
-            if attachment:
-                upload_dir = os.path.join(
-                    settings.MEDIA_ROOT,
-                    'stock_attachments'
-                )
-                os.makedirs(upload_dir, exist_ok=True)
-
-                attachment_path = os.path.join(
-                    upload_dir,
-                    attachment.name
-                )
-
-                with open(attachment_path, 'wb+') as destination:
-                    for chunk in attachment.chunks():
-                        destination.write(chunk)
-
-                attachment_path = (
-                    f"/media/stock_attachments/{attachment.name}"
-                )
-
-            with connection.cursor() as cursor:
-                cursor.execute("""
-                    SELECT public.add_stock(
-                        %s::integer,
-                        %s::varchar,
-                        %s::date,
-                        %s::numeric,
-                        %s::numeric,
-                        %s::varchar,
-                        %s::varchar,
-                        %s::integer,
-                        %s::text[],
-                        %s::text[],
-                        %s::integer
-                    );
-                """, [
-                    equipment_id,
-                    vendor_name,
-                    purchase_date,
-                    unit_price,
-                    rental_price,
-                    reference_no,
-                    attachment_path,
-                    unit,
-                    serial_numbers,
-                    barcode_numbers,
-                    warehouse_id
-                ])
-
-            return JsonResponse({
-                'success': True,
-                'message': 'Stock added successfully.'
-            })
-
-        except IntegrityError as e:
-            error_message = str(e)
-
-            if 'stock_details_serial_no_unique' in error_message:
-                return JsonResponse({
-                    'success': False,
-                    'message': 'Serial number already exists.'
-                })
-
-            elif 'stock_details_barcode_no_unique' in error_message:
-                return JsonResponse({
-                    'success': False,
-                    'message': 'Barcode already exists.'
-                })
-
+        if not equipment_id:
             return JsonResponse({
                 'success': False,
-                'message': 'Duplicate record found.'
-            })
+                'message': 'Equipment ID missing. Please click Add Stock again.'
+            }, status=400)
 
-        except Exception as e:
-            print("INSERT STOCK ERROR:", str(e))
-
+        if not warehouse_id:
             return JsonResponse({
                 'success': False,
-                'message': str(e)
-            }, status=500)
+                'message': 'Warehouse is required.'
+            }, status=400)
+
+        if not unit:
+            return JsonResponse({
+                'success': False,
+                'message': 'Unit is required.'
+            }, status=400)
+
+        equipment_id = int(equipment_id)
+        warehouse_id = int(warehouse_id)
+        unit = int(unit)
+
+        serial_numbers = []
+        barcode_numbers = []
+
+        for i in range(1, unit + 1):
+            serial_numbers.append(
+                request.POST.get(f'serialNumber{i}', '').strip()
+            )
+            barcode_numbers.append(
+                request.POST.get(f'barcodeNumber{i}', '').strip()
+            )
+
+        attachment_path = save_uploaded_file(
+            request.FILES.get('attachment'),
+            "stock"
+        )
+
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT public.add_stock(
+                    %s::integer,
+                    %s::varchar,
+                    %s::date,
+                    %s::numeric,
+                    %s::numeric,
+                    %s::varchar,
+                    %s::varchar,
+                    %s::integer,
+                    %s::text[],
+                    %s::text[],
+                    %s::integer
+                );
+            """, [
+                equipment_id,
+                vendor_name,
+                purchase_date,
+                unit_price,
+                rental_price,
+                reference_no,
+                attachment_path,
+                unit,
+                serial_numbers,
+                barcode_numbers,
+                warehouse_id
+            ])
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Stock added successfully.'
+        })
+
+    except IntegrityError as e:
+        error_message = str(e)
+
+        if 'stock_details_serial_no_unique' in error_message:
+            return JsonResponse({
+                'success': False,
+                'message': 'Serial number already exists.'
+            }, status=400)
+
+        if 'stock_details_barcode_no_unique' in error_message:
+            return JsonResponse({
+                'success': False,
+                'message': 'Barcode number already exists.'
+            }, status=400)
+
+        return JsonResponse({
+            'success': False,
+            'message': 'Duplicate stock record found.'
+        }, status=400)
+
+    except Exception as e:
+        error_message = str(e)
+        print("INSERT STOCK ERROR:", error_message)
+
+        return JsonResponse({
+            'success': False,
+            'message': error_message
+        }, status=500)
 
 def subcategory_dropdown(request):
     try:
