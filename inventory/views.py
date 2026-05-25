@@ -759,15 +759,8 @@ def employee_list(request):
                     e.country,
                     e.state,
                     e.blood_group,
-                    e.status,
-                    COALESCE(
-                        json_agg(ei.images) FILTER (WHERE ei.images IS NOT NULL),
-                        '[]'
-                    ) AS images
+                    e.status
                 FROM public.employee e
-                LEFT JOIN public.employee_images ei
-                    ON ei.employee_id = e.id
-                GROUP BY e.id
                 ORDER BY e.id DESC
             """)
 
@@ -778,31 +771,31 @@ def employee_list(request):
         for row in rows:
             data.append({
                 "id": row[0],
-                "employee_id": row[1],
-                "employee_type": row[2],
-                "name": row[3],
-                "email": row[4],
-                "mobile_no": row[5],
-                "designation": row[6],
-                "gender": row[7],
+                "employee_id": row[1] or "",
+                "employee_type": row[2] or "",
+                "name": row[3] or "",
+                "email": row[4] or "",
+                "mobile_no": row[5] or "",
+                "designation": row[6] or "",
+                "gender": row[7] or "",
                 "joining_date": row[8].strftime("%Y-%m-%d") if row[8] else "",
                 "dob": row[9].strftime("%Y-%m-%d") if row[9] else "",
-                "reporting": row[10],
-                "p_address": row[11],
-                "c_address": row[12],
-                "country": row[13],
-                "state": row[14],
-                "blood_group": row[15],
+                "reporting": row[10] or "",
+                "p_address": row[11] or "",
+                "c_address": row[12] or "",
+                "country": row[13] or "",
+                "state": row[14] or "",
+                "blood_group": row[15] or "",
                 "status": row[16],
-                "images": row[17] or []
+                "images": []
             })
 
-        return JsonResponse({
-            "data": data
-        })
+        return JsonResponse({"data": data})
 
     except Exception as e:
+        print("EMPLOYEE LIST ERROR:", str(e))
         return JsonResponse({
+            "data": [],
             "error": str(e)
         }, status=500)
 
