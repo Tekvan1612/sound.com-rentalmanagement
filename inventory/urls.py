@@ -165,4 +165,9 @@ path(
     views.get_equipment_details,
     name='get_equipment_details'
 ),
+path(
+    'delete-connect/<int:id>/',
+    views.delete_connect,
+    name='delete_connect'
+),
 ]
