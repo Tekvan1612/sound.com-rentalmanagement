@@ -15,7 +15,7 @@ import cloudinary
 import cloudinary.api
 import cloudinary.uploader
 from django.views.decorators.http import require_POST
-from psycopg2 import IntegrityError
+from django.db import IntegrityError
 from django.conf import settings
 from django.core.paginator import Paginator
 from django.db import connection, transaction
