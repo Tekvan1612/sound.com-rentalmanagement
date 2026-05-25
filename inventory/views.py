@@ -1388,7 +1388,10 @@ def save_uploaded_file(uploaded_file, folder_name="equipment"):
 
 def add_equipment(request):
     if request.method != 'POST':
-        return JsonResponse({'success': False, 'message': 'Invalid request method'})
+        return JsonResponse({
+            'success': False,
+            'message': 'Invalid request method'
+        })
 
     equipment_name = request.POST.get('equipment_name', '').strip().upper()
     subcategory_id = request.POST.get('subcategory_id')
@@ -1406,15 +1409,24 @@ def add_equipment(request):
     created_date = datetime.now()
 
     if not equipment_name:
-        return JsonResponse({'success': False, 'message': 'Equipment name is required.'})
+        return JsonResponse({
+            'success': False,
+            'message': 'Equipment name is required.'
+        })
 
     if not subcategory_id:
-        return JsonResponse({'success': False, 'message': 'Subcategory is required.'})
+        return JsonResponse({
+            'success': False,
+            'message': 'Subcategory is required.'
+        })
 
     try:
         subcategory_id = int(subcategory_id)
     except (ValueError, TypeError):
-        return JsonResponse({'success': False, 'message': 'Invalid subcategory value.'})
+        return JsonResponse({
+            'success': False,
+            'message': 'Invalid subcategory value.'
+        })
 
     image_1 = save_uploaded_file(request.FILES.get('attachment_1'), "equipment")
     image_2 = save_uploaded_file(request.FILES.get('attachment_2'), "equipment")
@@ -1470,18 +1482,44 @@ def add_equipment(request):
             'equipment_id': equipment_id
         })
 
-    except IntegrityError:
+    except IntegrityError as e:
+        error_message = str(e)
+
+        if (
+            'equipment_list_name_unique' in error_message
+            or 'equipment_list_name_subcategory_unique' in error_message
+            or 'unique_equipment_name' in error_message
+            or 'equipment_list_equipment_name_key' in error_message
+        ):
+            return JsonResponse({
+                'success': False,
+                'message': 'Equipment name already exists.'
+            })
+
         return JsonResponse({
             'success': False,
-            'message': 'Equipment name already exists.'
+            'message': 'Duplicate equipment record found.'
         })
 
     except Exception as e:
-        print("An unexpected error occurred:", e)
+        error_message = str(e)
+
+        if (
+            'equipment_list_name_unique' in error_message
+            or 'equipment_list_name_subcategory_unique' in error_message
+            or 'duplicate key value violates unique constraint' in error_message
+        ):
+            return JsonResponse({
+                'success': False,
+                'message': 'Equipment name already exists.'
+            })
+
+        print("ADD EQUIPMENT ERROR:", error_message)
+
         return JsonResponse({
             'success': False,
-            'message': str(e)
-        })
+            'message': error_message
+        }, status=500)
 
 
 def equipment_list(request):
@@ -1545,79 +1583,105 @@ def equipment_list(request):
             'error': str(e)
         })
 
-@csrf_exempt
 def insert_vendor(request):
-    if request.method != 'POST':
-        return JsonResponse({
-            'success': False,
-            'message': 'Invalid request method'
-        }, status=405)
+    if request.method == 'POST':
+        try:
+            equipment_id = request.POST.get('equipment_id')
+            warehouse_id = request.POST.get('warehouse_id')
+            vendor_name = request.POST.get('vendor_name')
+            purchase_date = request.POST.get('purchase_date')
+            unit_price = request.POST.get('unit_price')
+            rental_price = request.POST.get('rental_price')
+            reference_no = request.POST.get('reference_no')
+            unit = int(request.POST.get('unit', 1))
 
-    try:
-        equipment_id = request.POST.get('equipmentId')
-        warehouse_id = request.POST.get('warehouse_id')
-        vendor_name = request.POST.get('vendor_name')
-        purchase_date = request.POST.get('purchase_date')
-        unit_price = request.POST.get('unit_price')
-        rental_price = request.POST.get('rental_price')
-        reference_no = request.POST.get('reference_no')
-        unit = request.POST.get('unitValue')
+            serial_numbers = request.POST.getlist('serial_no[]')
+            barcode_numbers = request.POST.getlist('barcode_no[]')
 
-        if not equipment_id:
-            return JsonResponse({'success': False, 'message': 'Equipment ID missing'})
+            attachment = request.FILES.get('attachment')
+            attachment_path = None
 
-        if not warehouse_id:
-            return JsonResponse({'success': False, 'message': 'Warehouse is required'})
+            if attachment:
+                upload_dir = os.path.join(
+                    settings.MEDIA_ROOT,
+                    'stock_attachments'
+                )
+                os.makedirs(upload_dir, exist_ok=True)
 
-        if not unit:
-            return JsonResponse({'success': False, 'message': 'Unit is required'})
+                attachment_path = os.path.join(
+                    upload_dir,
+                    attachment.name
+                )
 
-        unit = int(unit)
+                with open(attachment_path, 'wb+') as destination:
+                    for chunk in attachment.chunks():
+                        destination.write(chunk)
 
-        serial_numbers = []
-        barcode_numbers = []
+                attachment_path = (
+                    f"/media/stock_attachments/{attachment.name}"
+                )
 
-        for i in range(1, unit + 1):
-            serial_numbers.append(request.POST.get(f'serialNumber{i}', '').strip())
-            barcode_numbers.append(request.POST.get(f'barcodeNumber{i}', '').strip())
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT public.add_stock(
+                        %s::integer,
+                        %s::varchar,
+                        %s::date,
+                        %s::numeric,
+                        %s::numeric,
+                        %s::varchar,
+                        %s::varchar,
+                        %s::integer,
+                        %s::text[],
+                        %s::text[],
+                        %s::integer
+                    );
+                """, [
+                    equipment_id,
+                    vendor_name,
+                    purchase_date,
+                    unit_price,
+                    rental_price,
+                    reference_no,
+                    attachment_path,
+                    unit,
+                    serial_numbers,
+                    barcode_numbers,
+                    warehouse_id
+                ])
 
-        attachment_path = save_uploaded_file(
-            request.FILES.get('attachment'),
-            "stock"
-        )
+            return JsonResponse({
+                'success': True,
+                'message': 'Stock added successfully.'
+            })
 
-        with connection.cursor() as cursor:
-            cursor.execute("""
-                SELECT add_stock(
-                    %s, %s, %s, %s, %s,
-                    %s, %s, %s, %s, %s, %s
-                );
-            """, [
-                equipment_id,
-                vendor_name,
-                purchase_date,
-                unit_price,
-                rental_price,
-                reference_no,
-                attachment_path,
-                unit,
-                serial_numbers,
-                barcode_numbers,
-                warehouse_id
-            ])
+        except IntegrityError as e:
+            error_message = str(e)
 
-        return JsonResponse({
-            'success': True,
-            'message': 'Stock added successfully'
-        })
+            if 'stock_details_serial_no_unique' in error_message:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Serial number already exists.'
+                })
 
-    except Exception as e:
-        print("INSERT STOCK ERROR:", str(e))
-        return JsonResponse({
-            'success': False,
-            'message': str(e)
-        }, status=500)
+            elif 'stock_details_barcode_no_unique' in error_message:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Barcode already exists.'
+                })
 
+            return JsonResponse({
+                'success': False,
+                'message': 'Duplicate record found.'
+            })
+
+        except Exception as e:
+            print("INSERT STOCK ERROR:", str(e))
+
+            return JsonResponse({
+                'success': False,
+                'message': str(e)
+            }, status=500)
 
 def subcategory_dropdown(request):
     try:
