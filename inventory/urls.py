@@ -160,4 +160,9 @@ urlpatterns = [
         views.get_split_jobs,
         name="get_split_jobs"
     ),
+path(
+    'get-equipment-details/<int:equipment_id>/',
+    views.get_equipment_details,
+    name='get_equipment_details'
+),
 ]

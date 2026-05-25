@@ -520,7 +520,13 @@
                                         </tr>
                                     {% empty %}
                                         <tr>
-                                            <td colspan="8" class="table-empty">No equipment found.</td>
+
+                                            <td></td>
+                                            <td>No equipment found.</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
                                         </tr>
                                     {% endfor %}
                                     </tbody>
@@ -1377,63 +1383,232 @@
             }
         });
     });
+function openEquipmentEditForm(id) {
 
-    function openEquipmentEditForm(equipmentId) {
-        fetch(`/api/equipment-details/${equipmentId}/`, {
-            method: "GET",
-            headers: {
-                "X-Requested-With": "XMLHttpRequest"
+    console.log("Opening equipment edit:", id);
+
+    fetch(`/get-equipment-details/${id}/`)
+        .then(response => response.json())
+        .then(response => {
+
+            console.log("Equipment Response:", response);
+
+            if (!response.success) {
+                showToast(
+                    response.message ||
+                    "Failed to fetch equipment details",
+                    "danger"
+                );
+                return;
+            }
+
+            // ==================================
+            // OPEN COLLAPSE FORM
+            // ==================================
+            const formCollapse =
+                document.getElementById("addEquipmentCollapse");
+
+            if (formCollapse) {
+                bootstrap.Collapse
+                    .getOrCreateInstance(formCollapse, {
+                        toggle: false
+                    })
+                    .show();
+            }
+
+            // ==================================
+            // FORM TITLE
+            // ==================================
+            const formTitle =
+                document.getElementById("equipmentFormTitle");
+
+            if (formTitle) {
+                formTitle.innerText =
+                    "Edit Equipment Details";
+            }
+
+            // ==================================
+            // EQUIPMENT ID
+            // ==================================
+            const editId =
+                document.getElementById("edit_equipment_id");
+
+            if (editId) {
+                editId.value = response.id || "";
+            }
+
+            // ==================================
+            // BASIC DETAILS
+            // ==================================
+            document.getElementById("equipment_name").value =
+                response.equipment_name || "";
+
+            document.getElementById("type").value =
+                response.type || "";
+
+            document.getElementById("dimension_h").value =
+                response.dimension_h || "";
+
+            document.getElementById("dimension_w").value =
+                response.dimension_w || "";
+
+            document.getElementById("dimension_l").value =
+                response.dimension_l || "";
+
+            document.getElementById("weight").value =
+                response.weight || "";
+
+            document.getElementById("volume").value =
+                response.volume || "";
+
+            document.getElementById("hsn_no").value =
+                response.hsn_no || "";
+
+            document.getElementById("country_origin").value =
+                response.country_origin || "";
+
+            document.getElementById("category_name").value =
+                response.category_name || "";
+
+            document.getElementById("status").value =
+                response.status || "Active";
+
+            // ==================================
+            // SUBCATEGORY FIX
+            // ==================================
+            const subId =
+                String(response.subcategory_id || "");
+
+            const subName =
+                response.subcategory_name || "";
+
+            console.log("Subcategory ID:", subId);
+            console.log("Subcategory Name:", subName);
+
+            setTimeout(() => {
+
+                const selectElement =
+                    document.querySelector("#subcategory_id");
+
+                if (
+                    selectElement &&
+                    selectElement.tomselect
+                ) {
+
+                    const tomSelect =
+                        selectElement.tomselect;
+
+                    // Add option if missing
+                    if (!tomSelect.options[subId]) {
+
+                        tomSelect.addOption({
+                            value: subId,
+                            text: subName
+                        });
+                    }
+
+                    // Select value
+                    tomSelect.setValue(
+                        subId,
+                        true
+                    );
+
+                    tomSelect.refreshOptions(false);
+
+                    console.log(
+                        "Selected Subcategory:",
+                        tomSelect.getValue()
+                    );
+                }
+                else {
+
+                    // Normal select fallback
+                    document.getElementById(
+                        "subcategory_id"
+                    ).value = subId;
+                }
+
+            }, 300);
+
+            // ==================================
+            // IMAGE PREVIEW
+            // ==================================
+
+            const preview1 =
+                document.getElementById(
+                    "preview_attachment_1"
+                );
+
+            const preview2 =
+                document.getElementById(
+                    "preview_attachment_2"
+                );
+
+            const preview3 =
+                document.getElementById(
+                    "preview_attachment_3"
+                );
+
+            if (preview1) {
+                if (response.image_1) {
+                    preview1.src =
+                        response.image_1;
+                    preview1.style.display =
+                        "block";
+                } else {
+                    preview1.style.display =
+                        "none";
+                }
+            }
+
+            if (preview2) {
+                if (response.image_2) {
+                    preview2.src =
+                        response.image_2;
+                    preview2.style.display =
+                        "block";
+                } else {
+                    preview2.style.display =
+                        "none";
+                }
+            }
+
+            if (preview3) {
+                if (response.image_3) {
+                    preview3.src =
+                        response.image_3;
+                    preview3.style.display =
+                        "block";
+                } else {
+                    preview3.style.display =
+                        "none";
+                }
+            }
+
+            // ==================================
+            // SCROLL TO FORM
+            // ==================================
+            if (formCollapse) {
+                formCollapse.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
             }
         })
-            .then(async response => {
-                const data = await response.json();
-                if (!response.ok) throw data;
-                return data;
-            })
-            .then(data => {
-                const item = data.equipment;
 
-                document.getElementById("edit_equipment_id").value = item.id;
-                document.getElementById("equipment_name").value = item.equipment_name || "";
-                document.getElementById("subcategory_id").value = item.subcategory_id || "";
-                document.getElementById("category_name").value = item.category_name || "";
-                document.getElementById("dimension_h").value = item.dimension_h || "";
-                document.getElementById("dimension_w").value = item.dimension_w || "";
-                document.getElementById("dimension_l").value = item.dimension_l || "";
-                document.getElementById("weight").value = item.weight || "";
-                document.getElementById("volume").value = item.volume || "";
-                document.getElementById("hsn_no").value = item.hsn_no || "";
-                document.getElementById("country_origin").value = item.country_origin || "";
+        .catch(error => {
 
-                // Status selected value
-                const normalizedStatus =
-                    String(item.status || "").trim().toLowerCase() === "active"
-                        ? "Active"
-                        : "Inactive";
+            console.error(
+                "Edit fetch error:",
+                error
+            );
 
-                document.getElementById("status").value = normalizedStatus;
-
-                // Existing image preview
-                setImagePreview("preview_attachment_1", item.image_1);
-                setImagePreview("preview_attachment_2", item.image_2);
-                setImagePreview("preview_attachment_3", item.image_3);
-
-                document.getElementById("equipmentFormTitle").textContent = "Edit Equipment Details";
-
-                const collapse = bootstrap.Collapse.getOrCreateInstance(
-                    document.getElementById("addEquipmentCollapse")
-                );
-                collapse.show();
-
-                if (subcategorySelect) {
-                    subcategorySelect.setValue(String(item.subcategory_id), true);
-                }
-            })
-            .catch(error => {
-                console.error("Equipment detail fetch error:", error);
-                showToast(error.message || "Failed to load equipment details", "danger");
-            });
-    }
+            showToast(
+                "Failed to open edit form",
+                "danger"
+            );
+        });
+}
 
     function setImagePreview(previewId, imageUrl) {
         const preview = document.getElementById(previewId);
@@ -2133,8 +2308,17 @@
             });
     }
 
+    function escapeJs(value) {
+        return String(value || "")
+            .replace(/\\/g, "\\\\")
+            .replace(/'/g, "\\'")
+            .replace(/"/g, "&quot;")
+            .replace(/\n/g, "\\n")
+            .replace(/\r/g, "");
+    }
+
     function loadEquipmentList() {
-        fetch("/equipment_list/?subcategory_id=0", {
+        fetch("/equipment_list/", {
             method: "GET",
             headers: {
                 "X-Requested-With": "XMLHttpRequest"
@@ -2142,50 +2326,74 @@
         })
             .then(res => res.json())
             .then(data => {
-                destroyEquipmentTable();
+                const equipments = data.equipments || [];
+
+                if ($.fn.DataTable.isDataTable('#equipmentDataTable')) {
+                    $('#equipmentDataTable').DataTable().clear().destroy();
+                }
 
                 const tbody = document.getElementById("equipmentTableBody");
                 tbody.innerHTML = "";
 
-                const equipments = data.equipments || [];
-
-                if (!equipments.length) {
-                    tbody.innerHTML = `
+                equipments.forEach(item => {
+                    tbody.innerHTML += `
                 <tr>
-                    <td colspan="6" class="table-empty">No equipment found.</td>
+                    <td>
+                        <button type="button" class="btn btn-success btn-sm me-1"
+                                onclick="openStockForm('${item.id}', '${escapeJs(item.equipment_name)}')">
+                            <i class="bi bi-box-seam"></i>
+                        </button>
+
+                        <button type="button" class="btn btn-primary btn-sm me-1"
+                                onclick="openEquipmentEditForm('${item.id}')">
+                            <i class="bi bi-pencil-fill"></i>
+                        </button>
+
+                        <button type="button" class="btn btn-danger btn-sm"
+                                onclick="deleteEquipment('${item.id}', '${escapeJs(item.equipment_name)}')">
+                            <i class="bi bi-trash-fill"></i>
+                        </button>
+
+                        <button type="button" class="btn btn-info btn-sm me-1"
+                                onclick="viewEquipmentDetails(
+                                    '${escapeJs(item.equipment_name || "")}',
+                                    '${escapeJs(item.dimension_height || "")}',
+                                    '${escapeJs(item.dimension_width || "")}',
+                                    '${escapeJs(item.dimension_length || "")}',
+                                    '${escapeJs(item.hsn_no || "")}',
+                                    '${escapeJs(item.image_1 || "")}',
+                                    '${escapeJs(item.image_2 || "")}',
+                                    '${escapeJs(item.image_3 || "")}'
+                                )">
+                            <i class="bi bi-eye-fill"></i>
+                        </button>
+                    </td>
+                    <td>${escapeHtml(item.equipment_name || "")}</td>
+                    <td>${escapeHtml(item.sub_category_name || "")}</td>
+                    <td>${escapeHtml(item.category_type || "")}</td>
+                    <td>${escapeHtml(item.created_by || "")}</td>
+                    <td>${escapeHtml(item.created_date || "")}</td>
                 </tr>
             `;
-                } else {
-                    equipments.forEach(item => {
-                        tbody.innerHTML += `
-                    <tr>
-                        <td>
-                            <button type="button" class="btn btn-success btn-sm me-1"
-                                    onclick="openStockForm('${item.id}', '${escapeHtml(item.equipment_name)}')">
-                                <i class="bi bi-box-seam"></i>
-                            </button>
+                });
 
-                            <button type="button" class="btn btn-primary btn-sm me-1"
-                                    onclick="openEquipmentEditForm('${item.id}')">
-                                <i class="bi bi-pencil-fill"></i>
-                            </button>
+                equipmentTable = $('#equipmentDataTable').DataTable({
+                    searching: true,
+                    lengthChange: true,
+                    autoWidth: false,
+                    pageLength: 25,
+                    responsive: true,
+                    order: [[1, 'asc']],
+                    columnDefs: [{orderable: false, targets: 0}],
+                    dom: '<"d-flex justify-content-between align-items-center mt-2"i p>rt',
+                    language: {
+                        emptyTable: "No equipment found.",
+                        zeroRecords: "No equipment found."
+                    }
+                });
 
-                            <button type="button" class="btn btn-danger btn-sm"
-                                    onclick="deleteEquipment('${item.id}', '${escapeHtml(item.equipment_name)}')">
-                                <i class="bi bi-trash-fill"></i>
-                            </button>
-                        </td>
-                        <td>${escapeHtml(item.equipment_name || "")}</td>
-                        <td>${escapeHtml(item.sub_category_name || "")}</td>
-                        <td>${escapeHtml(item.category_type || "")}</td>
-                        <td>${escapeHtml(item.created_by || "")}</td>
-                        <td>${escapeHtml(item.created_date || "")}</td>
-                    </tr>
-                `;
-                    });
-                }
-
-                initEquipmentTable();
+                $('#equipmentDataTable').DataTable().search('').draw();
+                document.getElementById("equipmentSearch").value = "";
             })
             .catch(error => {
                 console.error("Equipment reload error:", error);

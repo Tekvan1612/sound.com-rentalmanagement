@@ -967,43 +967,73 @@ def asset_entry(request):
         return redirect('inventory:login')
 
     username = request.session.get('username')
-
     equipment_listing = []
     subcategories = []
 
     try:
         with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT
+                    el.id,
+                    el.equipment_name,
+                    sc.name AS sub_category_name,
+                    el.category_type,
+                    COALESCE(um.user_name, '') AS created_by,
+                    el.created_date,
+                    el.dimension_height,
+                    el.dimension_width,
+                    el.dimension_length,
+                    el.hsn_no,
+                    COALESCE(ea.image_1, '') AS image_1,
+                    COALESCE(ea.image_2, '') AS image_2,
+                    COALESCE(ea.image_3, '') AS image_3
+                FROM public.equipment_list el
+                LEFT JOIN public.sub_category sc ON sc.id = el.sub_category_id
+                LEFT JOIN public.user_master um ON um.user_id = el.created_by
+                LEFT JOIN public.equipment_list_attachments ea ON ea.equipment_list_id = el.id
+                ORDER BY el.id DESC
+            """)
 
-            cursor.execute("SELECT * FROM get_equipment_list(NULL)")
-            rows = cursor.fetchall()
-
-            for row in rows:
-                created_date = row[5].strftime('%d-%m-%Y') if row[5] else ''
+            for row in cursor.fetchall():
                 equipment_listing.append({
                     'id': row[0],
                     'equipment_name': row[1],
                     'sub_category_name': row[2],
                     'category_type': row[3],
                     'created_by': row[4],
-                    'created_date': created_date,
+                    'created_date': row[5].strftime('%d-%m-%Y') if row[5] else '',
+                    'dimension_height': row[6] or '',
+                    'dimension_width': row[7] or '',
+                    'dimension_length': row[8] or '',
+                    'hsn_no': row[9] or '',
+                    'image_1': row[10] or '',
+                    'image_2': row[11] or '',
+                    'image_3': row[12] or '',
                 })
 
-            cursor.execute("SELECT id, category_name, name FROM get_sub()")
+            cursor.execute("""
+                SELECT
+                    sc.id,
+                    mc.category_name,
+                    sc.name
+                FROM public.sub_category sc
+                JOIN public.master_category mc ON mc.category_id = sc.category_id
+                ORDER BY sc.name
+            """)
+
             subcategories = [
                 {'id': row[0], 'category_name': row[1], 'name': row[2]}
                 for row in cursor.fetchall()
             ]
 
     except Exception as e:
-        print("ERROR:", e)
+        print("ASSET ENTRY ERROR:", e)
 
-    context = {
+    return render(request, 'inventory/asset_creation.html', {
         'equipment_listing': equipment_listing,
         'subcategories': subcategories,
         'username': username
-    }
-
-    return render(request, 'inventory/asset_creation.html', context)
+    })
 
 
 # Master Category Module
@@ -1339,160 +1369,276 @@ def delete_subcategory(request, id):
     return JsonResponse({'success': False, 'message': 'Invalid request method'})
 
 
+def save_uploaded_file(uploaded_file, folder_name="equipment"):
+    if not uploaded_file:
+        return None
+
+    folder_path = os.path.join(settings.MEDIA_ROOT, folder_name)
+    os.makedirs(folder_path, exist_ok=True)
+
+    file_name = uploaded_file.name
+    file_path = os.path.join(folder_path, file_name)
+
+    with open(file_path, "wb+") as destination:
+        for chunk in uploaded_file.chunks():
+            destination.write(chunk)
+
+    return os.path.join(settings.MEDIA_URL, folder_name, file_name)
+
+
 def add_equipment(request):
-    if request.method == 'POST':
-        equipment_name = request.POST.get('equipment_name', '').strip().upper()
-        subcategory_id = request.POST.get('subcategory_id')
-        category_name = request.POST.get('category_name', '').strip().upper()
-        type_value = request.POST.get('type', '').strip() or None
-        dimension_h = request.POST.get('dimension_h', '').strip() or None
-        dimension_w = request.POST.get('dimension_w', '').strip() or None
-        dimension_l = request.POST.get('dimension_l', '').strip() or None
-        weight = request.POST.get('weight', '').strip() or None
-        volume = request.POST.get('volume', '').strip() or None
-        hsn_no = request.POST.get('hsn_no', '').strip() or None
-        country_origin = request.POST.get('country_origin', '').strip() or None
-        status = request.POST.get('status')
-        created_by = request.session.get('user_id')
-        created_date = datetime.now()
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Invalid request method'})
 
-        attachment = request.FILES.get('attachment')
-        attachment_path = None
+    equipment_name = request.POST.get('equipment_name', '').strip().upper()
+    subcategory_id = request.POST.get('subcategory_id')
+    category_name = request.POST.get('category_name', '').strip().upper()
+    type_value = request.POST.get('type', '').strip() or None
+    dimension_h = request.POST.get('dimension_h', '').strip() or None
+    dimension_w = request.POST.get('dimension_w', '').strip() or None
+    dimension_l = request.POST.get('dimension_l', '').strip() or None
+    weight = request.POST.get('weight', '').strip() or None
+    volume = request.POST.get('volume', '').strip() or None
+    hsn_no = request.POST.get('hsn_no', '').strip() or None
+    country_origin = request.POST.get('country_origin', '').strip() or None
+    status = request.POST.get('status')
+    created_by = request.session.get('user_id')
+    created_date = datetime.now()
 
-        if attachment:
-            attachment_path = os.path.join(settings.MEDIA_ROOT, 'attachments', attachment.name)
-            os.makedirs(os.path.dirname(attachment_path), exist_ok=True)
-            with open(attachment_path, 'wb') as f:
-                for chunk in attachment.chunks():
-                    f.write(chunk)
+    if not equipment_name:
+        return JsonResponse({'success': False, 'message': 'Equipment name is required.'})
 
-        try:
-            subcategory_id = int(subcategory_id) if subcategory_id else None
-            hsn_no = int(hsn_no) if hsn_no else None
-        except (ValueError, TypeError):
-            return JsonResponse({'success': False, 'message': 'Invalid numeric value provided.'})
+    if not subcategory_id:
+        return JsonResponse({'success': False, 'message': 'Subcategory is required.'})
 
-        try:
-            with connection.cursor() as cursor:
-                cursor.execute("""
-                    SELECT public.add_equipment_list(
-                        %s::varchar,
-                        %s::integer,
-                        %s::varchar,
-                        %s::varchar,
-                        %s::varchar,
-                        %s::varchar,
-                        %s::varchar,
-                        %s::varchar,
-                        %s::varchar,
-                        %s::integer,
-                        %s::varchar,
-                        %s::varchar,
-                        %s::varchar,
-                        %s::integer,
-                        %s::timestamp
-                    );
-                """, [
-                    equipment_name,
-                    subcategory_id,
-                    category_name,
-                    type_value,
-                    dimension_h,
-                    dimension_w,
-                    dimension_l,
-                    weight,
-                    volume,
-                    hsn_no,
-                    country_origin,
-                    attachment_path,
-                    status,
-                    created_by,
-                    created_date
-                ])
+    try:
+        subcategory_id = int(subcategory_id)
+    except (ValueError, TypeError):
+        return JsonResponse({'success': False, 'message': 'Invalid subcategory value.'})
 
-            return JsonResponse({'success': True})
+    image_1 = save_uploaded_file(request.FILES.get('attachment_1'), "equipment")
+    image_2 = save_uploaded_file(request.FILES.get('attachment_2'), "equipment")
+    image_3 = save_uploaded_file(request.FILES.get('attachment_3'), "equipment")
 
-        except IntegrityError as e:
-            error_message = str(e)
-            if 'duplicate key value violates unique constraint "unique_equipment_name"' in error_message:
-                error_message = 'Equipment name already exists. Please choose a different name.'
-            return JsonResponse({'success': False, 'message': error_message})
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT public.add_equipment_list(
+                    %s::varchar,
+                    %s::integer,
+                    %s::varchar,
+                    %s::varchar,
+                    %s::varchar,
+                    %s::varchar,
+                    %s::varchar,
+                    %s::varchar,
+                    %s::varchar,
+                    %s::varchar,
+                    %s::varchar,
+                    %s::varchar,
+                    %s::integer,
+                    %s::timestamp,
+                    %s::varchar,
+                    %s::varchar,
+                    %s::varchar
+                );
+            """, [
+                equipment_name,
+                subcategory_id,
+                category_name,
+                type_value,
+                dimension_h,
+                dimension_w,
+                dimension_l,
+                weight,
+                volume,
+                hsn_no,
+                country_origin,
+                status,
+                created_by,
+                created_date,
+                image_1,
+                image_2,
+                image_3
+            ])
 
-        except Exception as e:
-            print("An unexpected error occurred:", e)
-            return JsonResponse({'success': False, 'message': str(e)})
+            equipment_id = cursor.fetchone()[0]
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Equipment added successfully.',
+            'equipment_id': equipment_id
+        })
+
+    except IntegrityError:
+        return JsonResponse({
+            'success': False,
+            'message': 'Equipment name already exists.'
+        })
+
+    except Exception as e:
+        print("An unexpected error occurred:", e)
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        })
 
 
+def equipment_list(request):
+    try:
+        with connection.cursor() as cursor:
+
+            cursor.execute("""
+                SELECT
+                    el.id,
+                    el.equipment_name,
+                    sc.name AS sub_category_name,
+                    el.category_type,
+                    COALESCE(um.user_name, '') AS created_by,
+                    el.created_date,
+                    el.dimension_height,
+                    el.dimension_width,
+                    el.dimension_length,
+                    el.hsn_no,
+                    COALESCE(ea.image_1, '') AS image_1,
+                    COALESCE(ea.image_2, '') AS image_2,
+                    COALESCE(ea.image_3, '') AS image_3
+                FROM public.equipment_list el
+                LEFT JOIN public.sub_category sc
+                    ON sc.id = el.sub_category_id
+                LEFT JOIN public.user_master um
+                    ON um.user_id = el.created_by
+                LEFT JOIN public.equipment_list_attachments ea
+                    ON ea.equipment_list_id = el.id
+                ORDER BY el.id DESC
+            """)
+
+            rows = cursor.fetchall()
+
+            equipment_listing = []
+
+            for row in rows:
+                equipment_listing.append({
+                    'id': row[0],
+                    'equipment_name': row[1],
+                    'sub_category_name': row[2],
+                    'category_type': row[3],
+                    'created_by': row[4],
+                    'created_date': row[5].strftime('%d-%m-%Y') if row[5] else '',
+                    'dimension_height': row[6] or '',
+                    'dimension_width': row[7] or '',
+                    'dimension_length': row[8] or '',
+                    'hsn_no': row[9] or '',
+                    'image_1': row[10] or '',
+                    'image_2': row[11] or '',
+                    'image_3': row[12] or '',
+                })
+
+        return JsonResponse({
+            'equipments': equipment_listing
+        })
+
+    except Exception as e:
+        print("Equipment List Error:", str(e))
+        return JsonResponse({
+            'equipments': [],
+            'error': str(e)
+        })
+
+@csrf_exempt
 def insert_vendor(request):
-    if request.method == 'POST':
-        # Retrieve form data
+    if request.method != 'POST':
+        return JsonResponse({
+            'success': False,
+            'message': 'Invalid request method'
+        }, status=405)
+
+    try:
+        equipment_id = request.POST.get('equipmentId')
+        warehouse_id = request.POST.get('warehouse_id')
         vendor_name = request.POST.get('vendor_name')
         purchase_date = request.POST.get('purchase_date')
         unit_price = request.POST.get('unit_price')
         rental_price = request.POST.get('rental_price')
         reference_no = request.POST.get('reference_no')
         unit = request.POST.get('unitValue')
-        attachment = request.FILES.get('attachment')
 
-        # Extract dynamically generated input box values
+        if not equipment_id:
+            return JsonResponse({'success': False, 'message': 'Equipment ID missing'})
+
+        if not warehouse_id:
+            return JsonResponse({'success': False, 'message': 'Warehouse is required'})
+
+        if not unit:
+            return JsonResponse({'success': False, 'message': 'Unit is required'})
+
+        unit = int(unit)
+
         serial_numbers = []
         barcode_numbers = []
-        for i in range(1, int(unit) + 1):
-            serial_number = request.POST.get(f'serialNumber{i}', '')
-            barcode_number = request.POST.get(f'barcodeNumber{i}', '')
-            serial_numbers.append(serial_number)
-            barcode_numbers.append(barcode_number)
 
-        equipment_id = request.POST.get('equipmentId')
-        subcategory_id = None
-        try:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT sub_category_id FROM equipment_list WHERE id = %s",
-                    [equipment_id]
-                )
-                subcategory_id = cursor.fetchone()[0]
-        except Exception as e:
-            print(f"An unexpected error occurred while fetching equipment ID: {e}")
+        for i in range(1, unit + 1):
+            serial_numbers.append(request.POST.get(f'serialNumber{i}', '').strip())
+            barcode_numbers.append(request.POST.get(f'barcodeNumber{i}', '').strip())
 
-        # Handle file upload
-        attachment_path = None
-        if attachment:
-            attachment_path = os.path.join(settings.MEDIA_ROOT, 'attachments', attachment.name)
-            os.makedirs(os.path.dirname(attachment_path), exist_ok=True)  # Ensure the directory exists
-            with open(attachment_path, 'wb') as f:
-                for chunk in attachment.chunks():
-                    f.write(chunk)
+        attachment_path = save_uploaded_file(
+            request.FILES.get('attachment'),
+            "stock"
+        )
 
-        try:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT add_stock(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NULL);",
-                    [equipment_id, vendor_name, purchase_date, unit_price, rental_price, reference_no, attachment_path,
-                     unit, serial_numbers, barcode_numbers]
-                )
-            print('Stock Details added successfully')
-            return redirect(f'/equipment_list/?subcategory_id={subcategory_id}')
-        except Exception as e:
-            print(f"An unexpected error occurred: {e}")
-            return render(request, 'product_tracking/index.html', {'error': 'An unexpected error occurred'})
-    else:
-        # Handle GET request
-        username = None
-        if request.user.is_authenticated:
-            username = request.user.username
-        return render(request, 'product_tracking/performance.html', {'username': username})
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT add_stock(
+                    %s, %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s, %s
+                );
+            """, [
+                equipment_id,
+                vendor_name,
+                purchase_date,
+                unit_price,
+                rental_price,
+                reference_no,
+                attachment_path,
+                unit,
+                serial_numbers,
+                barcode_numbers,
+                warehouse_id
+            ])
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Stock added successfully'
+        })
+
+    except Exception as e:
+        print("INSERT STOCK ERROR:", str(e))
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=500)
 
 
 def subcategory_dropdown(request):
     try:
         with connection.cursor() as cursor:
-            cursor.execute('SELECT id, category_name, name FROM get_sub()')
-            subcategories = [{'id': row[0], 'category_name': row[1], 'name': row[2]} for row in cursor.fetchall()]
-            print('sub category fetched successfully:', subcategories)
-            return JsonResponse({'subcategories': subcategories}, safe=False)
+            cursor.execute("""
+                SELECT
+                    sc.id,
+                    mc.category_name,
+                    sc.name
+                FROM public.sub_category sc
+                JOIN public.master_category mc
+                    ON mc.category_id = sc.category_id
+                WHERE sc.status = TRUE
+                ORDER BY sc.name
+            """)
+            subcategories = [
+                {'id': row[0], 'category_name': row[1], 'name': row[2]}
+                for row in cursor.fetchall()
+            ]
+        return JsonResponse({'subcategories': subcategories})
     except Exception as e:
-        # Handle exceptions, maybe log the error for debugging
         print("Error fetching sub category:", e)
         return JsonResponse({'subcategories': []})
 
@@ -1510,53 +1656,6 @@ def get_category_name(request):
         # Handle exceptions, maybe log the error for debugging
         print("Error fetching category name:", e)
         return JsonResponse({'category_name': None})
-
-def equipment_list(request):
-    print('fetch the data')
-    username = request.session.get('username')
-    subcategory_id = request.GET.get('subcategory_id')
-    if not subcategory_id:
-        subcategory_id = None
-    print('Sub category ID:', subcategory_id)
-
-    try:
-        subcategory_id = int(subcategory_id)
-    except ValueError:
-        return JsonResponse({'error': 'Invalid subcategory_id parameter'}, status=400)
-
-    equipment_listing = []
-    try:
-        print('inside the list of try block')
-        with connection.cursor() as cursor:
-            print('inside the cursor object')
-            cursor.execute("SELECT * FROM get_equipment_list(%s)", [subcategory_id])
-            rows = cursor.fetchall()
-
-            print('fetch the data')
-            for row in rows:
-                created_date = row[5].strftime('%d-%m-%Y') if row[5] else ''
-
-                equipment_listing.append({
-                    'id': row[0],
-                    'equipment_name': row[1],
-                    'sub_category_name': row[2],
-                    'category_type': row[3],
-                    'created_by': row[4],
-                    'created_date': created_date
-                })
-    except Exception as e:
-        print("Error fetching equipment list:", e)
-        return JsonResponse({'error': str(e)}, status=500)
-
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return JsonResponse({'equipments': equipment_listing})
-
-    context = {
-        'equipment_listing': equipment_listing,
-        'subcategory_id': subcategory_id,
-        'username': username
-    }
-    return render(request, 'inventory/asset_creation.html', context)
 
 
 def edit_subcategory_dropdown(request):
@@ -1586,6 +1685,61 @@ def edit_get_category_name(request):
         print("Error fetching category name:", e)
         return JsonResponse({'category_name': None})
 
+
+def get_equipment_details(request, equipment_id):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT
+                    el.id,
+                    el.equipment_name,
+                    el.sub_category_id,
+                    sc.name AS subcategory_name,
+                    el.category_type,
+                    el.dimension_height,
+                    el.dimension_width,
+                    el.dimension_length,
+                    el.weight,
+                    el.volume,
+                    el.hsn_no,
+                    el.country_origin,
+                    el.status,
+                    COALESCE(ea.image_1, '') AS image_1,
+                    COALESCE(ea.image_2, '') AS image_2,
+                    COALESCE(ea.image_3, '') AS image_3
+                FROM public.equipment_list el
+                LEFT JOIN public.sub_category sc ON sc.id = el.sub_category_id
+                LEFT JOIN public.equipment_list_attachments ea ON ea.equipment_list_id = el.id
+                WHERE el.id = %s
+            """, [equipment_id])
+
+            row = cursor.fetchone()
+
+        if not row:
+            return JsonResponse({'success': False, 'message': 'Equipment not found'}, status=404)
+
+        return JsonResponse({
+            'success': True,
+            'id': row[0],
+            'equipment_name': row[1],
+            'subcategory_id': row[2],
+            'subcategory_name': row[3],
+            'category_name': row[4],
+            'dimension_h': row[5],
+            'dimension_w': row[6],
+            'dimension_l': row[7],
+            'weight': row[8],
+            'volume': row[9],
+            'hsn_no': row[10],
+            'country_origin': row[11],
+            'status': 'Active' if row[12] else 'Inactive',
+            'image_1': row[13],
+            'image_2': row[14],
+            'image_3': row[15],
+        })
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
 
 def fetch_stock_status(request, equipment_id):
     with connection.cursor() as cursor:
