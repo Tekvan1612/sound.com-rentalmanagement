@@ -1,0 +1,33 @@
+{% extends 'inventory/movement_base.html' %}
+
+{% block form_content %}
+<div class="row g-3">
+    <div class="col-md-6">
+        <label class="form-label fw-semibold">Repair Cost</label>
+        <input type="number" id="repairCost" class="form-control" placeholder="0.00">
+    </div>
+
+    <div class="col-md-6">
+        <label class="form-label fw-semibold">Service Date</label>
+        <input type="date" id="serviceDate" class="form-control">
+    </div>
+
+    <div class="col-md-12">
+        <label class="form-label fw-semibold">Remarks</label>
+        <textarea id="remarks" class="form-control" rows="2"></textarea>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function collectPayload() {
+    return {
+        movement_type: "MAINTENANCE_RETURN",
+        repair_cost: document.getElementById("repairCost").value,
+        service_date: document.getElementById("serviceDate").value,
+        remarks: document.getElementById("remarks").value
+    };
+}
+</script>
+{% endblock %}

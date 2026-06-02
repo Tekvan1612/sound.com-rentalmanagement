@@ -1,0 +1,446 @@
+{% extends 'inventory/movement_base.html' %}
+
+{% block form_content %}
+<div class="row g-3">
+
+    <div class="col-md-2">
+        <label class="form-label fw-semibold">Job No</label>
+        <input type="hidden" id="selectedJobId">
+
+        <div class="input-group">
+            <input type="text"
+                   id="jobNo"
+                   class="form-control"
+                   readonly
+                   placeholder="Select Job">
+
+            <button type="button"
+                    class="btn btn-theme"
+                    data-bs-toggle="modal"
+                    data-bs-target="#jobModal">
+                <i class="bi bi-search"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <label class="form-label fw-semibold">Title</label>
+        <input type="text"
+               id="jobTitle"
+               class="form-control"
+               readonly>
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label fw-semibold">Client Name</label>
+        <input type="text"
+               id="clientName"
+               class="form-control"
+               readonly>
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label fw-semibold">Scan Barcode</label>
+        <input type="text"
+               id="scannerInput"
+               class="form-control form-control-lg"
+               placeholder="Scan barcode here"
+               autocomplete="off">
+    </div>
+
+    <div class="col-md-12">
+        <div id="messageBox" class="alert mt-2 d-none"></div>
+    </div>
+
+    <div class="col-md-12">
+        <h6 class="mt-3">Dispatch Scanned Equipment / Return Status</h6>
+
+        <div class="table-responsive" style="max-height:420px; overflow-y:auto;">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Barcode</th>
+                    <th>Equipment</th>
+                    <th>Dispatch Time</th>
+                    <th>Return Time</th>
+                    <th>Status</th>
+                </tr>
+                </thead>
+
+                <tbody id="returnedBody">
+                <tr>
+                    <td colspan="6" class="text-center text-muted">
+                        Select Job To Load Equipment
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<div class="modal fade" id="jobModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Select Job For Return</h5>
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <input type="text"
+                       id="jobSearch"
+                       class="form-control mb-3"
+                       placeholder="Search job no, client, title..."
+                       onkeyup="filterJobs()">
+
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead>
+                        <tr>
+                            <th>Job No</th>
+                            <th>Title</th>
+                            <th>Client</th>
+                            <th>Pending Return</th>
+                            <th style="width:100px;">Action</th>
+                        </tr>
+                        </thead>
+
+                        <tbody id="jobListBody">
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">
+                                Loading...
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <span id="jobShowingInfo" class="text-muted">
+                        Showing 0 records
+                    </span>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button"
+                                class="btn btn-sm btn-secondary"
+                                id="prevJobPageBtn"
+                                onclick="loadJobs(currentJobPage - 1)">
+                            Previous
+                        </button>
+
+                        <span id="jobPageInfo" class="fw-semibold">
+                            Page 1 of 1
+                        </span>
+
+                        <button type="button"
+                                class="btn btn-sm btn-secondary"
+                                id="nextJobPageBtn"
+                                onclick="loadJobs(currentJobPage + 1)">
+                            Next
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentJobPage = 1;
+let totalJobPages = 1;
+let jobPageSize = 25;
+
+document.addEventListener("DOMContentLoaded", function () {
+    loadJobs(1);
+
+    const scannerInput = document.getElementById("scannerInput");
+
+    scannerInput.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            scanReturnBarcode();
+        }
+    });
+});
+
+function loadJobs(page = 1) {
+    if (page < 1) page = 1;
+
+    const search = document.getElementById("jobSearch")?.value || "";
+
+    fetch(`/api/return-jobs/?page=${page}&page_size=${jobPageSize}&search=${encodeURIComponent(search)}`)
+        .then(res => res.json())
+        .then(response => {
+            const tbody = document.getElementById("jobListBody");
+
+            if (response.status !== 1) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center text-danger">
+                            ${escapeHtml(response.message || "Failed to load jobs")}
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            currentJobPage = response.page || 1;
+            totalJobPages = response.total_pages || 1;
+
+            renderJobs(response.data || []);
+            renderPagination(response);
+        })
+        .catch(() => {
+            document.getElementById("jobListBody").innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center text-danger">
+                        Failed to load jobs
+                    </td>
+                </tr>`;
+        });
+}
+
+function renderJobs(jobs) {
+    const tbody = document.getElementById("jobListBody");
+    tbody.innerHTML = "";
+
+    if (!jobs.length) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center text-muted">
+                    No scanned dispatch job pending for return
+                </td>
+            </tr>`;
+        return;
+    }
+
+    jobs.forEach(job => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${escapeHtml(job.job_no)}</td>
+                <td>${escapeHtml(job.title)}</td>
+                <td>${escapeHtml(job.client_name)}</td>
+                <td>
+                    <span class="badge bg-warning text-dark">
+                        ${escapeHtml(job.pending_return_qty)}
+                    </span>
+                </td>
+                <td>
+                    <button type="button"
+                            class="btn btn-sm btn-theme"
+                            onclick="selectJob(
+                                '${escapeJs(job.job_id)}',
+                                '${escapeJs(job.job_no)}',
+                                '${escapeJs(job.title)}',
+                                '${escapeJs(job.client_name)}'
+                            )">
+                        Select
+                    </button>
+                </td>
+            </tr>`;
+    });
+}
+
+function selectJob(jobId, jobNo, title, clientName) {
+    document.getElementById("selectedJobId").value = jobId || "";
+    document.getElementById("jobNo").value = jobNo || "";
+    document.getElementById("jobTitle").value = title || "";
+    document.getElementById("clientName").value = clientName || "";
+
+    const modal = bootstrap.Modal.getInstance(document.getElementById("jobModal"));
+    modal.hide();
+
+    loadReturnScannedItems(jobNo);
+
+    setTimeout(() => {
+        document.getElementById("scannerInput").focus();
+    }, 300);
+}
+
+function loadReturnScannedItems(jobNo) {
+    const tbody = document.getElementById("returnedBody");
+
+    if (!jobNo) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-muted">
+                    Select Job To Load Equipment
+                </td>
+            </tr>`;
+        return;
+    }
+
+    fetch(`/api/return-scanned-items/${encodeURIComponent(jobNo)}/`)
+        .then(res => res.json())
+        .then(response => {
+            tbody.innerHTML = "";
+
+            if (response.status !== 1 || !response.data.length) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">
+                            No dispatched barcode found
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            response.data.forEach((item, index) => {
+                const badgeClass = item.return_status === "Returned"
+                    ? "bg-success"
+                    : "bg-warning text-dark";
+
+                const rowClass = item.return_status === "Returned"
+                    ? "table-success"
+                    : "";
+
+                tbody.innerHTML += `
+                    <tr class="${rowClass}">
+                        <td>${index + 1}</td>
+                        <td>${escapeHtml(item.barcode)}</td>
+                        <td>${escapeHtml(item.equipment_name)}</td>
+                        <td>${escapeHtml(item.dispatch_time)}</td>
+                        <td>${escapeHtml(item.return_time || "-")}</td>
+                        <td>
+                            <span class="badge ${badgeClass}">
+                                ${escapeHtml(item.return_status)}
+                            </span>
+                        </td>
+                    </tr>`;
+            });
+        })
+        .catch(() => {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center text-danger">
+                        Failed to load dispatched items
+                    </td>
+                </tr>`;
+        });
+}
+
+function scanReturnBarcode() {
+    const jobNo = document.getElementById("jobNo").value.trim();
+    const barcodeInput = document.getElementById("scannerInput");
+    const barcode = barcodeInput.value.trim();
+
+    if (!jobNo) {
+        showMessage("Please select Job No first", "warning");
+        barcodeInput.value = "";
+        return;
+    }
+
+    if (!barcode) {
+        showMessage("Please scan barcode", "warning");
+        return;
+    }
+
+    fetch("/api/scan-job-return/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: JSON.stringify({
+            job_no: jobNo,
+            barcode: barcode
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 1) {
+            showMessage(
+                `${escapeHtml(data.barcode)} returned successfully - ${escapeHtml(data.equipment_name)}`,
+                "success"
+            );
+
+            loadReturnScannedItems(jobNo);
+            loadJobs(currentJobPage);
+        } else {
+            showMessage(data.message || "Return failed", "danger");
+        }
+
+        barcodeInput.value = "";
+        barcodeInput.focus();
+    })
+    .catch(() => {
+        showMessage("Return scan failed", "danger");
+        barcodeInput.value = "";
+        barcodeInput.focus();
+    });
+}
+
+function renderPagination(response) {
+    const totalRecords = response.total_records || 0;
+    const page = response.page || 1;
+    const pageSize = response.page_size || jobPageSize;
+    const totalPages = response.total_pages || 1;
+
+    const start = totalRecords === 0 ? 0 : ((page - 1) * pageSize) + 1;
+    const end = Math.min(page * pageSize, totalRecords);
+
+    document.getElementById("jobShowingInfo").textContent =
+        `Showing ${start} to ${end} of ${totalRecords} records`;
+
+    document.getElementById("jobPageInfo").textContent =
+        `Page ${page} of ${totalPages}`;
+
+    document.getElementById("prevJobPageBtn").disabled = page <= 1;
+    document.getElementById("nextJobPageBtn").disabled = page >= totalPages;
+}
+
+function filterJobs() {
+    loadJobs(1);
+}
+
+function showMessage(message, type) {
+    const box = document.getElementById("messageBox");
+    box.className = `alert alert-${type} mt-2`;
+    box.innerHTML = message;
+    box.classList.remove("d-none");
+}
+
+function escapeHtml(value) {
+    const div = document.createElement("div");
+    div.textContent = value || "";
+    return div.innerHTML;
+}
+
+function escapeJs(value) {
+    return String(value || "")
+        .replace(/\\/g, "\\\\")
+        .replace(/'/g, "\\'")
+        .replace(/"/g, "&quot;")
+        .replace(/\n/g, " ");
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+
+    if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+
+            if (cookie.substring(0, name.length + 1) === name + "=") {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+
+    return cookieValue;
+}
+</script>
+{% endblock %}

@@ -1,3 +1,4 @@
+import traceback
 from datetime import datetime
 import logging
 import os
@@ -134,75 +135,165 @@ def logout_view(request):
     return redirect('inventory:login')
 
 
-def add_user(request):
-    session_username = request.session.get('username')
 
-    if request.method == 'POST':
-        user_name = request.POST.get('username')
-        emp_id = request.POST.get('emp_id')
-        password = request.POST.get('password')
-        status = request.POST.get('status') == '1'
-        permissions = request.POST.get('permissions')
-        created_by = int(request.session.get('user_id'))
+def module_list(request):
+    data = []
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT
+                    module_id,
+                    module_name
+                FROM module_master
+                ORDER BY module_name
+            """)
+
+            rows = cursor.fetchall()
+
+            for row in rows:
+                data.append({
+                    "module_id": row[0],
+                    "module_name": row[1]
+                })
+
+    except Exception as e:
+        print("MODULE ERROR:", e)
+
+    return JsonResponse({
+        "status": 1,
+        "data": data
+    })
+
+
+def add_user(request):
+    session_username = request.session.get("username")
+
+    if request.method == "POST":
+        user_name = request.POST.get("username", "").strip()
+        emp_id = request.POST.get("emp_id", "").strip()
+        password = request.POST.get("password", "").strip()
+        status = request.POST.get("status") == "1"
+        permissions_raw = request.POST.get("permissions", "[]")
+        created_by = request.session.get("user_id") or 1
 
         if not user_name:
-            return JsonResponse({'success': False, 'message': 'Username is required.'})
+            return JsonResponse({
+                "success": False,
+                "message": "Username is required."
+            }, status=400)
 
         if not emp_id:
-            return JsonResponse({'success': False, 'message': 'Employee is required.'})
+            return JsonResponse({
+                "success": False,
+                "message": "Employee is required."
+            }, status=400)
 
         if not password:
-            return JsonResponse({'success': False, 'message': 'Password is required.'})
+            return JsonResponse({
+                "success": False,
+                "message": "Password is required."
+            }, status=400)
 
         try:
-            permissions = json.loads(permissions) if permissions else []
+            emp_id = int(emp_id)
+        except Exception:
+            return JsonResponse({
+                "success": False,
+                "message": "Invalid Employee ID."
+            }, status=400)
+
+        try:
+            permissions = json.loads(permissions_raw) if permissions_raw else []
         except json.JSONDecodeError:
-            return JsonResponse({'success': False, 'message': 'Invalid permissions data.'})
+            return JsonResponse({
+                "success": False,
+                "message": "Invalid permissions JSON."
+            }, status=400)
 
         try:
+            with connection.cursor() as cursor:
+
+                cursor.execute("""
+                    SELECT user_id
+                    FROM public.user_master
+                    WHERE LOWER(TRIM(user_name)) = LOWER(TRIM(%s))
+                    LIMIT 1
+                """, [user_name])
+
+                existing_username = cursor.fetchone()
+
+                if existing_username:
+                    return JsonResponse({
+                        "success": False,
+                        "message": f"User '{user_name}' already exists."
+                    }, status=400)
+
+                cursor.execute("""
+                    SELECT user_id, user_name
+                    FROM public.user_master
+                    WHERE emp_id = %s
+                    LIMIT 1
+                """, [emp_id])
+
+                existing_emp = cursor.fetchone()
+
+                if existing_emp:
+                    return JsonResponse({
+                        "success": False,
+                        "message": f"This employee is already assigned to user '{existing_emp[1]}'."
+                    }, status=400)
+
             with transaction.atomic():
                 with connection.cursor() as cursor:
-                    cursor.execute(
-                        """
-                        SELECT manage_user(%s, %s, %s, %s, %s, %s::jsonb, %s, %s)
-                        """,
-                        [
-                            'create',
-                            None,
-                            user_name,
-                            password,
-                            status,
-                            json.dumps(permissions),
-                            created_by,
-                            int(emp_id)
-                        ]
-                    )
+                    cursor.execute("""
+                        SELECT manage_user(
+                            %s, %s, %s, %s, %s, %s::jsonb, %s, %s
+                        )
+                    """, [
+                        "create",
+                        None,
+                        user_name,
+                        password,
+                        status,
+                        json.dumps(permissions),
+                        int(created_by),
+                        emp_id
+                    ])
+
                     row = cursor.fetchone()
                     user_id = row[0] if row else None
 
             return JsonResponse({
-                'success': True,
-                'message': f'User {user_name} added successfully.',
-                'user_id': user_id
+                "success": True,
+                "message": f"User {user_name} added successfully.",
+                "user_id": user_id
             })
 
         except Exception as e:
-            return JsonResponse({'success': False, 'message': f'Error occurred: {str(e)}'})
+            print("ADD USER ERROR:", str(e))
+            return JsonResponse({
+                "success": False,
+                "message": str(e)
+            }, status=500)
 
     with connection.cursor() as cursor:
-        cursor.execute("SELECT id, name FROM employee ORDER BY name")
+        cursor.execute("""
+            SELECT id, name
+            FROM public.employee
+            ORDER BY name
+        """)
         employees = cursor.fetchall()
 
-    employee_data = [{'id': row[0], 'name': row[1]} for row in employees]
+    employee_data = [
+        {"id": row[0], "name": row[1]}
+        for row in employees
+    ]
 
-    return render(
-        request,
-        'inventory/User.html',
-        {
-            'employee_data': employee_data,
-            'username': session_username
-        }
-    )
+    return render(request, "inventory/User.html", {
+        "employee_data": employee_data,
+        "username": session_username
+    })
 
 
 def user_list(request):
@@ -242,42 +333,95 @@ def user_list(request):
     return JsonResponse(response)
 
 def update_user(request, user_id):
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Invalid request method'}, status=405)
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request method"}, status=405)
 
-    user_id = request.POST.get('userId')
-    user_name = request.POST.get('username')
-    password = request.POST.get('password')
-    status = request.POST.get('status') == '1'
-    emp_id = request.POST.get('emp_id')
-    permissions = request.POST.get('permissions')
+    form_user_id = request.POST.get("userId") or user_id
+    user_name = request.POST.get("username", "").strip()
+    password = request.POST.get("password", "").strip()
+    status = request.POST.get("status") == "1"
+    emp_id = request.POST.get("emp_id", "").strip()
+    permissions_raw = request.POST.get("permissions", "[]")
 
     try:
-        permissions = json.loads(permissions) if permissions else []
+        form_user_id = int(form_user_id)
+        emp_id = int(emp_id)
+    except Exception:
+        return JsonResponse({
+            "success": False,
+            "message": "Invalid user or employee ID."
+        }, status=400)
+
+    try:
+        permissions = json.loads(permissions_raw) if permissions_raw else []
     except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid permissions data'}, status=400)
+        return JsonResponse({
+            "success": False,
+            "message": "Invalid permissions JSON."
+        }, status=400)
 
     try:
         with connection.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT manage_user(%s, %s, %s, %s, %s, %s::jsonb, %s, %s)
-                """,
-                [
-                    'update',
-                    int(user_id),
-                    user_name,
-                    password,
-                    status,
-                    json.dumps(permissions),
-                    None,
-                    int(emp_id)
-                ]
-            )
 
-        return JsonResponse({'message': 'User details updated successfully', 'user_id': user_id})
+            cursor.execute("""
+                SELECT user_id
+                FROM public.user_master
+                WHERE LOWER(TRIM(user_name)) = LOWER(TRIM(%s))
+                  AND user_id <> %s
+                LIMIT 1
+            """, [user_name, form_user_id])
+
+            existing_username = cursor.fetchone()
+
+            if existing_username:
+                return JsonResponse({
+                    "success": False,
+                    "message": f"User '{user_name}' already exists."
+                }, status=400)
+
+            cursor.execute("""
+                SELECT user_id, user_name
+                FROM public.user_master
+                WHERE emp_id = %s
+                  AND user_id <> %s
+                LIMIT 1
+            """, [emp_id, form_user_id])
+
+            existing_emp = cursor.fetchone()
+
+            if existing_emp:
+                return JsonResponse({
+                    "success": False,
+                    "message": f"This employee is already assigned to user '{existing_emp[1]}'."
+                }, status=400)
+
+            cursor.execute("""
+                SELECT manage_user(
+                    %s, %s, %s, %s, %s, %s::jsonb, %s, %s
+                )
+            """, [
+                "update",
+                form_user_id,
+                user_name,
+                password,
+                status,
+                json.dumps(permissions),
+                None,
+                emp_id
+            ])
+
+        return JsonResponse({
+            "success": True,
+            "message": "User details updated successfully",
+            "user_id": form_user_id
+        })
+
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+        print("UPDATE USER ERROR:", str(e))
+        return JsonResponse({
+            "success": False,
+            "message": str(e)
+        }, status=500)
 
 
 def delete_user(request, id):
@@ -3563,213 +3707,427 @@ def job_book_list(request):
     return render(request, 'inventory/job_book.html', {
         'username': username
     })
-def add_job(request):
-    username = request.session.get('username')
 
-    edit_id = request.GET.get('edit_id') or request.POST.get('edit_id')
-    edit_type = request.GET.get('edit_type') or request.POST.get('edit_type')
+def create_co_jobs(cursor, job_id, main_job_no, created_by, co_jobs_json=None):
+    split_map = {}
+
+    print("CREATE CO JOB INPUT:", co_jobs_json)
+
+    if not co_jobs_json:
+        return split_map
+
+    try:
+        co_jobs = json.loads(co_jobs_json)
+    except Exception as e:
+        print("CO JOB JSON ERROR:", str(e))
+        return split_map
+
+    print("CO JOB COUNT:", len(co_jobs))
+
+    for item in co_jobs:
+        local_id = str(item.get("local_id") or "").strip()
+        split_id = item.get("split_id")
+        section_name = (item.get("section_name") or "").strip()
+
+        if not section_name:
+            continue
+
+        location = (item.get("location") or "").strip()
+        incharge = (item.get("incharge") or "").strip()
+        rehearsal_date = item.get("rehearsal_date") or None
+        event_date = item.get("event_date") or None
+        status = item.get("status") or "Draft"
+
+        if split_id and str(split_id).isdigit():
+            cursor.execute("""
+                UPDATE public.job_split_master
+                SET section_name = %s,
+                    location = %s,
+                    incharge = %s,
+                    rehearsal_date = %s,
+                    event_date = %s,
+                    status = %s
+                WHERE split_id = %s AND parent_job_id = %s
+            """, [
+                section_name, location, incharge,
+                rehearsal_date, event_date, status,
+                int(split_id), job_id
+            ])
+
+            split_map[str(split_id)] = int(split_id)
+            split_map[local_id] = int(split_id)
+            continue
+
+        cursor.execute("SELECT public.generate_co_job_no(%s)", [job_id])
+        split_job_no = cursor.fetchone()[0]
+
+        cursor.execute("""
+            INSERT INTO public.job_split_master (
+                parent_job_id,
+                split_job_no,
+                section_name,
+                status,
+                created_by,
+                created_date,
+                location,
+                incharge,
+                rehearsal_date,
+                event_date
+            )
+            VALUES (%s, %s, %s, %s, %s, NOW(), %s, %s, %s, %s)
+            RETURNING split_id
+        """, [
+            job_id,
+            split_job_no,
+            section_name,
+            status,
+            created_by,
+            location,
+            incharge,
+            rehearsal_date,
+            event_date
+        ])
+
+        new_split_id = cursor.fetchone()[0]
+
+        split_map[local_id] = new_split_id
+        split_map[str(new_split_id)] = new_split_id
+
+        print("CO JOB INSERTED:", split_job_no, new_split_id)
+
+    return split_map
+
+def job_sections(request, job_id):
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT
+                split_id,
+                split_job_no,
+                section_name
+            FROM public.job_split_master
+            WHERE parent_job_id = %s
+            ORDER BY split_id
+        """, [job_id])
+
+        rows = cursor.fetchall()
+
+    data = []
+
+    for row in rows:
+        data.append({
+            "split_id": row[0],
+            "split_job_no": row[1],
+            "section_name": row[2],
+        })
+
+    return JsonResponse(data, safe=False)
+
+def insert_job_child_rows_direct(
+    cursor,
+    job_id,
+    split_map,
+    equipment_location,
+    equipment_incharge,
+    equipment_event_date,
+    equipment_rehearsal_date,
+    equipment_split_ids,
+    equipment_categories,
+    equipment_sub_categories,
+    equipment_ids,
+    equipment_qtys,
+    rental_prices,
+    equipment_totals,
+    equipment_notes,
+    crew_types,
+    crew_days,
+    perday_charges,
+    crew_totals,
+    crew_notes,
+    vendor_names,
+    sub_equipment_names,
+    sub_quantities,
+    sub_unit_prices,
+    sub_totals,
+    transport_amounts,
+    driver_names,
+    contact_numbers,
+    vehicle_numbers,
+    outside_driver_names,
+    outside_contact_numbers,
+    outside_vehicle_numbers
+):
+    for i, equipment_id in enumerate(equipment_ids):
+        if not equipment_id:
+            continue
+
+        row_split_id = equipment_split_ids[i] if i < len(equipment_split_ids) else None
+
+        if row_split_id:
+            row_split_id = str(row_split_id).strip()
+
+        if row_split_id and row_split_id.startswith("local_"):
+            row_split_id = split_map.get(row_split_id)
+        elif row_split_id and row_split_id.isdigit():
+            row_split_id = int(row_split_id)
+        else:
+            row_split_id = None
+
+        cursor.execute("""
+            SELECT equipment_name
+            FROM public.equipment_list
+            WHERE id = %s
+        """, [equipment_id])
+
+        row = cursor.fetchone()
+        equipment_name = row[0] if row else ""
+
+        cursor.execute("""
+            INSERT INTO public.job_equipment_details (
+                job_id,
+                equipment_detail_id,
+                location,
+                incharge,
+                equipment_setup_date,
+                equipment_rehearsal_date,
+                equipment_name,
+                quantity,
+                equipment_unit_price,
+                equipment_total,
+                equipment_notes,
+                assign_status,
+                category_name,
+                sub_category_name,
+                split_id
+            )
+            VALUES (
+                %s, %s, %s, %s, %s,
+                %s, %s, %s, %s, %s,
+                %s, false, %s, %s, %s
+            )
+        """, [
+            job_id,
+            equipment_id,
+            equipment_location,
+            equipment_incharge,
+            equipment_event_date,
+            equipment_rehearsal_date,
+            equipment_name,
+            equipment_qtys[i] if i < len(equipment_qtys) else "",
+            rental_prices[i] if i < len(rental_prices) else "",
+            equipment_totals[i] if i < len(equipment_totals) else "",
+            equipment_notes[i] if i < len(equipment_notes) else "",
+            equipment_categories[i] if i < len(equipment_categories) else "",
+            equipment_sub_categories[i] if i < len(equipment_sub_categories) else "",
+            row_split_id
+        ])
+
+    for i, crew_type in enumerate(crew_types):
+        if not crew_type:
+            continue
+
+        days = crew_days[i] if i < len(crew_days) else "0"
+        per_day = perday_charges[i] if i < len(perday_charges) else "0"
+        total = crew_totals[i] if i < len(crew_totals) else ""
+
+        if not total:
+            try:
+                total = float(days or 0) * float(per_day or 0)
+            except Exception:
+                total = 0
+
+        cursor.execute("""
+            INSERT INTO public.job_crew_allocation (
+                job_id,
+                crew_type,
+                emp_id,
+                crew_no_of_days,
+                perday_charges,
+                total,
+                crew_notes
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, [
+            job_id,
+            crew_type,
+            None,
+            days,
+            per_day,
+            total,
+            crew_notes[i] if i < len(crew_notes) else ""
+        ])
+
+    for i, vendor_name in enumerate(vendor_names):
+        if not vendor_name and not (i < len(sub_equipment_names) and sub_equipment_names[i]):
+            continue
+
+        cursor.execute("""
+            INSERT INTO public.job_sub_vendor (
+                job_id,
+                vendor_name,
+                equipment_name,
+                quantity,
+                unit_price,
+                total
+            )
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, [
+            job_id,
+            vendor_name,
+            sub_equipment_names[i] if i < len(sub_equipment_names) else "",
+            sub_quantities[i] if i < len(sub_quantities) else "",
+            sub_unit_prices[i] if i < len(sub_unit_prices) else "",
+            sub_totals[i] if i < len(sub_totals) else ""
+        ])
+
+    max_transport = max(
+        len(driver_names),
+        len(outside_driver_names),
+        len(vehicle_numbers),
+        len(outside_vehicle_numbers),
+        len(transport_amounts),
+        0
+    )
+
+    for i in range(max_transport):
+        driver_name = driver_names[i] if i < len(driver_names) else ""
+        contact_number = contact_numbers[i] if i < len(contact_numbers) else ""
+        vehicle_number = vehicle_numbers[i] if i < len(vehicle_numbers) else ""
+
+        outside_driver = outside_driver_names[i] if i < len(outside_driver_names) else ""
+        outside_contact = outside_contact_numbers[i] if i < len(outside_contact_numbers) else ""
+        outside_vehicle = outside_vehicle_numbers[i] if i < len(outside_vehicle_numbers) else ""
+
+        amount = transport_amounts[i] if i < len(transport_amounts) else ""
+
+        if not any([driver_name, vehicle_number, outside_driver, outside_vehicle, amount]):
+            continue
+
+        cursor.execute("""
+            INSERT INTO public.job_transportation_allocation (
+                job_id,
+                driver_name,
+                contact_number,
+                vehicle_number,
+                outside_driver_name,
+                outside_contact_number,
+                outside_vehicle_number,
+                transport_amount
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """, [
+            job_id,
+            driver_name,
+            contact_number,
+            vehicle_number,
+            outside_driver,
+            outside_contact,
+            outside_vehicle,
+            amount or 0
+        ])
+
+
+def add_job(request):
+    username = request.session.get("username")
+
+    edit_id = request.GET.get("edit_id") or request.POST.get("edit_id")
+    edit_type = request.GET.get("edit_type") or request.POST.get("edit_type")
 
     job_data = {}
     equipment_data = []
     crew_data = []
-    transport_data = []
     sub_vendor_data = []
+    transport_data = []
+    split_data = []
 
-    def create_co_jobs(cursor, job_id, created_by, co_jobs):
-        split_map = {}
-
-        for co_job in co_jobs:
-            temp_id = co_job.get("temp_id")
-            section_name = co_job.get("section_name")
-
-            if not section_name:
-                continue
-
-            cursor.execute("SELECT public.generate_co_job_no(%s)", [job_id])
-            split_job_no = cursor.fetchone()[0]
-
-            cursor.execute("""
-                INSERT INTO public.job_split_master (
-                    parent_job_id,
-                    split_job_no,
-                    section_name,
-                    status,
-                    created_by,
-                    created_date
-                )
-                VALUES (%s, %s, %s, %s, %s, NOW())
-                RETURNING split_id
-            """, [
-                job_id,
-                split_job_no,
-                section_name,
-                "Active",
-                created_by
-            ])
-
-            split_id = cursor.fetchone()[0]
-
-            if temp_id:
-                split_map[temp_id] = split_id
-
-        return split_map
-
-    if request.method == 'POST':
-        title = request.POST.get('title')
-        client_name = request.POST.get('client_name')
-        contact_person_name = request.POST.get('contact_person_name')
-        contact_person_number = request.POST.get('contact_person_number')
-        venue_name = request.POST.get('venue_name')
-        venue_address = request.POST.get('venue_address')
-        status = request.POST.get('status')
-
-        crew_type = request.POST.get('crew_type')
-        setup_date = request.POST.get('setup_date') or None
-        rehearsal_date = request.POST.get('rehearsal_date') or None
-        start_date = request.POST.get('start_date') or None
-        end_date = request.POST.get('end_date') or None
-        total_days = request.POST.get('total_days')
-
-        amount_row = request.POST.get('amount_row')
-        discount = request.POST.get('discount')
-        discounted_amount = request.POST.get('discounted_amount')
-        total_amount = request.POST.get('total_amount')
-        input_notes = request.POST.get('input_notes')
-
-        equipment_location = request.POST.get('equipment_location')
-        equipment_incharge = request.POST.get('equipment_incharge')
-        equipment_rehearsal_date = request.POST.get('equipment_rehearsal_date') or None
-        equipment_event_date = request.POST.get('equipment_event_date') or None
-
-        selected_split_id = request.POST.get('selected_split_id') or None
-        co_jobs_json = request.POST.get("co_jobs_json", "[]")
-
+    if request.method == "POST":
         try:
-            co_jobs = json.loads(co_jobs_json)
-        except Exception:
-            co_jobs = []
+            print("=" * 120)
+            print("ADD JOB POST DATA")
+            print("=" * 120)
+            for key, value in request.POST.lists():
+                for item in value:
+                    print(f"{key} => {item}")
+            print("=" * 120)
 
-        equipment_categories = request.POST.getlist('equipment_category[]')
-        equipment_ids = request.POST.getlist('equipment_name[]')
-        equipment_qtys = request.POST.getlist('equipment_qty[]')
-        rental_prices = request.POST.getlist('rental_price[]')
-        equipment_totals = request.POST.getlist('equipment_total[]')
-        equipment_notes = request.POST.getlist('equipment_notes[]')
+            title = request.POST.get("title", "").strip()
+            venue_name = request.POST.get("venue_name", "").strip()
+            venue_address = request.POST.get("venue_address", "").strip()
+            client_name = request.POST.get("client_name", "").strip()
+            contact_person_name = request.POST.get("contact_person_name", "").strip()
+            contact_person_number = request.POST.get("contact_person_number", "").strip()
 
-        crew_types = request.POST.getlist('crew_type[]')
-        crew_days = request.POST.getlist('crew_no_of_days[]')
-        perday_charges = request.POST.getlist('perday_charges[]')
-        crew_totals = request.POST.getlist('crew_total[]')
-        crew_notes = request.POST.getlist('crew_notes[]')
+            setup_date = request.POST.get("setup_date") or None
+            rehearsal_date = request.POST.get("rehearsal_date") or None
+            start_date = request.POST.get("start_date") or None
+            end_date = request.POST.get("end_date") or None
 
-        vendor_names = request.POST.getlist('vendor-name')
-        sub_equipment_names = request.POST.getlist('equipment-name')
-        sub_quantities = request.POST.getlist('quantity')
+            status = request.POST.get("status", "").strip()
+            crew_type = request.POST.get("crew_type", "").strip()
+            input_notes = request.POST.get("input_notes", "").strip()
 
-        driver_names = request.POST.getlist('driver_name[]')
-        contact_numbers = request.POST.getlist('contact_number[]')
-        vehicle_numbers = request.POST.getlist('vehicle_number[]')
-        outside_driver_names = request.POST.getlist('outside_driver_name[]')
-        outside_contact_numbers = request.POST.getlist('outside_contact_number[]')
-        outside_vehicle_numbers = request.POST.getlist('outside_vehicle_number[]')
+            total_days = request.POST.get("total_days") or "0"
+            amount_row = request.POST.get("amount_row") or "0"
+            discount = request.POST.get("discount") or "0"
+            discounted_amount = request.POST.get("discounted_amount") or "0"
+            total_amount = request.POST.get("total_amount") or "0"
 
-        created_by = request.session.get('user_id')
+            equipment_location = request.POST.get("equipment_location", "").strip()
+            equipment_incharge = request.POST.get("equipment_incharge", "").strip()
+            equipment_rehearsal_date = request.POST.get("equipment_rehearsal_date") or None
+            equipment_event_date = request.POST.get("equipment_event_date") or None
 
-        if not created_by:
-            return JsonResponse({
-                'success': False,
-                'error': 'User session expired. Please login again.'
-            }, status=401)
+            co_jobs_json = request.POST.get("co_jobs_json", "[]")
+            created_by = request.session.get("user_id")
 
-        try:
+            equipment_split_ids = request.POST.getlist("equipment_split_id[]")
+            equipment_categories = request.POST.getlist("equipment_category[]")
+            equipment_sub_categories = request.POST.getlist("equipment_sub_category[]")
+            equipment_ids = request.POST.getlist("equipment_name[]")
+            equipment_qtys = request.POST.getlist("equipment_qty[]")
+            rental_prices = request.POST.getlist("rental_price[]")
+            equipment_totals = request.POST.getlist("equipment_total[]")
+            equipment_notes = request.POST.getlist("equipment_notes[]")
+
+            crew_types = request.POST.getlist("crew_type[]")
+            crew_days = request.POST.getlist("crew_no_of_days[]")
+            perday_charges = request.POST.getlist("perday_charges[]")
+            crew_totals = request.POST.getlist("crew_total[]")
+            crew_notes = request.POST.getlist("crew_notes[]")
+
+            vendor_names = request.POST.getlist("vendor-name")
+            sub_equipment_names = request.POST.getlist("equipment-name")
+            sub_quantities = request.POST.getlist("quantity")
+            sub_unit_prices = request.POST.getlist("sub_unit_price")
+            sub_totals = request.POST.getlist("sub_total")
+
+            transport_amounts = request.POST.getlist("transport_amount[]")
+            driver_names = request.POST.getlist("driver_name[]")
+            contact_numbers = request.POST.getlist("contact_number[]")
+            vehicle_numbers = request.POST.getlist("vehicle_number[]")
+            outside_driver_names = request.POST.getlist("outside_driver_name[]")
+            outside_contact_numbers = request.POST.getlist("outside_contact_number[]")
+            outside_vehicle_numbers = request.POST.getlist("outside_vehicle_number[]")
+
+            if not title:
+                return JsonResponse({
+                    "success": False,
+                    "error": "Title is required."
+                }, status=400)
+
+            if not status:
+                return JsonResponse({
+                    "success": False,
+                    "error": "Status is required."
+                }, status=400)
+
             with transaction.atomic():
                 with connection.cursor() as cursor:
 
-                    if edit_id and edit_type == 'temp':
-                        if status == 'Proforma':
-                            cursor.execute("""
-                                SELECT public.manage_job(
-                                    %s, %s, %s, %s, %s,
-                                    %s, %s, %s, %s, %s,
-                                    %s, %s, %s, %s, %s,
-                                    %s, %s, %s, %s, %s,
-                                    %s, %s
-                                )
-                            """, [
-                                'CONVERT_TO_PROFORMA',
-                                int(edit_id),
-                                None,
-                                None,
-                                None,
-                                title,
-                                client_name,
-                                contact_person_name,
-                                contact_person_number,
-                                'Proforma',
-                                venue_address,
-                                crew_type,
-                                setup_date,
-                                rehearsal_date,
-                                start_date,
-                                end_date,
-                                total_days,
-                                amount_row,
-                                discount,
-                                discounted_amount,
-                                total_amount,
-                                created_by
-                            ])
-
-                            job_id = cursor.fetchone()[0]
-
-                            cursor.execute("""
-                                UPDATE public.jobs
-                                SET venue_name = %s,
-                                    notes = %s
-                                WHERE id = %s
-                            """, [venue_name, input_notes, job_id])
-
-                            split_map = create_co_jobs(cursor, job_id, created_by, co_jobs)
-
-                            real_selected_split_id = selected_split_id
-                            if selected_split_id and str(selected_split_id).startswith("local_"):
-                                real_selected_split_id = split_map.get(selected_split_id)
-
-                            save_job_child_rows(
-                                cursor,
-                                job_id,
-                                equipment_location,
-                                equipment_incharge,
-                                equipment_event_date,
-                                equipment_rehearsal_date,
-                                equipment_categories,
-                                equipment_ids,
-                                equipment_qtys,
-                                rental_prices,
-                                equipment_totals,
-                                equipment_notes,
-                                crew_types,
-                                crew_days,
-                                perday_charges,
-                                crew_totals,
-                                crew_notes,
-                                vendor_names,
-                                sub_equipment_names,
-                                sub_quantities,
-                                driver_names,
-                                contact_numbers,
-                                vehicle_numbers,
-                                outside_driver_names,
-                                outside_contact_numbers,
-                                outside_vehicle_numbers,
-                                real_selected_split_id
-                            )
-
-                            return JsonResponse({
-                                'success': True,
-                                'message': 'Quotation converted to Proforma successfully.',
-                                'job_id': job_id
-                            })
+                    # =====================================================
+                    # EDIT QUOTATION - TEMP
+                    # =====================================================
+                    if edit_id and edit_type == "temp":
+                        edit_id_int = int(edit_id)
 
                         cursor.execute("""
                             UPDATE public.temp
@@ -3798,7 +4156,7 @@ def add_job(request):
                             client_name,
                             contact_person_name,
                             contact_person_number,
-                            status,
+                            "Quotation",
                             venue_name,
                             venue_address,
                             crew_type,
@@ -3812,17 +4170,17 @@ def add_job(request):
                             discounted_amount,
                             total_amount,
                             input_notes,
-                            edit_id
+                            edit_id_int
                         ])
 
-                        cursor.execute("DELETE FROM public.temp_equipment_details WHERE temp_id = %s", [edit_id])
-                        cursor.execute("DELETE FROM public.temp_crew_allocation WHERE temp_id = %s", [edit_id])
-                        cursor.execute("DELETE FROM public.temp_sub_vendor WHERE temp_id = %s", [edit_id])
-                        cursor.execute("DELETE FROM public.temp_transportation_allocation WHERE temp_id = %s", [edit_id])
+                        cursor.execute("DELETE FROM public.temp_equipment_details WHERE temp_id = %s", [edit_id_int])
+                        cursor.execute("DELETE FROM public.temp_crew_allocation WHERE temp_id = %s", [edit_id_int])
+                        cursor.execute("DELETE FROM public.temp_sub_vendor WHERE temp_id = %s", [edit_id_int])
+                        cursor.execute("DELETE FROM public.temp_transportation_allocation WHERE temp_id = %s", [edit_id_int])
 
                         save_temp_child_rows(
                             cursor,
-                            edit_id,
+                            edit_id_int,
                             equipment_location,
                             equipment_incharge,
                             equipment_event_date,
@@ -3841,6 +4199,9 @@ def add_job(request):
                             vendor_names,
                             sub_equipment_names,
                             sub_quantities,
+                            sub_unit_prices,
+                            sub_totals,
+                            transport_amounts,
                             driver_names,
                             contact_numbers,
                             vehicle_numbers,
@@ -3850,12 +4211,17 @@ def add_job(request):
                         )
 
                         return JsonResponse({
-                            'success': True,
-                            'message': 'Quotation updated successfully.',
-                            'temp_id': edit_id
+                            "success": True,
+                            "message": "Quotation updated successfully.",
+                            "temp_id": edit_id_int
                         })
 
-                    if edit_id and edit_type == 'job':
+                    # =====================================================
+                    # EDIT JOB - PROFORMA/PREPSHEET/DC
+                    # =====================================================
+                    if edit_id and edit_type == "job":
+                        job_id = int(edit_id)
+
                         cursor.execute("""
                             UPDATE public.jobs
                             SET
@@ -3897,38 +4263,40 @@ def add_job(request):
                             discounted_amount,
                             total_amount,
                             input_notes,
-                            edit_id
+                            job_id
                         ])
 
-                        split_map = create_co_jobs(cursor, edit_id, created_by, co_jobs)
+                        cursor.execute("""
+                            SELECT COALESCE(main_job_no, job_order_no, job_reference_no)
+                            FROM public.jobs
+                            WHERE id = %s
+                        """, [job_id])
+                        main_job_no = cursor.fetchone()[0]
 
-                        real_selected_split_id = selected_split_id
-                        if selected_split_id and str(selected_split_id).startswith("local_"):
-                            real_selected_split_id = split_map.get(selected_split_id)
+                        split_map = create_co_jobs(
+                            cursor=cursor,
+                            job_id=job_id,
+                            main_job_no=main_job_no,
+                            created_by=created_by,
+                            co_jobs_json=co_jobs_json
+                        )
 
-                        if real_selected_split_id:
-                            cursor.execute("""
-                                DELETE FROM public.job_equipment_details
-                                WHERE job_id = %s AND split_id = %s
-                            """, [edit_id, real_selected_split_id])
-                        else:
-                            cursor.execute("""
-                                DELETE FROM public.job_equipment_details
-                                WHERE job_id = %s AND split_id IS NULL
-                            """, [edit_id])
+                        cursor.execute("DELETE FROM public.job_equipment_details WHERE job_id = %s", [job_id])
+                        cursor.execute("DELETE FROM public.job_crew_allocation WHERE job_id = %s", [job_id])
+                        cursor.execute("DELETE FROM public.job_sub_vendor WHERE job_id = %s", [job_id])
+                        cursor.execute("DELETE FROM public.job_transportation_allocation WHERE job_id = %s", [job_id])
 
-                        cursor.execute("DELETE FROM public.job_crew_allocation WHERE job_id = %s", [edit_id])
-                        cursor.execute("DELETE FROM public.job_sub_vendor WHERE job_id = %s", [edit_id])
-                        cursor.execute("DELETE FROM public.job_transportation_allocation WHERE job_id = %s", [edit_id])
-
-                        save_job_child_rows(
+                        insert_job_child_rows_direct(
                             cursor,
-                            edit_id,
+                            job_id,
+                            split_map,
                             equipment_location,
                             equipment_incharge,
                             equipment_event_date,
                             equipment_rehearsal_date,
+                            equipment_split_ids,
                             equipment_categories,
+                            equipment_sub_categories,
                             equipment_ids,
                             equipment_qtys,
                             rental_prices,
@@ -3942,22 +4310,27 @@ def add_job(request):
                             vendor_names,
                             sub_equipment_names,
                             sub_quantities,
+                            sub_unit_prices,
+                            sub_totals,
+                            transport_amounts,
                             driver_names,
                             contact_numbers,
                             vehicle_numbers,
                             outside_driver_names,
                             outside_contact_numbers,
-                            outside_vehicle_numbers,
-                            real_selected_split_id
+                            outside_vehicle_numbers
                         )
 
                         return JsonResponse({
-                            'success': True,
-                            'message': f'{status} updated successfully.',
-                            'job_id': edit_id
+                            "success": True,
+                            "message": f"{status} updated successfully.",
+                            "job_id": job_id
                         })
 
-                    if status == 'Quotation':
+                    # =====================================================
+                    # ADD NEW QUOTATION - TEMP
+                    # =====================================================
+                    if status == "Quotation":
                         quotation_no = generate_quotation_no()
 
                         cursor.execute("""
@@ -3987,7 +4360,7 @@ def add_job(request):
                             )
                             VALUES (
                                 %s, %s, %s, %s, %s,
-                                %s, %s, %s, %s, %s,
+                                'Quotation', %s, %s, %s, %s,
                                 %s, %s, %s, %s, %s,
                                 %s, %s, %s, %s, NOW(),
                                 %s, %s
@@ -3999,7 +4372,6 @@ def add_job(request):
                             client_name,
                             contact_person_name,
                             contact_person_number,
-                            status,
                             venue_name,
                             venue_address,
                             crew_type,
@@ -4040,6 +4412,9 @@ def add_job(request):
                             vendor_names,
                             sub_equipment_names,
                             sub_quantities,
+                            sub_unit_prices,
+                            sub_totals,
+                            transport_amounts,
                             driver_names,
                             contact_numbers,
                             vehicle_numbers,
@@ -4049,32 +4424,65 @@ def add_job(request):
                         )
 
                         return JsonResponse({
-                            'success': True,
-                            'message': 'Quotation saved successfully.',
-                            'quotation_no': quotation_no,
-                            'temp_id': temp_id
+                            "success": True,
+                            "message": "Quotation saved successfully.",
+                            "quotation_no": quotation_no,
+                            "temp_id": temp_id
                         })
 
+                    # =====================================================
+                    # ADD DIRECT JOB - PROFORMA/PREPSHEET/DC
+                    # =====================================================
+                    cursor.execute("SELECT public.generate_job_no()")
+                    job_no = cursor.fetchone()[0]
+
                     cursor.execute("""
-                        SELECT public.manage_job(
-                            %s, %s, %s, %s, %s,
-                            %s, %s, %s, %s, %s,
-                            %s, %s, %s, %s, %s,
-                            %s, %s, %s, %s, %s,
-                            %s, %s
+                        INSERT INTO public.jobs (
+                            job_reference_no,
+                            quotation_no,
+                            main_job_no,
+                            job_order_no,
+                            title,
+                            client_name,
+                            contact_person_name,
+                            contact_person_number,
+                            venue_name,
+                            venue_address,
+                            status,
+                            crew_type,
+                            setup_date,
+                            rehearsal_date,
+                            show_start_date,
+                            show_end_date,
+                            total_days,
+                            amount_row,
+                            discount,
+                            amount_after_discount,
+                            total_amount,
+                            created_by,
+                            created_date,
+                            notes
                         )
+                        VALUES (
+                            %s, NULL, %s, %s,
+                            %s, %s, %s, %s,
+                            %s, %s, %s, %s,
+                            %s, %s, %s, %s,
+                            %s, %s, %s, %s,
+                            %s, %s, NOW(), %s
+                        )
+                        RETURNING id
                     """, [
-                        'CREATE_DIRECT_JOB',
-                        None,
-                        None,
-                        None,
-                        None,
+                        job_no,
+                        job_no,
+                        job_no,
                         title,
                         client_name,
                         contact_person_name,
                         contact_person_number,
-                        status,
+                        venue_name,
                         venue_address,
+                        status,
                         crew_type,
                         setup_date,
                         rehearsal_date,
@@ -4085,32 +4493,31 @@ def add_job(request):
                         discount,
                         discounted_amount,
                         total_amount,
-                        created_by
+                        created_by,
+                        input_notes
                     ])
 
                     job_id = cursor.fetchone()[0]
 
-                    cursor.execute("""
-                        UPDATE public.jobs
-                        SET venue_name = %s,
-                            notes = %s
-                        WHERE id = %s
-                    """, [venue_name, input_notes, job_id])
+                    split_map = create_co_jobs(
+                        cursor=cursor,
+                        job_id=job_id,
+                        main_job_no=job_no,
+                        created_by=created_by,
+                        co_jobs_json=co_jobs_json
+                    )
 
-                    split_map = create_co_jobs(cursor, job_id, created_by, co_jobs)
-
-                    real_selected_split_id = selected_split_id
-                    if selected_split_id and str(selected_split_id).startswith("local_"):
-                        real_selected_split_id = split_map.get(selected_split_id)
-
-                    save_job_child_rows(
+                    insert_job_child_rows_direct(
                         cursor,
                         job_id,
+                        split_map,
                         equipment_location,
                         equipment_incharge,
                         equipment_event_date,
                         equipment_rehearsal_date,
+                        equipment_split_ids,
                         equipment_categories,
+                        equipment_sub_categories,
                         equipment_ids,
                         equipment_qtys,
                         rental_prices,
@@ -4124,126 +4531,135 @@ def add_job(request):
                         vendor_names,
                         sub_equipment_names,
                         sub_quantities,
+                        sub_unit_prices,
+                        sub_totals,
+                        transport_amounts,
                         driver_names,
                         contact_numbers,
                         vehicle_numbers,
                         outside_driver_names,
                         outside_contact_numbers,
-                        outside_vehicle_numbers,
-                        real_selected_split_id
+                        outside_vehicle_numbers
                     )
 
                     return JsonResponse({
-                        'success': True,
-                        'message': f'{status} job saved successfully.',
-                        'job_id': job_id
+                        "success": True,
+                        "message": f"{status} saved successfully.",
+                        "job_id": job_id,
+                        "job_no": job_no
                     })
 
         except Exception as e:
             print("ADD_JOB ERROR:", str(e))
             return JsonResponse({
-                'success': False,
-                'error': str(e)
+                "success": False,
+                "error": str(e)
             }, status=500)
 
-    if edit_id and edit_type:
-        with connection.cursor() as cursor:
-            if edit_type == 'temp':
-                cursor.execute("SELECT * FROM public.temp WHERE id = %s", [edit_id])
-                columns = [col[0] for col in cursor.description]
-                row = cursor.fetchone()
-                job_data = dict(zip(columns, row)) if row else {}
+    # =====================================================
+    # GET EDIT DATA
+    # =====================================================
+    if request.method == "GET" and edit_id and edit_type:
+        try:
+            with connection.cursor() as cursor:
+                if edit_type == "job":
+                    cursor.execute("SELECT * FROM public.jobs WHERE id = %s", [edit_id])
+                    columns = [col[0] for col in cursor.description]
+                    row = cursor.fetchone()
+                    job_data = dict(zip(columns, row)) if row else {}
 
-                cursor.execute("""
-                    SELECT *
-                    FROM public.temp_equipment_details
-                    WHERE temp_id = %s
-                    ORDER BY id
-                """, [edit_id])
-                columns = [col[0] for col in cursor.description]
-                equipment_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
+                    cursor.execute("""
+                        SELECT
+                            jed.id,
+                            jed.job_id,
+                            jed.split_id,
+                            NULLIF(jed.equipment_detail_id, '')::int AS equipment_id,
+                            COALESCE(el.equipment_name, jed.equipment_name, '') AS equipment_name,
+                            COALESCE(mc.category_name, jed.category_name, '') AS category_name,
+                            COALESCE(sc.name, jed.sub_category_name, '') AS sub_category_name,
+                            COALESCE(NULLIF(jed.quantity, '')::numeric, 0) AS equipment_qty,
+                            COALESCE(NULLIF(jed.equipment_unit_price, '')::numeric, 0) AS rental_price,
+                            COALESCE(NULLIF(jed.equipment_total, '')::numeric, 0) AS equipment_total,
+                            COALESCE(jed.equipment_notes, '') AS equipment_notes,
+                            COALESCE(stock.available_qty, 0) AS available_qty
+                        FROM public.job_equipment_details jed
+                        LEFT JOIN public.equipment_list el
+                            ON el.id = NULLIF(jed.equipment_detail_id, '')::int
+                        LEFT JOIN public.sub_category sc
+                            ON sc.id = el.sub_category_id
+                        LEFT JOIN public.master_category mc
+                            ON mc.category_id = sc.category_id
+                        LEFT JOIN (
+                            SELECT equipment_id, COUNT(*) AS available_qty
+                            FROM public.stock_details
+                            GROUP BY equipment_id
+                        ) stock
+                            ON stock.equipment_id = NULLIF(jed.equipment_detail_id, '')::int
+                        WHERE jed.job_id = %s
+                        ORDER BY jed.id
+                    """, [edit_id])
+                    columns = [col[0] for col in cursor.description]
+                    equipment_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
 
-                cursor.execute("""
-                    SELECT *
-                    FROM public.temp_crew_allocation
-                    WHERE temp_id = %s
-                    ORDER BY id
-                """, [edit_id])
-                columns = [col[0] for col in cursor.description]
-                crew_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
+                    cursor.execute("SELECT * FROM public.job_crew_allocation WHERE job_id = %s ORDER BY id", [edit_id])
+                    columns = [col[0] for col in cursor.description]
+                    crew_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
 
-                cursor.execute("""
-                    SELECT *
-                    FROM public.temp_transportation_allocation
-                    WHERE temp_id = %s
-                    ORDER BY id
-                """, [edit_id])
-                columns = [col[0] for col in cursor.description]
-                transport_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
+                    cursor.execute("SELECT * FROM public.job_sub_vendor WHERE job_id = %s ORDER BY id", [edit_id])
+                    columns = [col[0] for col in cursor.description]
+                    sub_vendor_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
 
-                cursor.execute("""
-                    SELECT *
-                    FROM public.temp_sub_vendor
-                    WHERE temp_id = %s
-                    ORDER BY id
-                """, [edit_id])
-                columns = [col[0] for col in cursor.description]
-                sub_vendor_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
+                    cursor.execute("SELECT * FROM public.job_transportation_allocation WHERE job_id = %s ORDER BY id", [edit_id])
+                    columns = [col[0] for col in cursor.description]
+                    transport_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
 
-            else:
-                cursor.execute("SELECT * FROM public.jobs WHERE id = %s", [edit_id])
-                columns = [col[0] for col in cursor.description]
-                row = cursor.fetchone()
-                job_data = dict(zip(columns, row)) if row else {}
+                    cursor.execute("""
+                        SELECT *
+                        FROM public.job_split_master
+                        WHERE parent_job_id = %s
+                        ORDER BY split_id
+                    """, [edit_id])
+                    columns = [col[0] for col in cursor.description]
+                    split_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
 
-                cursor.execute("""
-                    SELECT *
-                    FROM public.job_equipment_details
-                    WHERE job_id = %s
-                      AND split_id IS NULL
-                    ORDER BY id
-                """, [edit_id])
-                columns = [col[0] for col in cursor.description]
-                equipment_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
+                elif edit_type == "temp":
+                    cursor.execute("SELECT * FROM public.temp WHERE id = %s", [edit_id])
+                    columns = [col[0] for col in cursor.description]
+                    row = cursor.fetchone()
+                    job_data = dict(zip(columns, row)) if row else {}
 
-                cursor.execute("""
-                    SELECT *
-                    FROM public.job_crew_allocation
-                    WHERE job_id = %s
-                    ORDER BY id
-                """, [edit_id])
-                columns = [col[0] for col in cursor.description]
-                crew_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
+                    cursor.execute("SELECT * FROM public.temp_equipment_details WHERE temp_id = %s ORDER BY id", [edit_id])
+                    columns = [col[0] for col in cursor.description]
+                    equipment_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
 
-                cursor.execute("""
-                    SELECT *
-                    FROM public.job_transportation_allocation
-                    WHERE job_id = %s
-                    ORDER BY id
-                """, [edit_id])
-                columns = [col[0] for col in cursor.description]
-                transport_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
+                    cursor.execute("SELECT * FROM public.temp_crew_allocation WHERE temp_id = %s ORDER BY id", [edit_id])
+                    columns = [col[0] for col in cursor.description]
+                    crew_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
 
-                cursor.execute("""
-                    SELECT *
-                    FROM public.job_sub_vendor
-                    WHERE job_id = %s
-                    ORDER BY id
-                """, [edit_id])
-                columns = [col[0] for col in cursor.description]
-                sub_vendor_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
+                    cursor.execute("SELECT * FROM public.temp_sub_vendor WHERE temp_id = %s ORDER BY id", [edit_id])
+                    columns = [col[0] for col in cursor.description]
+                    sub_vendor_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
 
-    return render(request, 'inventory/add_job.html', {
-        'username': username,
-        'edit_id': edit_id,
-        'edit_type': edit_type,
-        'edit_mode': bool(edit_id),
-        'job_data': json.dumps(job_data, default=str),
-        'equipment_data': json.dumps(equipment_data, default=str),
-        'crew_data': json.dumps(crew_data, default=str),
-        'transport_data': json.dumps(transport_data, default=str),
-        'sub_vendor_data': json.dumps(sub_vendor_data, default=str)
+                    cursor.execute("SELECT * FROM public.temp_transportation_allocation WHERE temp_id = %s ORDER BY id", [edit_id])
+                    columns = [col[0] for col in cursor.description]
+                    transport_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
+
+        except Exception as e:
+            print("EDIT LOAD ERROR:", str(e))
+
+    return render(request, "inventory/add_job.html", {
+        "username": username,
+        "edit_id": edit_id,
+        "edit_type": edit_type,
+        "edit_mode": bool(edit_id),
+        "job_data": json.dumps(job_data, default=str),
+        "equipment_data": json.dumps(equipment_data, default=str),
+        "crew_data": json.dumps(crew_data, default=str),
+        "sub_vendor_data": json.dumps(sub_vendor_data, default=str),
+        "transport_data": json.dumps(transport_data, default=str),
+        "split_data": json.dumps(split_data, default=str),
     })
+
 
 def get_equipment_meta(request, equipment_id):
     try:
@@ -4287,6 +4703,7 @@ def generate_quotation_no():
         return cursor.fetchone()[0]
 
 
+
 def save_temp_child_rows(
     cursor,
     temp_id,
@@ -4308,6 +4725,9 @@ def save_temp_child_rows(
     vendor_names,
     sub_equipment_names,
     sub_quantities,
+    sub_unit_prices,
+    sub_totals,
+    transport_amounts,
     driver_names,
     contact_numbers,
     vehicle_numbers,
@@ -4319,14 +4739,22 @@ def save_temp_child_rows(
         if not equipment_id:
             continue
 
-        cursor.execute("""
-            SELECT equipment_name
-            FROM public.equipment_list
-            WHERE id = %s
-        """, [equipment_id])
+        category_name = ''
+        sub_category_name = ''
+        equipment_name = equipment_id
 
-        equipment_row = cursor.fetchone()
-        equipment_name = equipment_row[0] if equipment_row else ''
+        if str(equipment_id).isdigit():
+
+            cursor.execute("""
+                SELECT equipment_name
+                FROM public.equipment_list
+                WHERE id = %s
+            """, [equipment_id])
+
+            equipment_row = cursor.fetchone()
+
+            if equipment_row:
+                equipment_name = equipment_row[0]
 
         cursor.execute("""
             INSERT INTO public.temp_equipment_details (
@@ -4389,14 +4817,18 @@ def save_temp_child_rows(
                 temp_id,
                 vendor_name,
                 sub_equipment_name,
-                sub_quantity
+                sub_quantity,
+                sub_unit_price,
+                sub_total
             )
-            VALUES (%s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s)
         """, [
             temp_id,
             vendor_name,
             sub_equipment_names[index] if index < len(sub_equipment_names) else '',
-            sub_quantities[index] if index < len(sub_quantities) else ''
+            sub_quantities[index] if index < len(sub_quantities) else '',
+            sub_unit_prices[index] if index < len(sub_unit_prices) else '',
+            sub_totals[index] if index < len(sub_totals) else ''
         ])
 
     total_rows = max(
@@ -4415,9 +4847,10 @@ def save_temp_child_rows(
                 vehicle_number,
                 outside_driver_name,
                 outside_contact_number,
-                outside_vehicle_number
+                outside_vehicle_number,
+                transport_amount
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """, [
             temp_id,
             driver_names[index] if index < len(driver_names) else '',
@@ -4425,8 +4858,10 @@ def save_temp_child_rows(
             vehicle_numbers[index] if index < len(vehicle_numbers) else '',
             outside_driver_names[index] if index < len(outside_driver_names) else '',
             outside_contact_numbers[index] if index < len(outside_contact_numbers) else '',
-            outside_vehicle_numbers[index] if index < len(outside_vehicle_numbers) else ''
+            outside_vehicle_numbers[index] if index < len(outside_vehicle_numbers) else '',
+            transport_amounts[index] if index < len(transport_amounts) else ''
         ])
+
 
 def save_job_child_rows(
     cursor,
@@ -4449,6 +4884,9 @@ def save_job_child_rows(
     vendor_names,
     sub_equipment_names,
     sub_quantities,
+    sub_unit_prices,
+    sub_totals,
+    transport_amounts,
     driver_names,
     contact_numbers,
     vehicle_numbers,
@@ -4464,24 +4902,22 @@ def save_job_child_rows(
         if not equipment_id:
             continue
 
-        cursor.execute("""
-            SELECT
-                el.equipment_name,
-                mc.category_name,
-                sc.name AS sub_category_name
-            FROM public.equipment_list el
-            LEFT JOIN public.sub_category sc
-                ON sc.id = el.sub_category_id
-            LEFT JOIN public.master_category mc
-                ON mc.category_id = sc.category_id
-            WHERE el.id = %s
-        """, [equipment_id])
+        equipment_name = equipment_id
+        category_name = ''
+        sub_category_name = ''
 
-        equipment_row = cursor.fetchone()
+        if str(equipment_id).isdigit():
 
-        equipment_name = equipment_row[0] if equipment_row else ''
-        category_name = equipment_row[1] if equipment_row else ''
-        sub_category_name = equipment_row[2] if equipment_row else ''
+            cursor.execute("""
+                SELECT equipment_name
+                FROM public.equipment_list
+                WHERE id = %s
+            """, [equipment_id])
+
+            equipment_row = cursor.fetchone()
+
+            if equipment_row:
+                equipment_name = equipment_row[0]
 
         cursor.execute("""
             INSERT INTO public.job_equipment_details (
@@ -4599,7 +5035,6 @@ def save_job_child_rows(
                 outside_contact_numbers[index] if index < len(outside_contact_numbers) else '',
                 outside_vehicle_numbers[index] if index < len(outside_vehicle_numbers) else ''
             ])
-
 def split_jobs_list(request, job_id):
     try:
         with connection.cursor() as cursor:
@@ -4869,71 +5304,91 @@ def fetch_master_categories(request):
 
 
 def fetch_equipment_names(request):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT
+                    el.id,
+                    el.equipment_name,
+                    COALESCE(mc.category_name, '') AS category_name,
+                    COALESCE(sc.name, '') AS sub_category_name,
+                    COALESCE(MAX(sd.rental_price), 0) AS rental_price,
+                    COALESCE(COUNT(sd.id), 0) AS available_quantity
+                FROM public.equipment_list el
+                LEFT JOIN public.sub_category sc 
+                    ON sc.id = el.sub_category_id
+                LEFT JOIN public.master_category mc 
+                    ON mc.category_id = sc.category_id
+                LEFT JOIN public.stock_details sd 
+                    ON sd.equipment_id = el.id
+                WHERE el.status = TRUE
+                GROUP BY el.id, el.equipment_name, mc.category_name, sc.name
+                ORDER BY el.equipment_name
+            """)
+            rows = cursor.fetchall()
 
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT id, equipment_name
-            FROM public.equipment_list
-            WHERE status = TRUE
-            ORDER BY equipment_name
-        """)
+        return JsonResponse({
+            "equipment_names": [
+                {
+                    "id": row[0],
+                    "name": row[1],
+                    "category_name": row[2],
+                    "sub_category_name": row[3],
+                    "rental_price": float(row[4] or 0),
+                    "available_quantity": int(row[5] or 0),
+                    "qty": int(row[5] or 0),
+                }
+                for row in rows
+            ]
+        })
 
-        rows = cursor.fetchall()
-
-    print("TOTAL ROWS:", len(rows))
-
-    for row in rows[:10]:
-        print(row)
-
-    return JsonResponse({
-        "equipment_names": [
-            {
-                "id": row[0],
-                "name": row[1]
-            }
-            for row in rows
-        ]
-    })
+    except Exception as e:
+        print("FETCH EQUIPMENT ERROR:", str(e))
+        return JsonResponse({"equipment_names": [], "error": str(e)}, status=500)
 
 
 def fetch_rental_price(request):
     equipment_id = request.GET.get("equipment_id")
 
     if not equipment_id:
+        return JsonResponse({"error": "Equipment ID is required"}, status=400)
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT
+                    mc.category_name,
+                    sc.name AS sub_category_name,
+                    COALESCE(MAX(sd.rental_price), 0) AS rental_price,
+                    COALESCE(COUNT(sd.id), 0) AS available_quantity
+                FROM public.equipment_list el
+                JOIN public.sub_category sc
+                    ON el.sub_category_id = sc.id
+                JOIN public.master_category mc
+                    ON sc.category_id = mc.category_id
+                LEFT JOIN public.stock_details sd
+                    ON sd.equipment_id = el.id
+                WHERE el.id = %s
+                  AND el.status = TRUE
+                GROUP BY mc.category_name, sc.name
+                LIMIT 1
+            """, [equipment_id])
+
+            row = cursor.fetchone()
+
+        if not row:
+            return JsonResponse({"error": "Equipment not found"}, status=404)
+
         return JsonResponse({
-            "error": "Equipment ID is required"
-        }, status=400)
+            "category_name": row[0],
+            "sub_category_name": row[1],
+            "rental_price": float(row[2] or 0),
+            "available_quantity": int(row[3] or 0)
+        })
 
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT
-                mc.category_name,
-                sc.name AS sub_category_name,
-                COALESCE(MAX(sd.rental_price), 0) AS rental_price
-            FROM public.equipment_list el
-            JOIN public.sub_category sc
-                ON el.sub_category_id = sc.id
-            JOIN public.master_category mc
-                ON sc.category_id = mc.category_id
-            LEFT JOIN public.stock_details sd
-                ON sd.equipment_id = el.id
-            WHERE el.id = %s
-            GROUP BY mc.category_name, sc.name
-            LIMIT 1
-        """, [equipment_id])
-
-        row = cursor.fetchone()
-
-    if not row:
-        return JsonResponse({
-            "error": "Equipment not found"
-        }, status=404)
-
-    return JsonResponse({
-        "category_name": row[0],
-        "sub_category_name": row[1],
-        "rental_price": float(row[2])
-    })
+    except Exception as e:
+        print("FETCH RENTAL PRICE ERROR:", str(e))
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 def get_employee_name(request):
@@ -4964,36 +5419,38 @@ def jobs_list(request):
                 SELECT *
                 FROM (
                     SELECT
-                        t.id,
-                        t.job_reference_no AS job_reference_no,
-                        t.quotation_no AS quotation_no,
-                        NULL AS main_job_no,
-                        NULL AS job_order_no,
-                        t.title,
-                        t.client_name,
-                        t.venue_name,
-                        t.status,
-                        t.created_date,
-                        'temp' AS source_type
+                        t.id::int AS id,
+                        COALESCE(t.job_reference_no, t.quotation_no, '')::varchar AS job_reference_no,
+                        COALESCE(t.quotation_no, t.job_reference_no, '')::varchar AS quotation_no,
+                        ''::varchar AS main_job_no,
+                        ''::varchar AS job_order_no,
+                        COALESCE(t.title, '')::varchar AS title,
+                        COALESCE(t.client_name, '')::varchar AS client_name,
+                        COALESCE(t.venue_name, '')::varchar AS venue_name,
+                        COALESCE(t.status, 'Quotation')::varchar AS status,
+                        t.created_date AS created_date,
+                        'temp'::varchar AS source_type
                     FROM public.temp t
-                    WHERE t.status = 'Quotation'
+                    WHERE COALESCE(t.is_active, TRUE) = TRUE
+                      AND COALESCE(t.status, '') = 'Quotation'
 
                     UNION ALL
 
                     SELECT
-                        j.id,
-                        COALESCE(j.job_order_no, j.job_reference_no) AS job_reference_no,
-                        j.quotation_no,
-                        j.main_job_no,
-                        j.job_order_no,
-                        j.title,
-                        j.client_name,
-                        NULL AS venue_name,
-                        j.status,
-                        j.created_date,
-                        'job' AS source_type
+                        j.id::int AS id,
+                        COALESCE(j.job_order_no, j.main_job_no, j.job_reference_no, '')::varchar AS job_reference_no,
+                        COALESCE(j.quotation_no, '')::varchar AS quotation_no,
+                        COALESCE(j.main_job_no, '')::varchar AS main_job_no,
+                        COALESCE(j.job_order_no, '')::varchar AS job_order_no,
+                        COALESCE(j.title, '')::varchar AS title,
+                        COALESCE(j.client_name, '')::varchar AS client_name,
+                        COALESCE(j.venue_name, '')::varchar AS venue_name,
+                        COALESCE(j.status, '')::varchar AS status,
+                        j.created_date AS created_date,
+                        'job'::varchar AS source_type
                     FROM public.jobs j
-                    WHERE j.parent_job_id IS NULL
+                    WHERE COALESCE(j.is_active, TRUE) = TRUE
+                      AND j.parent_job_id IS NULL
                 ) x
                 ORDER BY x.created_date DESC NULLS LAST, x.id DESC
             """)
@@ -5019,19 +5476,68 @@ def jobs_list(request):
         return JsonResponse(data, safe=False)
 
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+        print("JOBS_LIST ERROR:", str(e))
+        return JsonResponse({
+            "success": False,
+            "error": str(e)
+        }, status=500)
 
+
+@require_POST
+def inactive_job(request):
+    record_id = request.POST.get("id")
+    source_type = request.POST.get("source_type")
+
+    if not record_id or source_type not in ["temp", "job"]:
+        return JsonResponse({"success": False, "error": "Invalid delete request"}, status=400)
+
+    try:
+        with connection.cursor() as cursor:
+            if source_type == "temp":
+                cursor.execute("""
+                    UPDATE public.temp
+                    SET is_active = FALSE
+                    WHERE id = %s
+                """, [record_id])
+            else:
+                cursor.execute("""
+                    UPDATE public.jobs
+                    SET is_active = FALSE
+                    WHERE id = %s
+                """, [record_id])
+
+        return JsonResponse({"success": True, "message": "Record inactive successfully."})
+
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 def get_status_counts(request):
     try:
         with connection.cursor() as cursor:
             cursor.execute("""
                 SELECT
-                    (SELECT COUNT(*) FROM public.temp WHERE status = 'Quotation') AS quotation_count,
-                    (SELECT COUNT(*) FROM public.temp WHERE status = 'Proforma') AS proforma_count,
-                    (SELECT COUNT(*) FROM public.temp WHERE status = 'Prepsheet') AS prepsheet_count,
-                    (SELECT COUNT(*) FROM public.jobs WHERE status = 'Delivery Challan') AS deliveryChallan_count,
-                    (SELECT COUNT(*) FROM public.jobs) AS job_count
+                    (SELECT COUNT(*) FROM public.temp 
+                     WHERE status = 'Quotation' 
+                     AND COALESCE(is_active, TRUE) = TRUE) AS quotation_count,
+
+                    (SELECT COUNT(*) FROM public.jobs 
+                     WHERE status = 'Proforma' 
+                     AND COALESCE(is_active, TRUE) = TRUE
+                     AND parent_job_id IS NULL) AS proforma_count,
+
+                    (SELECT COUNT(*) FROM public.jobs 
+                     WHERE status = 'Prepsheet' 
+                     AND COALESCE(is_active, TRUE) = TRUE
+                     AND parent_job_id IS NULL) AS prepsheet_count,
+
+                    (SELECT COUNT(*) FROM public.jobs 
+                     WHERE status = 'Delivery Challan' 
+                     AND COALESCE(is_active, TRUE) = TRUE
+                     AND parent_job_id IS NULL) AS deliveryChallan_count,
+
+                    (SELECT COUNT(*) FROM public.jobs 
+                     WHERE COALESCE(is_active, TRUE) = TRUE
+                     AND parent_job_id IS NULL) AS job_count
             """)
 
             row = cursor.fetchone()
@@ -5045,6 +5551,7 @@ def get_status_counts(request):
         })
 
     except Exception as e:
+        print("STATUS COUNT ERROR:", str(e))
         return JsonResponse({"error": str(e)}, status=500)
 
 
@@ -5296,3 +5803,1205 @@ def delete_crew(request, crew_id):
         "success": False,
         "message": "Invalid request method"
     }, status=405)
+
+
+def scanning_page(request):
+    return render(request, "inventory/scanning_page.html")
+
+
+def delivery_challan_jobs_api(request):
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT 
+                t.id,
+                t.job_reference_no,
+                COALESCE(t.title, '-') AS title,
+                COALESCE(t.client_name, '-') AS client_name,
+                COALESCE(SUM(CAST(ted.quantity AS INTEGER)), 0) AS total_qty,
+                COALESCE(COUNT(td.trans_id), 0) AS scanned_qty
+            FROM temp t
+            LEFT JOIN temp_equipment_details ted 
+                ON ted.temp_id = t.id
+            LEFT JOIN transaction_details td 
+                ON td.job_id = t.id
+               AND td.scan_flag_in = FALSE
+            WHERE t.status = 'Delivery Challan'
+              AND COALESCE(t.scan_flag, FALSE) = FALSE
+              AND COALESCE(t.completion_flag, FALSE) = FALSE
+            GROUP BY 
+                t.id, t.job_reference_no, t.title, t.client_name
+            HAVING COALESCE(SUM(CAST(ted.quantity AS INTEGER)), 0) > COALESCE(COUNT(td.trans_id), 0)
+            ORDER BY t.id DESC
+        """)
+        rows = cursor.fetchall()
+
+    data = []
+    for r in rows:
+        data.append({
+            "job_id": r[0],
+            "job_no": r[1],
+            "title": r[2],
+            "client_name": r[3],
+            "total_qty": r[4],
+            "scanned_qty": r[5],
+            "pending_qty": int(r[4]) - int(r[5]),
+        })
+
+    return JsonResponse(data, safe=False)
+
+
+def delivery_challan_equipment_api(request, job_id):
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT 
+                ted.equipment_detail_id,
+                ted.equipment_name,
+                SUM(CAST(ted.quantity AS INTEGER)) AS required_qty,
+                COALESCE(sc.scanned_qty, 0) AS scanned_qty
+            FROM temp_equipment_details ted
+            LEFT JOIN (
+                SELECT 
+                    equip_details_id,
+                    COUNT(*) AS scanned_qty
+                FROM transaction_details
+                WHERE job_id = %s
+                  AND scan_flag_in = FALSE
+                GROUP BY equip_details_id
+            ) sc ON sc.equip_details_id = ted.equipment_detail_id::TEXT
+            WHERE ted.temp_id = %s
+            GROUP BY 
+                ted.equipment_detail_id,
+                ted.equipment_name,
+                sc.scanned_qty
+            ORDER BY ted.equipment_name
+        """, [job_id, job_id])
+        rows = cursor.fetchall()
+
+    data = []
+    for r in rows:
+        required_qty = int(r[2] or 0)
+        scanned_qty = int(r[3] or 0)
+
+        data.append({
+            "equipment_detail_id": r[0],
+            "equipment_name": r[1],
+            "required_qty": required_qty,
+            "scanned_qty": scanned_qty,
+            "pending_qty": required_qty - scanned_qty,
+        })
+
+    return JsonResponse(data, safe=False)
+
+
+@csrf_exempt
+def scan_barcode_api(request):
+    if request.method != "POST":
+        return JsonResponse({"status": 0, "message": "Invalid request method"})
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"status": 0, "message": "Invalid JSON request"})
+
+    scan_type = data.get("scan_type")
+    job_id = data.get("job_id")
+    job_no = str(data.get("job_no", "")).strip()
+    barcode = str(data.get("barcode", "")).strip()
+    user_id = request.session.get("user_id", 1)
+
+    if not barcode:
+        return JsonResponse({"status": 0, "message": "Barcode required"})
+
+    try:
+        with transaction.atomic():
+            with connection.cursor() as cursor:
+
+                cursor.execute("""
+                    SELECT 
+                        sd.id,
+                        sd.equipment_id,
+                        sd.barcode_no,
+                        COALESCE(sd.scan_flag, FALSE) AS scan_flag,
+                        el.equipment_name
+                    FROM stock_details sd
+                    JOIN equipment_list el ON el.id = sd.equipment_id
+                    WHERE sd.barcode_no = %s
+                    LIMIT 1
+                """, [barcode])
+                stock = cursor.fetchone()
+
+                if not stock:
+                    return JsonResponse({
+                        "status": 0,
+                        "message": "Invalid barcode. Barcode not found in stock."
+                    })
+
+                stock_id, equipment_id, barcode_no, stock_scan_flag, equipment_name = stock
+
+                if scan_type == "scan_out":
+                    return scan_out_delivery_challan(
+                        cursor=cursor,
+                        job_id=job_id,
+                        barcode=barcode,
+                        equipment_id=equipment_id,
+                        equipment_name=equipment_name,
+                        stock_scan_flag=stock_scan_flag,
+                        user_id=user_id
+                    )
+
+                elif scan_type == "scan_in_job":
+                    return scan_in_by_job(
+                        cursor=cursor,
+                        job_no=job_no,
+                        barcode=barcode,
+                        equipment_name=equipment_name,
+                        user_id=user_id
+                    )
+
+                elif scan_type == "global_scan_in":
+                    return global_scan_in(
+                        cursor=cursor,
+                        barcode=barcode,
+                        equipment_name=equipment_name,
+                        user_id=user_id
+                    )
+
+                return JsonResponse({"status": 0, "message": "Invalid scan type"})
+
+    except Exception as e:
+        return JsonResponse({"status": 0, "message": str(e)})
+
+
+def scan_out_delivery_challan(cursor, job_id, barcode, equipment_id, equipment_name, stock_scan_flag, user_id):
+    if not job_id:
+        return JsonResponse({"status": 0, "message": "Select Delivery Challan job"})
+
+    if stock_scan_flag is True:
+        return JsonResponse({"status": 0, "message": "This barcode is already scanned OUT"})
+
+    cursor.execute("""
+        SELECT id, job_reference_no, title
+        FROM temp
+        WHERE id = %s
+          AND status = 'Delivery Challan'
+          AND COALESCE(scan_flag, FALSE) = FALSE
+          AND COALESCE(completion_flag, FALSE) = FALSE
+        LIMIT 1
+    """, [job_id])
+    job = cursor.fetchone()
+
+    if not job:
+        return JsonResponse({
+            "status": 0,
+            "message": "Only active Delivery Challan jobs are allowed"
+        })
+
+    real_job_id, job_ref_no, title = job
+
+    cursor.execute("""
+        SELECT 
+            equipment_detail_id,
+            equipment_name,
+            SUM(CAST(quantity AS INTEGER)) AS required_qty
+        FROM temp_equipment_details
+        WHERE temp_id = %s
+          AND (
+                equipment_detail_id::TEXT = %s
+                OR UPPER(equipment_name) = UPPER(%s)
+              )
+        GROUP BY equipment_detail_id, equipment_name
+        LIMIT 1
+    """, [real_job_id, str(equipment_id), equipment_name])
+    dc_equipment = cursor.fetchone()
+
+    if not dc_equipment:
+        return JsonResponse({
+            "status": 0,
+            "message": f"{equipment_name} is not available in this Delivery Challan"
+        })
+
+    equipment_detail_id, dc_equipment_name, required_qty = dc_equipment
+    required_qty = int(required_qty or 0)
+
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM transaction_details
+        WHERE job_id = %s
+          AND equip_details_id = %s
+          AND scan_flag_in = FALSE
+    """, [real_job_id, str(equipment_detail_id)])
+    already_scanned_qty = int(cursor.fetchone()[0] or 0)
+
+    if already_scanned_qty >= required_qty:
+        return JsonResponse({
+            "status": 0,
+            "message": f"Required quantity already scanned for {dc_equipment_name}"
+        })
+
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM transaction_details
+        WHERE barcode = %s
+          AND scan_flag_in = FALSE
+    """, [barcode])
+    barcode_out_count = int(cursor.fetchone()[0] or 0)
+
+    if barcode_out_count > 0:
+        return JsonResponse({
+            "status": 0,
+            "message": "This barcode is already OUT in another transaction"
+        })
+
+    cursor.execute("""
+        INSERT INTO transaction_details
+        (
+            job_id,
+            job_ref_no,
+            equip_details_id,
+            equipment_name,
+            barcode,
+            scan_flag_in,
+            scan_out_date_time,
+            scan_out_by,
+            venue_out
+        )
+        VALUES (%s, %s, %s, %s, %s, FALSE, NOW(), %s, FALSE)
+    """, [
+        real_job_id,
+        job_ref_no,
+        str(equipment_detail_id),
+        dc_equipment_name,
+        barcode,
+        user_id
+    ])
+
+    cursor.execute("""
+        UPDATE stock_details
+        SET scan_flag = TRUE
+        WHERE barcode_no = %s
+    """, [barcode])
+
+    new_scanned_qty = already_scanned_qty + 1
+    pending_qty = required_qty - new_scanned_qty
+
+    cursor.execute("""
+        SELECT COALESCE(SUM(CAST(quantity AS INTEGER)), 0)
+        FROM temp_equipment_details
+        WHERE temp_id = %s
+    """, [real_job_id])
+    total_required = int(cursor.fetchone()[0] or 0)
+
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM transaction_details
+        WHERE job_id = %s
+          AND scan_flag_in = FALSE
+    """, [real_job_id])
+    total_scanned = int(cursor.fetchone()[0] or 0)
+
+    if total_required > 0 and total_scanned >= total_required:
+        cursor.execute("""
+            UPDATE temp
+            SET scan_flag = TRUE
+            WHERE id = %s
+        """, [real_job_id])
+
+    return JsonResponse({
+        "status": 1,
+        "message": "Scan OUT successful",
+        "job_no": job_ref_no,
+        "barcode": barcode,
+        "equipment_name": dc_equipment_name,
+        "required_qty": required_qty,
+        "scanned_qty": new_scanned_qty,
+        "pending_qty": pending_qty,
+        "total_required": total_required,
+        "total_scanned": total_scanned
+    })
+
+
+def scan_in_by_job(cursor, job_no, barcode, equipment_name, user_id):
+    if not job_no:
+        return JsonResponse({"status": 0, "message": "Enter Job No"})
+
+    cursor.execute("""
+        SELECT trans_id, job_id, job_ref_no
+        FROM transaction_details
+        WHERE barcode = %s
+          AND job_ref_no = %s
+          AND scan_flag_in = FALSE
+        ORDER BY scan_out_date_time DESC
+        LIMIT 1
+    """, [barcode, job_no])
+    txn = cursor.fetchone()
+
+    if not txn:
+        return JsonResponse({
+            "status": 0,
+            "message": "No pending OUT transaction found for this Job No and barcode"
+        })
+
+    trans_id, job_id, job_ref_no = txn
+
+    cursor.execute("""
+        UPDATE transaction_details
+        SET scan_flag_in = TRUE,
+            scan_in_date_time = NOW(),
+            scan_in_by = %s
+        WHERE trans_id = %s
+    """, [user_id, trans_id])
+
+    cursor.execute("""
+        UPDATE stock_details
+        SET scan_flag = FALSE
+        WHERE barcode_no = %s
+    """, [barcode])
+
+    return JsonResponse({
+        "status": 1,
+        "message": "Scan IN successful",
+        "job_no": job_ref_no,
+        "barcode": barcode,
+        "equipment_name": equipment_name
+    })
+
+
+def global_scan_in(cursor, barcode, equipment_name, user_id):
+    cursor.execute("""
+        SELECT trans_id, job_id, job_ref_no
+        FROM transaction_details
+        WHERE barcode = %s
+          AND scan_flag_in = FALSE
+        ORDER BY scan_out_date_time DESC
+        LIMIT 1
+    """, [barcode])
+    txn = cursor.fetchone()
+
+    if not txn:
+        return JsonResponse({
+            "status": 0,
+            "message": "No pending OUT record found for this barcode"
+        })
+
+    trans_id, job_id, job_ref_no = txn
+
+    cursor.execute("""
+        UPDATE transaction_details
+        SET scan_flag_in = TRUE,
+            scan_in_date_time = NOW(),
+            scan_in_by = %s
+        WHERE trans_id = %s
+    """, [user_id, trans_id])
+
+    cursor.execute("""
+        UPDATE stock_details
+        SET scan_flag = FALSE
+        WHERE barcode_no = %s
+    """, [barcode])
+
+    return JsonResponse({
+        "status": 1,
+        "message": "Global Scan IN successful",
+        "job_no": job_ref_no,
+        "barcode": barcode,
+        "equipment_name": equipment_name
+    })
+
+def dispatch_loading(request):
+    return render(request, "inventory/dispatch_loading.html")
+
+
+def dispatch_jobs_api(request):
+    try:
+        search = request.GET.get("search", "").strip()
+        page = int(request.GET.get("page", 1) or 1)
+        page_size = int(request.GET.get("page_size", 10) or 10)
+
+        if page < 1:
+            page = 1
+
+        if page_size < 1:
+            page_size = 10
+
+        offset = (page - 1) * page_size
+
+        where_clause = ""
+        params = []
+
+        if search:
+            where_clause = """
+                AND (
+                    COALESCE(job_order_no, '') ILIKE %s
+                    OR COALESCE(main_job_no, '') ILIKE %s
+                    OR COALESCE(job_reference_no, '') ILIKE %s
+                    OR COALESCE(title, '') ILIKE %s
+                    OR COALESCE(client_name, '') ILIKE %s
+                )
+            """
+            params.extend([f"%{search}%"] * 5)
+
+        with connection.cursor() as cursor:
+            cursor.execute(f"""
+                SELECT COUNT(*)
+                FROM public.jobs
+                WHERE status = 'Delivery Challan'
+                  AND COALESCE(loading_status, 'Pending') <> 'Fully Loaded'
+                {where_clause}
+            """, params)
+
+            total_records = cursor.fetchone()[0]
+
+            query_params = params + [page_size, offset]
+
+            cursor.execute(f"""
+                SELECT
+                    id,
+                    COALESCE(job_order_no, main_job_no, job_reference_no) AS job_no,
+                    COALESCE(title, '-') AS title,
+                    COALESCE(client_name, '-') AS client_name
+                FROM public.jobs
+                WHERE status = 'Delivery Challan'
+                  AND COALESCE(loading_status, 'Pending') <> 'Fully Loaded'
+                {where_clause}
+                ORDER BY id DESC
+                LIMIT %s OFFSET %s
+            """, query_params)
+
+            rows = cursor.fetchall()
+
+        total_pages = (total_records + page_size - 1) // page_size
+
+        return JsonResponse({
+            "status": 1,
+            "total_records": total_records,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": total_pages,
+            "data": [
+                {
+                    "job_id": row[0],
+                    "job_no": row[1],
+                    "title": row[2],
+                    "client_name": row[3],
+                }
+                for row in rows
+            ]
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "status": 0,
+            "message": str(e),
+            "data": [],
+            "total_records": 0,
+            "page": 1,
+            "page_size": 10,
+            "total_pages": 0
+        }, status=500)
+
+
+def update_job_loading_status(cursor, job_id):
+    cursor.execute("""
+        SELECT COALESCE(SUM(quantity::numeric), 0)
+        FROM public.job_equipment_details
+        WHERE job_id = %s
+    """, [job_id])
+
+    required_qty = int(float(cursor.fetchone()[0] or 0))
+
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM public.transaction_details
+        WHERE job_id = %s
+          AND COALESCE(scan_flag_in, false) = false
+    """, [job_id])
+
+    scanned_qty = int(cursor.fetchone()[0] or 0)
+
+    if scanned_qty <= 0:
+        loading_status = "Pending"
+    elif scanned_qty < required_qty:
+        loading_status = "Partially Loaded"
+    else:
+        loading_status = "Fully Loaded"
+
+    cursor.execute("""
+        UPDATE public.jobs
+        SET loading_status = %s
+        WHERE id = %s
+    """, [loading_status, job_id])
+
+def job_sections(request, job_id):
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT split_id, split_job_no, section_name
+            FROM public.job_split_master
+            WHERE parent_job_id = %s
+            ORDER BY split_id
+        """, [job_id])
+        rows = cursor.fetchall()
+
+    return JsonResponse([
+        {
+            "split_id": r[0],
+            "split_job_no": r[1],
+            "section_name": r[2],
+        }
+        for r in rows
+    ], safe=False)
+
+
+def dispatch_job_equipment(request, job_id):
+    split_id = request.GET.get("split_id", "").strip()
+
+    with connection.cursor() as cursor:
+        if split_id:
+            cursor.execute("""
+                SELECT
+                    jed.equipment_detail_id,
+                    COALESCE(el.equipment_name, jed.equipment_name) AS equipment_name,
+                    SUM(COALESCE(jed.quantity::numeric, 0)) AS required_qty,
+                    COALESCE(sc.scanned_qty, 0) AS scanned_qty
+                FROM public.job_equipment_details jed
+                LEFT JOIN public.equipment_list el
+                    ON el.id::text = jed.equipment_detail_id::text
+                LEFT JOIN (
+                    SELECT equipment_name, COUNT(*) AS scanned_qty
+                    FROM public.transaction_details
+                    WHERE job_id = %s
+                      AND split_id = %s
+                      AND COALESCE(scan_flag_in, false) = false
+                    GROUP BY equipment_name
+                ) sc ON UPPER(sc.equipment_name) = UPPER(COALESCE(el.equipment_name, jed.equipment_name))
+                WHERE jed.job_id = %s
+                  AND jed.split_id = %s
+                GROUP BY jed.equipment_detail_id, el.equipment_name, jed.equipment_name, sc.scanned_qty
+                ORDER BY equipment_name
+            """, [job_id, split_id, job_id, split_id])
+        else:
+            cursor.execute("""
+                SELECT
+                    jed.equipment_detail_id,
+                    COALESCE(el.equipment_name, jed.equipment_name) AS equipment_name,
+                    SUM(COALESCE(jed.quantity::numeric, 0)) AS required_qty,
+                    COALESCE(sc.scanned_qty, 0) AS scanned_qty
+                FROM public.job_equipment_details jed
+                LEFT JOIN public.equipment_list el
+                    ON el.id::text = jed.equipment_detail_id::text
+                LEFT JOIN (
+                    SELECT equipment_name, COUNT(*) AS scanned_qty
+                    FROM public.transaction_details
+                    WHERE job_id = %s
+                      AND split_id IS NULL
+                      AND COALESCE(scan_flag_in, false) = false
+                    GROUP BY equipment_name
+                ) sc ON UPPER(sc.equipment_name) = UPPER(COALESCE(el.equipment_name, jed.equipment_name))
+                WHERE jed.job_id = %s
+                  AND jed.split_id IS NULL
+                GROUP BY jed.equipment_detail_id, el.equipment_name, jed.equipment_name, sc.scanned_qty
+                ORDER BY equipment_name
+            """, [job_id, job_id])
+
+        rows = cursor.fetchall()
+
+    data = []
+    for r in rows:
+        required_qty = int(float(r[2] or 0))
+        scanned_qty = int(r[3] or 0)
+
+        data.append({
+            "equipment_id": r[0],
+            "equipment_name": r[1],
+            "required_qty": required_qty,
+            "scanned_qty": scanned_qty,
+            "pending_qty": required_qty - scanned_qty,
+        })
+
+    return JsonResponse(data, safe=False)
+
+
+def dispatch_scanned_list_api(request, job_id):
+    split_id = request.GET.get("split_id", "").strip()
+
+    with connection.cursor() as cursor:
+        if split_id:
+            cursor.execute("""
+                SELECT barcode, equipment_name, scan_out_date_time
+                FROM public.transaction_details
+                WHERE job_id = %s
+                  AND split_id = %s
+                  AND COALESCE(scan_flag_in, false) = false
+                ORDER BY scan_out_date_time DESC
+            """, [job_id, split_id])
+        else:
+            cursor.execute("""
+                SELECT barcode, equipment_name, scan_out_date_time
+                FROM public.transaction_details
+                WHERE job_id = %s
+                  AND split_id IS NULL
+                  AND COALESCE(scan_flag_in, false) = false
+                ORDER BY scan_out_date_time DESC
+            """, [job_id])
+
+        rows = cursor.fetchall()
+
+    return JsonResponse([
+        {
+            "barcode": r[0],
+            "equipment_name": r[1],
+            "scan_time": r[2].strftime("%d-%m-%Y %I:%M %p") if r[2] else "-"
+        }
+        for r in rows
+    ], safe=False)
+
+
+@csrf_exempt
+@require_POST
+def dispatch_scan_api(request):
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+
+        job_id = data.get("job_id")
+        split_id = data.get("split_id")
+        barcode = str(data.get("barcode", "")).strip()
+        user_id = request.session.get("user_id", 1)
+
+        split_id = str(split_id).strip() if split_id not in [None, "", "null"] else None
+
+        if not job_id:
+            return JsonResponse({"status": 0, "message": "Select Delivery Challan Job"})
+
+        if not barcode:
+            return JsonResponse({"status": 0, "message": "Barcode required"})
+
+        with transaction.atomic():
+            with connection.cursor() as cursor:
+
+                cursor.execute("""
+                    SELECT id, COALESCE(job_order_no, main_job_no, job_reference_no) AS job_no
+                    FROM public.jobs
+                    WHERE id = %s
+                    LIMIT 1
+                """, [job_id])
+                job = cursor.fetchone()
+
+                if not job:
+                    return JsonResponse({"status": 0, "message": "Invalid job selected"})
+
+                real_job_id, job_no = job
+
+                if split_id:
+                    cursor.execute("""
+                        SELECT
+                            sd.id,
+                            sd.equipment_id,
+                            sd.barcode_no,
+                            COALESCE(sd.scan_flag, false) AS scan_flag,
+                            COALESCE(el.equipment_name, jed.equipment_name) AS equipment_name,
+                            jed.quantity
+                        FROM public.stock_details sd
+                        JOIN public.job_equipment_details jed
+                            ON jed.equipment_detail_id::integer = sd.equipment_id
+                        LEFT JOIN public.equipment_list el
+                            ON el.id = sd.equipment_id
+                        WHERE jed.job_id = %s
+                          AND jed.split_id = %s
+                          AND sd.barcode_no = %s
+                        LIMIT 1
+                    """, [job_id, split_id, barcode])
+                else:
+                    cursor.execute("""
+                        SELECT
+                            sd.id,
+                            sd.equipment_id,
+                            sd.barcode_no,
+                            COALESCE(sd.scan_flag, false) AS scan_flag,
+                            COALESCE(el.equipment_name, jed.equipment_name) AS equipment_name,
+                            jed.quantity
+                        FROM public.stock_details sd
+                        JOIN public.job_equipment_details jed
+                            ON jed.equipment_detail_id::integer = sd.equipment_id
+                        LEFT JOIN public.equipment_list el
+                            ON el.id = sd.equipment_id
+                        WHERE jed.job_id = %s
+                          AND jed.split_id IS NULL
+                          AND sd.barcode_no = %s
+                        LIMIT 1
+                    """, [job_id, barcode])
+
+                stock = cursor.fetchone()
+
+                if not stock:
+                    return JsonResponse({
+                        "status": 0,
+                        "message": "Barcode not found for selected job / co-job section"
+                    })
+
+                stock_id, equipment_id, barcode_no, scan_flag, equipment_name, required_qty = stock
+
+                if scan_flag:
+                    return JsonResponse({
+                        "status": 0,
+                        "message": "This barcode is already OUT"
+                    })
+
+                if split_id:
+                    cursor.execute("""
+                        SELECT COUNT(*)
+                        FROM public.transaction_details
+                        WHERE job_id = %s
+                          AND split_id = %s
+                          AND barcode = %s
+                          AND COALESCE(scan_flag_in, false) = false
+                    """, [job_id, split_id, barcode])
+                else:
+                    cursor.execute("""
+                        SELECT COUNT(*)
+                        FROM public.transaction_details
+                        WHERE job_id = %s
+                          AND split_id IS NULL
+                          AND barcode = %s
+                          AND COALESCE(scan_flag_in, false) = false
+                    """, [job_id, barcode])
+
+                if int(cursor.fetchone()[0] or 0) > 0:
+                    return JsonResponse({
+                        "status": 0,
+                        "message": "This barcode is already scanned for selected job / section"
+                    })
+
+                if split_id:
+                    cursor.execute("""
+                        SELECT
+                            COALESCE(SUM(quantity::numeric), 0)
+                        FROM public.job_equipment_details
+                        WHERE job_id = %s
+                          AND split_id = %s
+                          AND equipment_detail_id::text = %s
+                    """, [job_id, split_id, str(equipment_id)])
+
+                    cursor.execute("""
+                        SELECT COUNT(*)
+                        FROM public.transaction_details
+                        WHERE job_id = %s
+                          AND split_id = %s
+                          AND equipment_name = %s
+                          AND COALESCE(scan_flag_in, false) = false
+                    """, [job_id, split_id, equipment_name])
+                else:
+                    cursor.execute("""
+                        SELECT
+                            COALESCE(SUM(quantity::numeric), 0)
+                        FROM public.job_equipment_details
+                        WHERE job_id = %s
+                          AND split_id IS NULL
+                          AND equipment_detail_id::text = %s
+                    """, [job_id, str(equipment_id)])
+
+                    cursor.execute("""
+                        SELECT COUNT(*)
+                        FROM public.transaction_details
+                        WHERE job_id = %s
+                          AND split_id IS NULL
+                          AND equipment_name = %s
+                          AND COALESCE(scan_flag_in, false) = false
+                    """, [job_id, equipment_name])
+
+                scanned_qty = int(cursor.fetchone()[0] or 0)
+
+                cursor.execute("""
+                    SELECT COALESCE(SUM(quantity::numeric), 0)
+                    FROM public.job_equipment_details
+                    WHERE job_id = %s
+                      AND equipment_detail_id::text = %s
+                      AND (
+                            (%s IS NULL AND split_id IS NULL)
+                            OR
+                            (%s IS NOT NULL AND split_id = %s::integer)
+                          )
+                """, [job_id, str(equipment_id), split_id, split_id, split_id])
+
+                required_qty = int(float(cursor.fetchone()[0] or 0))
+
+                if scanned_qty >= required_qty:
+                    return JsonResponse({
+                        "status": 0,
+                        "message": f"Required quantity already scanned for {equipment_name}"
+                    })
+
+                cursor.execute("""
+                    INSERT INTO public.transaction_details (
+                        job_id,
+                        job_ref_no,
+                        equipment_name,
+                        barcode,
+                        scan_out_by,
+                        scan_out_date_time,
+                        scan_flag_in,
+                        split_id
+                    )
+                    VALUES (%s, %s, %s, %s, %s, NOW(), false, %s)
+                """, [
+                    real_job_id,
+                    job_no,
+                    equipment_name,
+                    barcode_no,
+                    user_id,
+                    int(split_id) if split_id else None
+                ])
+
+                cursor.execute("""
+                    UPDATE public.stock_details
+                    SET scan_flag = true,
+                        current_status = 'OUT',
+                        last_movement_type = 'DISPATCH OUT',
+                        last_movement_datetime = NOW()
+                    WHERE id = %s
+                """, [stock_id])
+
+        return JsonResponse({
+            "status": 1,
+            "message": "Barcode scanned successfully",
+            "equipment_name": equipment_name
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "status": 0,
+            "message": str(e)
+        })
+
+def job_return(request):
+    return render(request, "inventory/job_return.html", {
+        "page_title": "Job Return",
+        "page_subtitle": "Scan returned equipment against Job No",
+        "api_url": "/api/inventory-movement/"
+    })
+
+
+def quick_return(request):
+    return render(request, "inventory/quick_return.html", {
+        "page_title": "Quick Return",
+        "page_subtitle": "Scan barcode and auto-return latest OUT item",
+        "api_url": "/api/inventory-movement/"
+    })
+
+
+def warehouse_transfer(request):
+    return render(request, "inventory/warehouse_transfer.html", {
+        "page_title": "Warehouse Transfer",
+        "page_subtitle": "Transfer equipment between warehouses",
+        "api_url": "/api/inventory-movement/"
+    })
+
+
+def maintenance_out(request):
+    return render(request, "inventory/maintenance_out.html", {
+        "page_title": "Maintenance Out",
+        "page_subtitle": "Send equipment for repair or service",
+        "api_url": "/api/inventory-movement/"
+    })
+
+
+def maintenance_return(request):
+    return render(request, "inventory/maintenance_return.html", {
+        "page_title": "Maintenance Return",
+        "page_subtitle": "Receive equipment back from maintenance",
+        "api_url": "/api/inventory-movement/"
+    })
+
+
+def damage_missing(request):
+    return render(request, "inventory/damage_missing.html", {
+        "page_title": "Missing / Damage Entry",
+        "page_subtitle": "Mark equipment as missing, damaged, or scrap",
+        "api_url": "/api/inventory-movement/"
+    })
+
+def return_jobs_api(request):
+    try:
+        search = request.GET.get("search", "").strip()
+        page = int(request.GET.get("page", 1) or 1)
+        page_size = int(request.GET.get("page_size", 25) or 25)
+
+        if page < 1:
+            page = 1
+
+        offset = (page - 1) * page_size
+
+        where = """
+            WHERE td.scan_out_date_time IS NOT NULL
+              AND COALESCE(td.scan_flag_in, FALSE) = FALSE
+        """
+
+        params = []
+
+        if search:
+            where += """
+                AND (
+                    COALESCE(td.job_ref_no, '') ILIKE %s
+                    OR COALESCE(j.title, '') ILIKE %s
+                    OR COALESCE(j.client_name, '') ILIKE %s
+                )
+            """
+            like = f"%{search}%"
+            params.extend([like, like, like])
+
+        with connection.cursor() as cursor:
+            cursor.execute(f"""
+                SELECT COUNT(*)
+                FROM (
+                    SELECT td.job_id, td.job_ref_no
+                    FROM public.transaction_details td
+                    LEFT JOIN public.jobs j
+                        ON j.id = td.job_id
+                    {where}
+                    GROUP BY td.job_id, td.job_ref_no
+                ) x
+            """, params)
+
+            total_records = cursor.fetchone()[0]
+
+            cursor.execute(f"""
+                SELECT
+                    td.job_id,
+                    td.job_ref_no AS job_no,
+                    COALESCE(MAX(j.title), '') AS title,
+                    COALESCE(MAX(j.client_name), '') AS client_name,
+                    COUNT(td.trans_id) AS pending_return_qty
+                FROM public.transaction_details td
+                LEFT JOIN public.jobs j
+                    ON j.id = td.job_id
+                {where}
+                GROUP BY td.job_id, td.job_ref_no
+                ORDER BY MAX(td.trans_id) DESC
+                LIMIT %s OFFSET %s
+            """, params + [page_size, offset])
+
+            rows = cursor.fetchall()
+
+        return JsonResponse({
+            "status": 1,
+            "data": [
+                {
+                    "job_id": row[0],
+                    "job_no": row[1],
+                    "title": row[2],
+                    "client_name": row[3],
+                    "pending_return_qty": row[4],
+                }
+                for row in rows
+            ],
+            "page": page,
+            "page_size": page_size,
+            "total_records": total_records,
+            "total_pages": max((total_records + page_size - 1) // page_size, 1),
+        })
+
+    except Exception as e:
+        print("RETURN JOBS API ERROR:", str(e))
+        return JsonResponse({
+            "status": 0,
+            "message": str(e),
+            "data": []
+        }, status=500)
+
+
+def return_scanned_items_api(request, job_no):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT
+                    td.trans_id,
+                    td.barcode,
+                    td.equipment_name,
+                    td.scan_out_date_time,
+                    td.scan_in_date_time,
+                    COALESCE(td.scan_flag_in, FALSE) AS scan_flag_in
+                FROM public.transaction_details td
+                WHERE TRIM(COALESCE(td.job_ref_no, '')) = TRIM(%s)
+                  AND td.scan_out_date_time IS NOT NULL
+                ORDER BY td.trans_id DESC
+            """, [job_no])
+
+            rows = cursor.fetchall()
+
+        return JsonResponse({
+            "status": 1,
+            "data": [
+                {
+                    "trans_id": row[0],
+                    "barcode": row[1],
+                    "equipment_name": row[2],
+                    "dispatch_time": row[3].strftime("%d-%m-%Y %H:%M") if row[3] else "",
+                    "return_time": row[4].strftime("%d-%m-%Y %H:%M") if row[4] else "",
+                    "return_status": "Returned" if row[5] else "Pending",
+                }
+                for row in rows
+            ]
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "status": 0,
+            "message": str(e),
+            "data": []
+        }, status=500)
+
+
+@csrf_exempt
+def scan_job_return_api(request):
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+
+        job_no = data.get("job_no", "").strip()
+        barcode = data.get("barcode", "").strip()
+        user_id = request.session.get("user_id")
+
+        if not job_no:
+            return JsonResponse({"status": 0, "message": "Job No is required"})
+
+        if not barcode:
+            return JsonResponse({"status": 0, "message": "Barcode is required"})
+
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT
+                    trans_id,
+                    equipment_name,
+                    scan_flag_in
+                FROM public.transaction_details
+                WHERE TRIM(COALESCE(job_ref_no, '')) = TRIM(%s)
+                  AND TRIM(COALESCE(barcode, '')) = TRIM(%s)
+                  AND scan_out_date_time IS NOT NULL
+                ORDER BY trans_id DESC
+                LIMIT 1
+            """, [job_no, barcode])
+
+            row = cursor.fetchone()
+
+            if not row:
+                return JsonResponse({
+                    "status": 0,
+                    "message": "This barcode is not dispatched for selected job"
+                })
+
+            trans_id = row[0]
+            equipment_name = row[1]
+            already_returned = row[2]
+
+            if already_returned:
+                return JsonResponse({
+                    "status": 0,
+                    "message": "This barcode is already returned"
+                })
+
+            cursor.execute("""
+                UPDATE public.transaction_details
+                SET
+                    scan_flag_in = TRUE,
+                    scan_in_date_time = NOW(),
+                    scan_in_by = %s
+                WHERE trans_id = %s
+                RETURNING scan_in_date_time
+            """, [user_id, trans_id])
+
+            return_time = cursor.fetchone()[0]
+
+        return JsonResponse({
+            "status": 1,
+            "message": "Return scanned successfully",
+            "barcode": barcode,
+            "equipment_name": equipment_name,
+            "return_time": return_time.strftime("%d-%m-%Y %H:%M")
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "status": 0,
+            "message": str(e)
+        }, status=500)
+
+
+@csrf_exempt
+def quick_return_scan_api(request):
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+
+        barcode = data.get("barcode", "").strip()
+        user_id = request.session.get("user_id")
+
+        if not barcode:
+            return JsonResponse({
+                "status": 0,
+                "message": "Barcode is required"
+            })
+
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT
+                    td.trans_id,
+                    td.job_id,
+                    td.job_ref_no,
+                    td.equipment_name,
+                    td.barcode,
+                    COALESCE(j.client_name, '') AS client_name,
+                    COALESCE(td.scan_flag_in, FALSE) AS scan_flag_in
+                FROM public.transaction_details td
+                LEFT JOIN public.jobs j
+                    ON j.id = td.job_id
+                WHERE TRIM(COALESCE(td.barcode, '')) = TRIM(%s)
+                  AND td.scan_out_date_time IS NOT NULL
+                ORDER BY td.scan_out_date_time DESC, td.trans_id DESC
+                LIMIT 1
+            """, [barcode])
+
+            row = cursor.fetchone()
+
+            if not row:
+                return JsonResponse({
+                    "status": 0,
+                    "message": "No OUT transaction found for this barcode"
+                })
+
+            trans_id = row[0]
+            job_no = row[2]
+            equipment_name = row[3]
+            barcode_no = row[4]
+            client_name = row[5]
+            already_returned = row[6]
+
+            if already_returned:
+                return JsonResponse({
+                    "status": 0,
+                    "message": "This barcode is already returned"
+                })
+
+            cursor.execute("""
+                UPDATE public.transaction_details
+                SET
+                    scan_flag_in = TRUE,
+                    scan_in_date_time = NOW(),
+                    scan_in_by = %s
+                WHERE trans_id = %s
+                RETURNING scan_in_date_time
+            """, [user_id, trans_id])
+
+            return_time = cursor.fetchone()[0]
+
+        return JsonResponse({
+            "status": 1,
+            "message": "Quick return scanned successfully",
+            "barcode": barcode_no,
+            "equipment_name": equipment_name,
+            "job_no": job_no,
+            "client_name": client_name,
+            "status_text": "Returned",
+            "return_time": return_time.strftime("%d-%m-%Y %H:%M")
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "status": 0,
+            "message": str(e)
+        }, status=500)

@@ -1,0 +1,33 @@
+{% extends 'inventory/movement_base.html' %}
+
+{% block form_content %}
+<div class="row g-3">
+    <div class="col-md-6">
+        <label class="form-label fw-semibold">Vendor Name</label>
+        <input type="text" id="vendorName" class="form-control" placeholder="Repair Vendor">
+    </div>
+
+    <div class="col-md-6">
+        <label class="form-label fw-semibold">Expected Return Date</label>
+        <input type="date" id="expectedReturnDate" class="form-control">
+    </div>
+
+    <div class="col-md-12">
+        <label class="form-label fw-semibold">Reason / Remarks</label>
+        <textarea id="remarks" class="form-control" rows="2"></textarea>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function collectPayload() {
+    return {
+        movement_type: "MAINTENANCE_OUT",
+        vendor_name: document.getElementById("vendorName").value,
+        expected_return_date: document.getElementById("expectedReturnDate").value,
+        remarks: document.getElementById("remarks").value
+    };
+}
+</script>
+{% endblock %}

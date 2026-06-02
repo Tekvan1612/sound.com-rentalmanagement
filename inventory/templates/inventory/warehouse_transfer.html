@@ -1,0 +1,17 @@
+{% extends 'inventory/movement_base.html' %}
+
+{% block form_content %}
+<div class="alert alert-info mb-0">
+    Scan barcode directly. System will find latest OUT transaction automatically.
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function collectPayload() {
+    return {
+        movement_type: "QUICK_RETURN"
+    };
+}
+</script>
+{% endblock %}

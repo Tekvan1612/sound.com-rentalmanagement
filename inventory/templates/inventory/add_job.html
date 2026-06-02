@@ -389,7 +389,9 @@
 
                                             <div class="col-xl-3 col-md-6 mb-3">
                                                 <label class="form-label">Setup Date</label>
-                                                <input type="date" class="form-control" id="prepDate" name="setup_date">
+                                                <input type="date" class="form-control" id="prepDate" name="setup_date"
+                                                       onchange="calculateJobDaysNow()"
+                                                       oninput="calculateJobDaysNow()">
                                             </div>
 
                                             <div class="col-xl-3 col-md-6 mb-3">
@@ -406,7 +408,9 @@
 
                                             <div class="col-xl-3 col-md-6 mb-3">
                                                 <label class="form-label">Dismantle Date</label>
-                                                <input type="date" class="form-control" id="showEnd" name="end_date">
+                                                <input type="date" class="form-control" id="showEnd" name="end_date"
+                                                       onchange="calculateJobDaysNow()"
+                                                       oninput="calculateJobDaysNow()">
                                             </div>
 
                                             <div class="col-xl-3 col-md-6 mb-3">
@@ -442,7 +446,43 @@
                                             </div>
 
                                             <div class="col-xl-3 col-md-6 mb-3">
-                                                <label class="form-label">Amount</label>
+                                                <label class="form-label">Equipment Total</label>
+                                                <input type="number"
+                                                       class="form-control"
+                                                       id="equipment_total_amount"
+                                                       name="equipment_total_amount"
+                                                       readonly>
+                                            </div>
+
+                                            <div class="col-xl-3 col-md-6 mb-3">
+                                                <label class="form-label">Sub Vendor Total</label>
+                                                <input type="number"
+                                                       class="form-control"
+                                                       id="sub_vendor_total_amount"
+                                                       name="sub_vendor_total_amount"
+                                                       readonly>
+                                            </div>
+
+                                            <div class="col-xl-3 col-md-6 mb-3">
+                                                <label class="form-label">Crew Total</label>
+                                                <input type="number"
+                                                       class="form-control"
+                                                       id="crew_total_amount"
+                                                       name="crew_total_amount"
+                                                       readonly>
+                                            </div>
+
+                                            <div class="col-xl-3 col-md-6 mb-3">
+                                                <label class="form-label">Transport Total</label>
+                                                <input type="number"
+                                                       class="form-control"
+                                                       id="transport_total_amount"
+                                                       name="transport_total_amount"
+                                                       readonly>
+                                            </div>
+
+                                            <div class="col-xl-3 col-md-6 mb-3">
+                                                <label class="form-la bel">Amount</label>
                                                 <input type="number" class="form-control" id="total_amount"
                                                        name="amount_row" readonly>
                                             </div>
@@ -475,51 +515,54 @@
                                         <div class="wizard-panel">
 
                                             {% if not edit_mode or edit_type == "job" %}
-                                            <div class="card border-0 bg-theme-1-subtle mb-4" id="splitJobCard">
-                                                <div class="card-body">
+                                                <div class="card border-0 bg-theme-1-subtle mb-4" id="splitJobCard">
+                                                    <div class="card-body">
 
-                                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                                        <div>
-                                                            <h5 class="mb-1">
-                                                                <i class="bi bi-diagram-3 me-2"></i>
-                                                                Co Jobs / Section Wise Equipment
-                                                            </h5>
-                                                            <small class="text-muted">
-                                                                Create ballroom / section-wise job and assign separate equipment.
-                                                            </small>
+                                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                                            <div>
+                                                                <h5 class="mb-1">
+                                                                    <i class="bi bi-diagram-3 me-2"></i>
+                                                                    Co Jobs / Section Wise Equipment
+                                                                </h5>
+                                                                <small class="text-muted">
+                                                                    Create ballroom / section-wise job and assign
+                                                                    separate equipment.
+                                                                </small>
+                                                            </div>
+
+                                                            <button type="button"
+                                                                    class="btn btn-theme btn-sm"
+                                                                    data-bs-toggle="modal"
+                                                                    data-bs-target="#splitJobModal">
+                                                                <i class="bi bi-plus-circle me-1"></i>
+                                                                Add Co Job
+                                                            </button>
                                                         </div>
 
-                                                        <button type="button"
-                                                                class="btn btn-theme btn-sm"
-                                                                data-bs-toggle="modal"
-                                                                data-bs-target="#splitJobModal">
-                                                            <i class="bi bi-plus-circle me-1"></i>
-                                                            Add Co Job
-                                                        </button>
-                                                    </div>
+                                                        <div class="table-responsive">
+                                                            <table class="table table-hover align-middle mb-0">
+                                                                <thead class="table-light">
+                                                                <tr>
+                                                                    <th>Co Job No</th>
+                                                                    <th>Section / Ballroom</th>
+                                                                    <th>Status</th>
+                                                                    <th class="text-center" style="width:120px;">
+                                                                        Action
+                                                                    </th>
+                                                                </tr>
+                                                                </thead>
+                                                                <tbody id="splitJobTableBody">
+                                                                <tr>
+                                                                    <td colspan="4" class="text-center text-muted py-4">
+                                                                        Loading co jobs...
+                                                                    </td>
+                                                                </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
 
-                                                    <div class="table-responsive">
-                                                        <table class="table table-hover align-middle mb-0">
-                                                            <thead class="table-light">
-                                                            <tr>
-                                                                <th>Co Job No</th>
-                                                                <th>Section / Ballroom</th>
-                                                                <th>Status</th>
-                                                                <th class="text-center" style="width:120px;">Action</th>
-                                                            </tr>
-                                                            </thead>
-                                                            <tbody id="splitJobTableBody">
-                                                            <tr>
-                                                                <td colspan="4" class="text-center text-muted py-4">
-                                                                    Loading co jobs...
-                                                                </td>
-                                                            </tr>
-                                                            </tbody>
-                                                        </table>
                                                     </div>
-
                                                 </div>
-                                            </div>
                                             {% endif %}
 
                                             <div class="equipment-zone-card mb-4">
@@ -562,17 +605,19 @@
 
 
                                             {% if not edit_mode or edit_type == "job" %}
-                                            <div class="row mb-3" id="coJobEquipmentSelectorWrap">
-                                                <div class="col-lg-4 col-md-6">
-                                                    <label class="form-label">Select Co Job / Section</label>
-                                                    <select class="form-select" id="selected_split_id" name="selected_split_id">
-                                                        <option value="">Main Job Equipment</option>
-                                                    </select>
-                                                    <small class="text-muted">
-                                                        Select a co job before adding equipment. Leave blank for main job equipment.
-                                                    </small>
+                                                <div class="row mb-3" id="coJobEquipmentSelectorWrap">
+                                                    <div class="col-lg-4 col-md-6">
+                                                        <label class="form-label">Select Co Job / Section</label>
+                                                        <select class="form-select" id="selected_split_id"
+                                                                name="selected_split_id">
+                                                            <option value="">Main Job Equipment</option>
+                                                        </select>
+                                                        <small class="text-muted">
+                                                            Select a co job before adding equipment. Leave blank for
+                                                            main job equipment.
+                                                        </small>
+                                                    </div>
                                                 </div>
-                                            </div>
                                             {% endif %}
 
                                             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -598,6 +643,7 @@
                                                         <th class="category-col">Category</th>
                                                         <th class="subcategory-col">Sub Category</th>
                                                         <th class="equipment-col">Equipment</th>
+                                                        <th class="qty-col">Available Qty</th>
                                                         <th class="qty-col">Quantity</th>
                                                         <th class="price-col">Rental Price</th>
                                                         <th class="total-col">Total</th>
@@ -608,6 +654,11 @@
 
                                                     <tbody id="equipmentTableBody">
                                                     <tr>
+
+                                                        <input type="hidden"
+                                                               class="equipment_split_id"
+                                                               name="equipment_split_id[]"
+                                                               value="">
                                                         <td>
                                                             <input type="text"
                                                                    class="form-control category_name"
@@ -627,6 +678,13 @@
                                                                     name="equipment_name[]">
                                                                 <option value="">Select Equipment</option>
                                                             </select>
+                                                        </td>
+
+                                                        <td>
+                                                            <input type="number"
+                                                                   class="form-control available_qty"
+                                                                   name="available_qty[]"
+                                                                   readonly>
                                                         </td>
 
                                                         <td>
@@ -694,6 +752,8 @@
                                                     <th>Vendor Name</th>
                                                     <th>Equipment Name</th>
                                                     <th>Quantity</th>
+                                                    <th>Unit Price</th>
+                                                    <th>Total</th>
                                                     <th>Action</th>
                                                 </tr>
                                                 </thead>
@@ -703,6 +763,18 @@
                                                     <td><input type="text" name="equipment-name" class="form-control">
                                                     </td>
                                                     <td><input type="number" name="quantity" class="form-control"></td>
+                                                    <td>
+                                                        <input type="number"
+                                                               name="sub_unit_price"
+                                                               class="form-control sub-unit-price">
+                                                    </td>
+
+                                                    <td>
+                                                        <input type="number"
+                                                               name="sub_total"
+                                                               class="form-control sub-total"
+                                                               readonly>
+                                                    </td>
                                                     <td>
                                                         <button type="button"
                                                                 class="btn btn-sm btn-success save-sub-vendor-row"
@@ -824,8 +896,9 @@
                                             <div id="transportRows">
                                                 <div class="transport-row row g-3 align-items-end mb-3">
 
-                                                    <!-- Own Vehicle Fields -->
-                                                    <div class="col-lg-4 col-md-6 own-vehicle-field">
+                                                    <!-- OWN VEHICLE -->
+
+                                                    <div class="col-lg-3 col-md-6 own-vehicle-field">
                                                         <label class="form-label">Driver Name</label>
                                                         <select class="form-select" name="driver_name[]">
                                                             <option value="">Select Driver</option>
@@ -847,8 +920,17 @@
                                                         </select>
                                                     </div>
 
-                                                    <!-- Outside Vehicle Fields -->
-                                                    <div class="col-lg-4 col-md-6 outside-vehicle-field d-none">
+                                                    <div class="col-lg-3 col-md-6 own-vehicle-field">
+                                                        <label class="form-label">Amount</label>
+                                                        <input type="number"
+                                                               class="form-control transport-amount"
+                                                               name="transport_amount[]"
+                                                               placeholder="Amount">
+                                                    </div>
+
+                                                    <!-- OUTSIDE VEHICLE -->
+
+                                                    <div class="col-lg-3 col-md-6 outside-vehicle-field d-none">
                                                         <label class="form-label">Outside Driver Name</label>
                                                         <input type="text"
                                                                class="form-control"
@@ -870,6 +952,14 @@
                                                                class="form-control"
                                                                name="outside_vehicle_number[]"
                                                                placeholder="Enter Vehicle Number">
+                                                    </div>
+
+                                                    <div class="col-lg-3 col-md-6 outside-vehicle-field d-none">
+                                                        <label class="form-label">Amount</label>
+                                                        <input type="number"
+                                                               class="form-control transport-amount"
+                                                               name="transport_amount[]"
+                                                               placeholder="Amount">
                                                     </div>
 
                                                     <div class="col-auto">
@@ -1090,11 +1180,151 @@
 
 {% include 'inventory/includes/footer.html' %}
 
-
 <script>
-    $(document).ready(function () {
+    "use strict";
 
-        $('#smartwizard').smartWizard({
+    /* =====================================================
+       GLOBAL STATE
+    ===================================================== */
+    let coJobs = [];
+    let equipmentOptionsCache = [];
+    let equipmentPopupLoaded = false;
+    let equipmentPopupLoading = false;
+    let activeCrewInput = null;
+    let driversData = [];
+    let vehiclesData = [];
+
+    let equipmentSectionData = {
+        main: []
+    };
+
+
+    /* =====================================================
+       COMMON HELPERS
+    ===================================================== */
+    function getEl(id) {
+        return document.getElementById(id);
+    }
+
+    function val(id) {
+        return getEl(id)?.value || "";
+    }
+
+    function setVal(id, value) {
+        const el = getEl(id);
+        if (el) el.value = value ?? "";
+    }
+
+    function escapeHtml(value) {
+        const div = document.createElement("div");
+        div.textContent = value ?? "";
+        return div.innerHTML;
+    }
+
+    function refreshSmartWizardHeight() {
+        if (window.jQuery && $("#smartwizard").length) {
+            setTimeout(() => {
+                $("#smartwizard").smartWizard("fixHeight");
+            }, 50);
+        }
+    }
+
+    function getCurrentEquipmentSectionKey() {
+        const selectedSplit = getEl("selected_split_id");
+        return selectedSplit && selectedSplit.value ? selectedSplit.value : "main";
+    }
+
+    function collectEquipmentRowsBySection(sectionKey) {
+        if (!sectionKey) sectionKey = "main";
+
+        const rows = [];
+
+        document.querySelectorAll("#equipmentTableBody tr").forEach(row => {
+            const equipmentSelect = row.querySelector(".equipment_select");
+            const equipmentId = equipmentSelect?.value || "";
+
+            if (!equipmentId) return;
+
+            rows.push({
+                equipment_id: equipmentId,
+                equipment_name: equipmentSelect.options[equipmentSelect.selectedIndex]?.text || "",
+                category_name: row.querySelector(".category_name")?.value || "",
+                sub_category_name: row.querySelector(".sub_category_name")?.value || "",
+                available_qty: row.querySelector(".available_qty")?.value || "",
+                qty: row.querySelector(".equipment_qty")?.value || "",
+                rental_price: row.querySelector(".rental_price")?.value || "",
+                total: row.querySelector(".equipment_total")?.value || "",
+                notes: row.querySelector('[name="equipment_notes[]"]')?.value || "",
+                available_dataset: row.dataset.availableQty || 0
+            });
+        });
+
+        equipmentSectionData[sectionKey] = rows;
+    }
+
+    function clearEquipmentTable() {
+        const tbody = getEl("equipmentTableBody");
+        if (!tbody) return;
+
+        tbody.innerHTML = "";
+    }
+
+    function renderBlankEquipmentRow() {
+        const tbody = getEl("equipmentTableBody");
+        if (!tbody) return;
+
+        const row = createEquipmentRow();
+        tbody.appendChild(row);
+        loadEquipmentDropdown(row.querySelector(".equipment_select"));
+    }
+
+    function renderEquipmentRowsForSection(sectionKey) {
+        const tbody = getEl("equipmentTableBody");
+        if (!tbody) return;
+
+        clearEquipmentTable();
+
+        const rows = equipmentSectionData[sectionKey] || [];
+
+        if (!rows.length) {
+            renderBlankEquipmentRow();
+            calculateMainAmount();
+            return;
+        }
+
+        rows.forEach(item => {
+            const row = createEquipmentRow();
+            tbody.appendChild(row);
+
+            const select = row.querySelector(".equipment_select");
+
+            select.innerHTML = `
+                <option value="${item.equipment_id}" selected>
+                    ${escapeHtml(item.equipment_name)}
+                </option>
+            `;
+
+            row.querySelector(".category_name").value = item.category_name;
+            row.querySelector(".sub_category_name").value = item.sub_category_name;
+            row.querySelector(".available_qty").value = item.available_qty;
+            row.querySelector(".equipment_qty").value = item.qty;
+            row.querySelector(".rental_price").value = item.rental_price;
+            row.querySelector(".equipment_total").value = item.total;
+            row.querySelector('[name="equipment_notes[]"]').value = item.notes;
+            row.dataset.availableQty = item.available_dataset || item.available_qty || 0;
+        });
+
+        calculateMainAmount();
+        refreshSmartWizardHeight();
+    }
+
+    /* =====================================================
+       SMART WIZARD
+    ===================================================== */
+    function initSmartWizard() {
+        if (!window.jQuery || !$("#smartwizard").length) return;
+
+        $("#smartwizard").smartWizard({
             selected: 0,
             autoAdjustHeight: true,
             toolbar: {
@@ -1106,131 +1336,59 @@
                 enableNavigationAlways: true
             }
         });
+    }
 
-        fetchClientName();
+    /* =====================================================
+       DATE / NUMBER OF DAYS
+    ===================================================== */
+    function calculateJobDaysNow() {
+        const setupDate = getEl("prepDate");
+        const dismantleDate = getEl("showEnd");
+        const totalDays = getEl("number_of_days");
 
-        $('#clientNameDropdown').on('keyup focus', function () {
-            let search = $(this).val().toLowerCase();
-            $('#clientNameInputDropdown li').each(function () {
-                $(this).toggle($(this).text().toLowerCase().includes(search));
-            });
-            $('#clientNameInputDropdown').addClass('show');
-        });
+        if (!setupDate || !dismantleDate || !totalDays) return;
 
-        $(document).on('click', '.client-item', function (e) {
-            e.preventDefault();
-            let name = $(this).data('name');
-            $('#clientNameDropdown').val(name);
-            $('#clientNameInputDropdown').removeClass('show');
-            fetchContactPersons(name);
-        });
-        // ========================================
-        // VENUE DROPDOWN
-        // ========================================
-        $('#venueAddressDropdown').on('keyup focus click', function () {
-            let query = $(this).val().trim();
-            let dropdown = $('#dropdown-item');
+        if (!setupDate.value || !dismantleDate.value) {
+            totalDays.value = "";
+            return;
+        }
 
-            $.ajax({
-                url: "{% url 'inventory:fetch_venue_name' %}",
-                type: "GET",
-                data: {query: query},
-                success: function (response) {
-                    console.log("VENUE RESPONSE:", response);
+        const start = new Date(setupDate.value + "T00:00:00");
+        const end = new Date(dismantleDate.value + "T00:00:00");
 
-                    dropdown.empty();
+        const diffDays = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
-                    if (!response.venue_names || response.venue_names.length === 0) {
-                        dropdown.append(`
-                                <li>
-                                    <span class="dropdown-item text-muted">
-                                        No venue found
-                                    </span>
-                                </li>
-                            `);
-                        dropdown.addClass('show');
-                        return;
-                    }
+        totalDays.value = diffDays > 0 ? diffDays : "";
+    }
 
-                    response.venue_names.forEach(function (item) {
-                        dropdown.append(`
-                                <li>
-                                    <a class="dropdown-item venue-item"
-                                       href="#"
-                                       data-name="${item.name}">
-                                        ${item.name}
-                                    </a>
-                                </li>
-                            `);
-                    });
-
-                    dropdown.addClass('show');
-                },
-                error: function (xhr) {
-                    console.log("VENUE ERROR:", xhr.status, xhr.responseText);
-
-                    dropdown.empty().append(`
-                            <li>
-                                <span class="dropdown-item text-danger">
-                                    Venue loading error
-                                </span>
-                            </li>
-                        `);
-
-                    dropdown.addClass('show');
-                }
-            });
-        });
-
-        $(document).on('click', '.venue-item', function (e) {
-            e.preventDefault();
-
-            let venue = $(this).data('name');
-
-            $('#venueAddressDropdown').val(venue);
-            $('#dropdown-item').removeClass('show').empty();
-
-            $.ajax({
-                url: "{% url 'inventory:fetch_venue_address' %}",
-                type: "GET",
-                data: {venue_name: venue},
-                success: function (response) {
-                    $('#venueAddressInput').val(response.venue_address || '');
-                },
-                error: function (xhr) {
-                    console.log("VENUE ADDRESS ERROR:", xhr.status, xhr.responseText);
-                }
-            });
-        });
-
-        $('#clientContactName').on('change', function () {
-            let mobile = $(this).find(':selected').data('mobile');
-            $('#clientContactNumber').val(mobile || '');
-        });
-
-        $(document).on('click', function (e) {
-            if (!$(e.target).closest('#clientNameDropdown, #clientNameInputDropdown').length) {
-                $('#clientNameInputDropdown').removeClass('show');
-            }
-            if (!$(e.target).closest('#venueAddressDropdown, #dropdown-item').length) {
-                $('#dropdown-item').removeClass('show');
+    function initDateCalculation() {
+        ["prepDate", "showEnd"].forEach(id => {
+            const el = getEl(id);
+            if (el) {
+                el.addEventListener("change", calculateJobDaysNow);
+                el.addEventListener("input", calculateJobDaysNow);
             }
         });
-    });
 
+        calculateJobDaysNow();
+    }
+
+    /* =====================================================
+       CLIENT / VENUE DROPDOWNS
+    ===================================================== */
     function fetchClientName() {
         $.ajax({
             url: "{% url 'inventory:fetch_client_name' %}",
             method: "GET",
             success: function (response) {
-                let dropdown = $('#clientNameInputDropdown');
+                const dropdown = $("#clientNameInputDropdown");
                 dropdown.empty();
 
-                response.client_names.forEach(function (item) {
+                (response.client_names || []).forEach(item => {
                     dropdown.append(`
                         <li>
-                            <a class="dropdown-item client-item" href="#" data-name="${item.name}">
-                                ${item.name}
+                            <a class="dropdown-item client-item" href="#" data-name="${escapeHtml(item.name)}">
+                                ${escapeHtml(item.name)}
                             </a>
                         </li>
                     `);
@@ -1244,730 +1402,620 @@
             url: "{% url 'inventory:fetch_individual_names' %}",
             data: {client_name: clientName},
             success: function (response) {
-                let select = $('#clientContactName');
+                const select = $("#clientContactName");
                 select.empty().append('<option value="">Select Contact Person</option>');
 
-                response.individual_names.forEach(function (person) {
+                (response.individual_names || []).forEach(person => {
                     select.append(`
-                        <option value="${person.name}" data-mobile="${person.mobile}">
-                            ${person.name}
+                        <option value="${escapeHtml(person.name)}" data-mobile="${escapeHtml(person.mobile)}">
+                            ${escapeHtml(person.name)}
                         </option>
                     `);
                 });
             }
         });
     }
-</script>
 
+    function initClientVenueDropdowns() {
+        fetchClientName();
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
+        $("#clientNameDropdown").on("keyup focus", function () {
+            const search = $(this).val().toLowerCase();
 
-        // =====================================================
-        // ADD SUB VENDOR ROW
-        // =====================================================
-        const addSubVendorBtn = document.getElementById("add-sub-vendor-row-btn");
-
-        if (addSubVendorBtn) {
-            addSubVendorBtn.addEventListener("click", function () {
-                const tbody = document.getElementById("sub-vendor-table");
-                if (!tbody) return;
-
-                const row = `
-                    <tr>
-                        <td>
-                            <input type="text" name="vendor-name" class="form-control">
-                        </td>
-                        <td>
-                            <input type="text" name="equipment-name" class="form-control">
-                        </td>
-                        <td>
-                            <input type="number" name="quantity" class="form-control">
-                        </td>
-                        <td>
-                            <button type="button" class="btn btn-sm btn-success save-sub-vendor-row">
-                                <i class="bi bi-check-lg"></i>
-                            </button>
-                            <button type="button" class="btn btn-sm btn-danger remove-row">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-
-                tbody.insertAdjacentHTML("beforeend", row);
-            });
-        }
-
-        // =====================================================
-        // ADD CREW ROW
-        // =====================================================
-        const addCrewBtn = document.getElementById("addCrewAllocationRow");
-
-        if (addCrewBtn) {
-            addCrewBtn.addEventListener("click", function () {
-                const tbody = document.getElementById("crew-allocation-table-body");
-                if (!tbody) return;
-
-                const row = `
-                    <tr>
-                        <td>
-                            <button type="button" class="btn btn-sm btn-danger remove-row">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </td>
-                        <td>
-                            <div class="crew-type-wrapper">
-                                                                <input type="text"
-                                                                       class="form-control crew-type-input"
-                                                                       name="crew_type[]"
-                                                                       placeholder="Search Crew Type"
-                                                                       autocomplete="off">
-                                                            </div>
-                        </td>
-                        <td>
-                            <input type="number" class="form-control crew-days" name="crew_no_of_days[]" placeholder="Days">
-                        </td>
-                        <td>
-                            <input type="number" class="form-control crew-charge" name="perday_charges[]" placeholder="Per Day">
-                        </td>
-                        <td>
-                            <input type="number" class="form-control crew-total" name="crew_total[]" readonly>
-                        </td>
-                        <td>
-                            <input type="text" class="form-control" name="crew_notes[]" placeholder="Notes">
-                        </td>
-                    </tr>
-                `;
-
-                tbody.insertAdjacentHTML("beforeend", row);
-
-                if (window.jQuery && $('#smartwizard').length) {
-                    $('#smartwizard').smartWizard("fixHeight");
-                }
-            });
-        }
-
-        // =====================================================
-        // REMOVE ANY DYNAMIC ROW
-        // =====================================================
-        document.addEventListener("click", function (event) {
-            const removeBtn = event.target.closest(".remove-row, .remove-sub-vendor-row");
-
-            if (!removeBtn) return;
-
-            const row = removeBtn.closest("tr");
-            if (row) {
-                row.remove();
-            }
-        });
-
-
-        // =====================================================
-        // CLEAN FLOATING CREW TYPE SEARCHABLE DROPDOWN
-        // =====================================================
-        const crewTypeOptions = [
-            {name: "Stage Hand", group: "General"},
-            {name: "Audio Engineer", group: "Audio"},
-            {name: "Lighting Engineer", group: "Lighting"},
-            {name: "Video Engineer", group: "Video"},
-            {name: "LED Technician", group: "LED"},
-            {name: "Rigging Crew", group: "Rigging"},
-            {name: "Production Manager", group: "Production"},
-            {name: "FOH Engineer", group: "Audio"},
-            {name: "Monitor Engineer", group: "Audio"},
-            {name: "Patch Crew", group: "Audio"},
-            {name: "Backline Crew", group: "Backline"},
-            {name: "Spot Operator", group: "Lighting"},
-            {name: "Camera Operator", group: "Video"},
-            {name: "Electrician", group: "Power"},
-            {name: "Generator Operator", group: "Power"},
-            {name: "Truck Loader", group: "Logistics"},
-            {name: "Forklift Operator", group: "Logistics"}
-        ];
-
-        let activeCrewInput = null;
-
-        function getCrewMenu() {
-            let menu = document.getElementById("crewTypeFloatingMenu");
-
-            if (!menu) {
-                menu = document.createElement("div");
-                menu.id = "crewTypeFloatingMenu";
-                document.body.appendChild(menu);
-            }
-
-            return menu;
-        }
-
-        function positionCrewMenu(input) {
-            const menu = getCrewMenu();
-            const rect = input.getBoundingClientRect();
-
-            menu.style.left = rect.left + "px";
-            menu.style.top = (rect.bottom + 6) + "px";
-            menu.style.width = rect.width + "px";
-        }
-
-        function renderCrewMenu(input) {
-            activeCrewInput = input;
-
-            const menu = getCrewMenu();
-            const query = input.value.trim().toLowerCase();
-
-            const filtered = crewTypeOptions.filter(item =>
-                item.name.toLowerCase().includes(query) ||
-                item.group.toLowerCase().includes(query)
-            );
-
-            if (!filtered.length) {
-                menu.innerHTML = `<div class="crew-type-empty">No crew type found</div>`;
-            } else {
-                menu.innerHTML = filtered.map(item => `
-                    <div class="crew-type-option" data-value="${item.name}">
-                        <span>${item.name}</span>
-                        <small>${item.group}</small>
-                    </div>
-                `).join("");
-            }
-
-            positionCrewMenu(input);
-            menu.classList.add("show");
-        }
-
-        function hideCrewMenu() {
-            const menu = getCrewMenu();
-            menu.classList.remove("show");
-            activeCrewInput = null;
-        }
-
-        document.addEventListener("focusin", function (event) {
-            if (!event.target.classList.contains("crew-type-input")) return;
-            renderCrewMenu(event.target);
-        });
-
-        document.addEventListener("input", function (event) {
-            if (!event.target.classList.contains("crew-type-input")) return;
-            renderCrewMenu(event.target);
-        });
-
-        document.addEventListener("click", function (event) {
-            const option = event.target.closest(".crew-type-option");
-
-            if (option && activeCrewInput) {
-                activeCrewInput.value = option.dataset.value;
-                hideCrewMenu();
-                return;
-            }
-
-            if (!event.target.closest(".crew-type-wrapper") &&
-                !event.target.closest("#crewTypeFloatingMenu")) {
-                hideCrewMenu();
-            }
-        });
-
-        window.addEventListener("scroll", function () {
-            if (activeCrewInput) {
-                positionCrewMenu(activeCrewInput);
-            }
-        }, true);
-
-        window.addEventListener("resize", function () {
-            if (activeCrewInput) {
-                positionCrewMenu(activeCrewInput);
-            }
-        });
-
-        // =====================================================
-        // CREW TOTAL CALCULATION
-        // total = no. of days * per day charges
-        // =====================================================
-        document.addEventListener("input", function (event) {
-            const row = event.target.closest("tr");
-            if (!row) return;
-
-            if (!event.target.classList.contains("crew-days") &&
-                !event.target.classList.contains("crew-charge")) {
-                return;
-            }
-
-            const days = parseFloat(row.querySelector(".crew-days")?.value) || 0;
-            const charge = parseFloat(row.querySelector(".crew-charge")?.value) || 0;
-            const total = row.querySelector(".crew-total");
-
-            if (total) {
-                total.value = (days * charge).toFixed(2);
-            }
-        });
-    });
-    document.addEventListener("DOMContentLoaded", function () {
-
-        const setupDate =
-            document.getElementById("prepDate");
-
-        const dismantleDate =
-            document.getElementById("showEnd");
-
-        const totalDays =
-            document.getElementById("number_of_days");
-
-        function calculateDays() {
-
-            if (
-                !setupDate.value ||
-                !dismantleDate.value
-            ) {
-                totalDays.value = "";
-                return;
-            }
-
-            const start =
-                new Date(setupDate.value);
-
-            const end =
-                new Date(dismantleDate.value);
-
-            const diffTime =
-                end - start;
-
-            const diffDays =
-                Math.ceil(
-                    diffTime / (1000 * 60 * 60 * 24)
-                ) + 1;
-
-            if (diffDays > 0) {
-
-                totalDays.value = diffDays;
-
-            } else {
-
-                totalDays.value = "";
-            }
-        }
-
-        setupDate.addEventListener(
-            "change",
-            calculateDays
-        );
-
-        dismantleDate.addEventListener(
-            "change",
-            calculateDays
-        );
-
-    });
-
-
-    document.addEventListener("DOMContentLoaded", function () {
-
-        const equipmentTableBody = document.getElementById("equipmentTableBody");
-        const addEquipmentBtn = document.getElementById("addEquipmentBtn");
-
-        function loadEquipmentDropdown(selectElement, selectedId = "") {
-            if (!selectElement) return;
-
-            if (equipmentOptionsCache.length) {
-                renderEquipmentDropdownOptions(selectElement, selectedId);
-                return;
-            }
-
-            fetch("{% url 'inventory:fetch_equipment_names' %}")
-                .then(response => response.json())
-                .then(data => {
-                    equipmentOptionsCache = data.equipment_names || [];
-                    renderEquipmentDropdownOptions(selectElement, selectedId);
-                })
-                .catch(error => {
-                    console.error("Equipment load error:", error);
-                });
-        }
-
-        function calculateDiscountFromAmount() {
-
-            const totalAmount =
-                parseFloat(
-                    document.getElementById("total_amount").value
-                ) || 0;
-
-            const discountedAmount =
-                parseFloat(
-                    document.getElementById("discounted_amount").value
-                ) || 0;
-
-            const discountInput =
-                document.getElementById("discount");
-
-            const gstTotalInput =
-                document.getElementById("total_amount_cal");
-
-            if (totalAmount <= 0 || discountedAmount <= 0) {
-
-                discountInput.value = "";
-                gstTotalInput.value = "";
-
-                return;
-            }
-
-            const discountPercent =
-                (
-                    (totalAmount - discountedAmount)
-                    / totalAmount
-                ) * 100;
-
-            const gstTotal =
-                discountedAmount +
-                ((discountedAmount * 18) / 100);
-
-            discountInput.value =
-                discountPercent.toFixed(2);
-
-            gstTotalInput.value =
-                gstTotal.toFixed(2);
-        }
-
-        document
-            .getElementById("discounted_amount")
-            .addEventListener(
-                "input",
-                calculateDiscountFromAmount
-            );
-
-        function calculateMainAmount() {
-            const amountInput = document.getElementById("total_amount");
-            if (!amountInput) return;
-
-            let amount = 0;
-
-            document.querySelectorAll(".equipment_total").forEach(input => {
-                amount += parseFloat(input.value) || 0;
+            $("#clientNameInputDropdown li").each(function () {
+                $(this).toggle($(this).text().toLowerCase().includes(search));
             });
 
-            amountInput.value = amount.toFixed(2);
-            calculateDiscountFromAmount();
-        }
+            $("#clientNameInputDropdown").addClass("show");
+        });
 
-        function calculateEquipmentRow(row) {
-            if (!row) return;
+        $(document).on("click", ".client-item", function (e) {
+            e.preventDefault();
 
-            const qty = parseFloat(row.querySelector(".equipment_qty")?.value) || 0;
-            const price = parseFloat(row.querySelector(".rental_price")?.value) || 0;
-            const totalInput = row.querySelector(".equipment_total");
+            const name = $(this).data("name");
 
-            if (totalInput) {
-                totalInput.value = (qty * price).toFixed(2);
-            }
+            $("#clientNameDropdown").val(name);
+            $("#clientNameInputDropdown").removeClass("show");
 
-            calculateMainAmount();
-        }
+            fetchContactPersons(name);
+        });
 
-        function createEquipmentRow() {
-            const row = document.createElement("tr");
+        $("#clientContactName").on("change", function () {
+            const mobile = $(this).find(":selected").data("mobile");
+            $("#clientContactNumber").val(mobile || "");
+        });
 
-            row.innerHTML = `
-                <td>
-                    <input type="text"
-                           class="form-control category_name"
-                           name="equipment_category[]"
-                           readonly>
-                </td>
+        $("#venueAddressDropdown").on("keyup focus click", function () {
+            const query = $(this).val().trim();
+            const dropdown = $("#dropdown-item");
 
-                <td>
-                    <input type="text"
-                           class="form-control sub_category_name"
-                           name="equipment_sub_category[]"
-                           readonly>
-                </td>
+            $.ajax({
+                url: "{% url 'inventory:fetch_venue_name' %}",
+                type: "GET",
+                data: {query: query},
+                success: function (response) {
+                    dropdown.empty();
 
-                <td>
-                    <select class="form-select equipment_select"
-                            name="equipment_name[]">
-                        <option value="">Select Equipment</option>
-                    </select>
-                </td>
-
-                <td>
-                    <input type="number"
-                           class="form-control equipment_qty"
-                           name="equipment_qty[]"
-                           min="1"
-                           placeholder="Qty">
-                </td>
-
-                <td>
-                    <input type="number"
-                           class="form-control rental_price"
-                           name="rental_price[]"
-                           readonly>
-                </td>
-
-                <td>
-                    <input type="number"
-                           class="form-control equipment_total"
-                           name="equipment_total[]"
-                           readonly>
-                </td>
-
-                <td>
-                    <input type="text"
-                           class="form-control"
-                           name="equipment_notes[]"
-                           placeholder="Notes">
-                </td>
-
-                <td class="text-center">
-                    <button type="button"
-                            class="btn btn-sm btn-danger remove-equipment-row">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </td>
-            `;
-
-            return row;
-        }
-
-        let equipmentPopupLoaded = false;
-        let equipmentPopupLoading = false;
-        let equipmentOptionsCache = [];
-
-        function refreshSmartWizardHeight() {
-            if (window.jQuery && $('#smartwizard').length) {
-                setTimeout(function () {
-                    $('#smartwizard').smartWizard("fixHeight");
-                }, 50);
-            }
-        }
-
-        function renderEquipmentDropdownOptions(selectElement, selectedId = "") {
-            if (!selectElement) return;
-
-            selectElement.innerHTML = '<option value="">Select Equipment</option>';
-
-            equipmentOptionsCache.forEach(item => {
-                const option = document.createElement("option");
-                option.value = item.id;
-                option.textContent = item.name || "";
-
-                if (String(item.id) === String(selectedId)) {
-                    option.selected = true;
-                }
-
-                selectElement.appendChild(option);
-            });
-        }
-
-        function escapeHtml(value) {
-            return String(value ?? "")
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-
-        function updateBulkEquipmentSelectedCount() {
-            const selectedCount = document.querySelectorAll(".bulk-equipment-check:checked").length;
-            const countLabel = document.getElementById("bulkEquipmentSelectedCount");
-
-            if (countLabel) {
-                countLabel.textContent = `${selectedCount} selected`;
-            }
-        }
-
-        function openEquipmentBulkPopup() {
-            loadEquipmentBulkPopup();
-
-            const popup = document.getElementById("equipmentPopup");
-            if (!popup) return;
-
-            const modal = bootstrap.Modal.getOrCreateInstance(popup);
-            modal.show();
-        }
-
-        function loadEquipmentBulkPopup(forceReload = false) {
-            const tbody = document.getElementById("equipmentPopupTableBody");
-            if (!tbody || equipmentPopupLoading) return;
-
-            if (equipmentPopupLoaded && !forceReload) {
-                updateBulkEquipmentSelectedCount();
-                return;
-            }
-
-            equipmentPopupLoading = true;
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="6" class="text-center text-muted py-4">Loading equipment...</td>
-                </tr>
-            `;
-
-            fetch("{% url 'inventory:fetch_equipment_names' %}")
-                .then(response => response.json())
-                .then(data => {
-                    const equipmentList = data.equipment_names || [];
-                    equipmentOptionsCache = equipmentList;
-
-                    if (!equipmentList.length) {
-                        tbody.innerHTML = `
-                            <tr>
-                                <td colspan="6" class="text-center text-muted py-4">No equipment found.</td>
-                            </tr>
-                        `;
+                    if (!response.venue_names || response.venue_names.length === 0) {
+                        dropdown.append(`
+                            <li>
+                                <span class="dropdown-item text-muted">No venue found</span>
+                            </li>
+                        `);
+                        dropdown.addClass("show");
                         return;
                     }
 
-                    tbody.innerHTML = "";
-
-                    equipmentList.forEach(item => {
-                        const row = document.createElement("tr");
-                        row.classList.add("bulk-equipment-row");
-                        row.dataset.equipmentId = item.id;
-                        row.dataset.equipmentName = item.name || "";
-                        row.dataset.searchText = String(item.name || "").toLowerCase();
-
-                        row.innerHTML = `
-                            <td>
-                                <input type="checkbox"
-                                       class="form-check-input bulk-equipment-check">
-                            </td>
-                            <td>
-                                <input type="number"
-                                       class="form-control bulk-equipment-qty"
-                                       min="1"
-                                       placeholder="Qty">
-                            </td>
-                            <td class="bulk-equipment-name">${escapeHtml(item.name || "")}</td>
-                            <td class="bulk-equipment-category text-muted">Loading...</td>
-                            <td class="bulk-equipment-sub-category text-muted">Loading...</td>
-                            <td class="bulk-equipment-price text-muted">Loading...</td>
-                        `;
-
-                        tbody.appendChild(row);
-
-                        fetch(`{% url 'inventory:fetch_rental_price' %}?equipment_id=${encodeURIComponent(item.id)}`)
-                            .then(response => response.json())
-                            .then(priceData => {
-                                row.dataset.categoryName = priceData.category_name || "";
-                                row.dataset.subCategoryName = priceData.sub_category_name || "";
-                                row.dataset.rentalPrice = priceData.rental_price || 0;
-
-                                row.querySelector(".bulk-equipment-category").textContent = priceData.category_name || "-";
-                                row.querySelector(".bulk-equipment-sub-category").textContent = priceData.sub_category_name || "-";
-                                row.querySelector(".bulk-equipment-price").textContent = priceData.rental_price || 0;
-
-                                row.dataset.searchText = `${item.name || ""} ${priceData.category_name || ""} ${priceData.sub_category_name || ""}`.toLowerCase();
-                            })
-                            .catch(error => {
-                                console.error("Bulk equipment price load error:", error);
-                                row.querySelector(".bulk-equipment-category").textContent = "-";
-                                row.querySelector(".bulk-equipment-sub-category").textContent = "-";
-                                row.querySelector(".bulk-equipment-price").textContent = "0";
-                            });
+                    response.venue_names.forEach(item => {
+                        dropdown.append(`
+                            <li>
+                                <a class="dropdown-item venue-item" href="#" data-name="${escapeHtml(item.name)}">
+                                    ${escapeHtml(item.name)}
+                                </a>
+                            </li>
+                        `);
                     });
 
-                    equipmentPopupLoaded = true;
-                    updateBulkEquipmentSelectedCount();
-                })
-                .catch(error => {
-                    console.error("Bulk equipment load error:", error);
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="6" class="text-center text-danger py-4">Equipment loading error.</td>
-                        </tr>
-                    `;
-                })
-                .finally(() => {
-                    equipmentPopupLoading = false;
-                });
-        }
+                    dropdown.addClass("show");
+                }
+            });
+        });
 
-        function getReusableEquipmentRow() {
-            if (!equipmentTableBody) return null;
+        $(document).on("click", ".venue-item", function (e) {
+            e.preventDefault();
 
-            const firstRow = equipmentTableBody.querySelector("tr");
-            if (!firstRow) return null;
+            const venue = $(this).data("name");
 
-            const equipmentSelect = firstRow.querySelector(".equipment_select");
-            const qtyInput = firstRow.querySelector(".equipment_qty");
-            const priceInput = firstRow.querySelector(".rental_price");
-            const totalInput = firstRow.querySelector(".equipment_total");
-            const notesInput = firstRow.querySelector('[name="equipment_notes[]"]');
+            $("#venueAddressDropdown").val(venue);
+            $("#dropdown-item").removeClass("show").empty();
 
-            const isBlank =
-                !equipmentSelect?.value &&
-                !qtyInput?.value &&
-                !priceInput?.value &&
-                !totalInput?.value &&
-                !notesInput?.value;
+            $.ajax({
+                url: "{% url 'inventory:fetch_venue_address' %}",
+                type: "GET",
+                data: {venue_name: venue},
+                success: function (response) {
+                    $("#venueAddressInput").val(response.venue_address || "");
+                }
+            });
+        });
 
-            return isBlank ? firstRow : null;
-        }
-
-        function addBulkEquipmentToMainTable() {
-            const checkedRows = Array.from(document.querySelectorAll(".bulk-equipment-check:checked"))
-                .map(checkbox => checkbox.closest("tr"))
-                .filter(Boolean);
-
-            if (!checkedRows.length) {
-                alert("Please select at least one equipment item.");
-                return;
+        $(document).on("click", function (e) {
+            if (!$(e.target).closest("#clientNameDropdown, #clientNameInputDropdown").length) {
+                $("#clientNameInputDropdown").removeClass("show");
             }
 
-            let addedCount = 0;
+            if (!$(e.target).closest("#venueAddressDropdown, #dropdown-item").length) {
+                $("#dropdown-item").removeClass("show");
+            }
+        });
+    }
 
-            checkedRows.forEach(popupRow => {
-                const qtyInput = popupRow.querySelector(".bulk-equipment-qty");
-                const qty = parseFloat(qtyInput?.value) || 0;
+    /* =====================================================
+       MAIN AMOUNT / DISCOUNT
+    ===================================================== */
+    function calculateDiscountFromAmount() {
+        const totalAmount = parseFloat(val("total_amount")) || 0;
+        const discountedAmount = parseFloat(val("discounted_amount")) || 0;
 
-                if (qty <= 0) {
-                    if (qtyInput) qtyInput.classList.add("is-invalid");
+        const discountInput = getEl("discount");
+        const gstTotalInput = getEl("total_amount_cal");
+
+        if (!discountInput || !gstTotalInput) return;
+
+        if (totalAmount <= 0 || discountedAmount <= 0) {
+            discountInput.value = "";
+            gstTotalInput.value = "";
+            return;
+        }
+
+        const discountPercent = ((totalAmount - discountedAmount) / totalAmount) * 100;
+        const gstTotal = discountedAmount + ((discountedAmount * 18) / 100);
+
+        discountInput.value = discountPercent.toFixed(2);
+        gstTotalInput.value = gstTotal.toFixed(2);
+    }
+
+    function calculateMainAmount() {
+        let equipmentTotal = 0;
+        let crewTotal = 0;
+        let subVendorTotal = 0;
+        let transportTotal = 0;
+
+        document.querySelectorAll(".equipment_total").forEach(input => {
+            equipmentTotal += parseFloat(input.value) || 0;
+        });
+
+        document.querySelectorAll(".crew-total").forEach(input => {
+            crewTotal += parseFloat(input.value) || 0;
+        });
+
+        document.querySelectorAll(".sub-total").forEach(input => {
+            subVendorTotal += parseFloat(input.value) || 0;
+        });
+
+        document.querySelectorAll(".transport-amount").forEach(input => {
+            const parent = input.closest(".own-vehicle-field, .outside-vehicle-field");
+
+            if (parent && parent.classList.contains("d-none")) return;
+
+            transportTotal += parseFloat(input.value) || 0;
+        });
+
+        setVal("equipment_total_amount", equipmentTotal.toFixed(2));
+        setVal("crew_total_amount", crewTotal.toFixed(2));
+        setVal("sub_vendor_total_amount", subVendorTotal.toFixed(2));
+        setVal("transport_total_amount", transportTotal.toFixed(2));
+
+        const grandTotal = equipmentTotal + crewTotal + subVendorTotal + transportTotal;
+
+        setVal("total_amount", grandTotal.toFixed(2));
+
+        calculateDiscountFromAmount();
+    }
+
+    /* =====================================================
+       CO JOB
+    ===================================================== */
+    function createSplitJob() {
+        const section = val("splitJobSection").trim();
+        const location = val("splitLocation").trim();
+        const incharge = val("splitIncharge").trim();
+        const rehearsalDate = val("splitRehearsalDate");
+        const eventDate = val("splitEventDate");
+
+        if (!section) {
+            alert("Please enter Section / Ballroom Name.");
+            return;
+        }
+
+        const localId = "local_" + Date.now();
+
+        const coJob = {
+            local_id: localId,
+            section_name: section,
+            location: location,
+            incharge: incharge,
+            rehearsal_date: rehearsalDate,
+            event_date: eventDate,
+            status: "Draft"
+        };
+
+        coJobs.push(coJob);
+        syncCoJobsJson();
+        renderCoJobs();
+        renderCoJobDropdown();
+
+        setVal("splitJobSection", "");
+        setVal("splitLocation", "");
+        setVal("splitIncharge", "");
+        setVal("splitRehearsalDate", "");
+        setVal("splitEventDate", "");
+
+        const modalEl = getEl("splitJobModal");
+        const modal = bootstrap.Modal.getInstance(modalEl);
+
+        if (modal) modal.hide();
+    }
+
+    function syncCoJobsJson() {
+        const input = getEl("co_jobs_json");
+
+        if (input) {
+            input.value = JSON.stringify(coJobs);
+        }
+    }
+
+    function renderCoJobs() {
+
+        const tbody = getEl("splitJobTableBody");
+
+        if (!tbody) return;
+
+        if (!coJobs.length) {
+            tbody.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center text-muted py-4">
+                    No co jobs added.
+                </td>
+            </tr>
+        `;
+            return;
+        }
+
+        tbody.innerHTML = "";
+
+        coJobs.forEach((job, index) => {
+
+            const coJobNo =
+                job.split_job_no ||
+                `Draft-${index + 1}`;
+
+            tbody.innerHTML += `
+            <tr>
+                <td>${coJobNo}</td>
+                <td>${escapeHtml(job.section_name || "")}</td>
+                <td>
+                    <span class="badge bg-warning text-dark">
+                        ${escapeHtml(job.status || "Draft")}
+                    </span>
+                </td>
+                <td class="text-center">
+                    <button type="button"
+                            class="btn btn-sm btn-danger"
+                            onclick="removeCoJob('${job.local_id}')">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+        });
+    }
+
+    function renderCoJobDropdown() {
+
+        const select = getEl("selected_split_id");
+
+        if (!select) return;
+
+        select.innerHTML =
+            `<option value="">Main Job Equipment</option>`;
+
+        coJobs.forEach((job, index) => {
+
+            const coJobNo =
+                job.split_job_no ||
+                `Draft-${index + 1}`;
+
+            select.innerHTML += `
+            <option value="${job.split_id || job.local_id}">
+                ${coJobNo} - ${escapeHtml(job.section_name)}
+            </option>
+        `;
+        });
+    }
+
+    function removeCoJob(localId) {
+        coJobs = coJobs.filter(job => job.local_id !== localId);
+        syncCoJobsJson();
+        renderCoJobs();
+        renderCoJobDropdown();
+    }
+
+    let currentEquipmentSectionKey = "main";
+
+    function initCoJobEvents() {
+        const select = getEl("selected_split_id");
+
+        if (select) {
+            select.addEventListener("focus", function () {
+                collectEquipmentRowsBySection(currentEquipmentSectionKey);
+            });
+
+            select.addEventListener("change", function () {
+                // save old section first
+                collectEquipmentRowsBySection(currentEquipmentSectionKey);
+
+                // now switch section
+                currentEquipmentSectionKey = this.value || "main";
+
+                const job = coJobs.find(item => item.local_id === currentEquipmentSectionKey);
+
+                if (currentEquipmentSectionKey === "main" || !job) {
+                    setVal("equipment_location", val("venueAddressDropdown"));
+                    setVal("equipment_incharge", "");
+                    setVal("equipment_rehearsal_date", val("outDate"));
+                    setVal("equipment_event_date", val("showStart"));
+                } else {
+                    setVal("equipment_location", job.location || "");
+                    setVal("equipment_incharge", job.incharge || "");
+                    setVal("equipment_rehearsal_date", job.rehearsal_date || "");
+                    setVal("equipment_event_date", job.event_date || "");
+                }
+
+                renderEquipmentRowsForSection(currentEquipmentSectionKey);
+            });
+        }
+
+        renderCoJobs();
+        renderCoJobDropdown();
+    }
+
+    /* =====================================================
+       EQUIPMENT
+    ===================================================== */
+    function createEquipmentRow() {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <input type="hidden"
+           class="equipment_split_id"
+           name="equipment_split_id[]"
+           value="">
+            <td><input type="text" class="form-control category_name" name="equipment_category[]" readonly></td>
+            <td><input type="text" class="form-control sub_category_name" name="equipment_sub_category[]" readonly></td>
+            <td>
+                <select class="form-select equipment_select" name="equipment_name[]">
+                    <option value="">Select Equipment</option>
+                </select>
+            </td>
+            <td><input type="number" class="form-control available_qty" name="available_qty[]" readonly></td>
+            <td><input type="number" class="form-control equipment_qty" name="equipment_qty[]" min="1" placeholder="Qty"></td>
+            <td><input type="number" class="form-control rental_price" name="rental_price[]" readonly></td>
+            <td><input type="number" class="form-control equipment_total" name="equipment_total[]" readonly></td>
+            <td><input type="text" class="form-control" name="equipment_notes[]" placeholder="Notes"></td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-danger remove-equipment-row">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        `;
+
+        return row;
+    }
+
+    function loadEquipmentDropdown(selectBox) {
+        $.ajax({
+            url: "{% url 'inventory:fetch_equipment_names' %}",
+            type: "GET",
+            success: function (response) {
+                const list = response.equipment_names || [];
+                equipmentOptionsCache = list;
+
+                let options = `<option value="">Select Equipment</option>`;
+
+                list.forEach(item => {
+                    options += `
+                        <option value="${item.id}"
+                                data-name="${escapeHtml(item.name)}"
+                                data-qty="${item.available_quantity || item.qty || 0}"
+                                data-rental="${item.rental_price || 0}"
+                                data-category="${escapeHtml(item.category_name || "")}"
+                                data-sub-category="${escapeHtml(item.sub_category_name || "")}">
+                            ${escapeHtml(item.name)} - Available: ${item.available_quantity || item.qty || 0}
+                        </option>
+                    `;
+                });
+
+                $(selectBox).html(options);
+            }
+        });
+    }
+
+    function calculateEquipmentRow(row) {
+        if (!row) return;
+
+        const qty = parseFloat(row.querySelector(".equipment_qty")?.value) || 0;
+        const price = parseFloat(row.querySelector(".rental_price")?.value) || 0;
+        const totalInput = row.querySelector(".equipment_total");
+
+        if (totalInput) {
+            totalInput.value = (qty * price).toFixed(2);
+        }
+
+        calculateMainAmount();
+    }
+
+    function getReusableEquipmentRow() {
+        const tbody = getEl("equipmentTableBody");
+        if (!tbody) return null;
+
+        const firstRow = tbody.querySelector("tr");
+        if (!firstRow) return null;
+
+        const equipmentSelect = firstRow.querySelector(".equipment_select");
+        const qtyInput = firstRow.querySelector(".equipment_qty");
+        const priceInput = firstRow.querySelector(".rental_price");
+        const totalInput = firstRow.querySelector(".equipment_total");
+        const notesInput = firstRow.querySelector('[name="equipment_notes[]"]');
+
+        const isBlank =
+            !equipmentSelect?.value &&
+            !qtyInput?.value &&
+            !priceInput?.value &&
+            !totalInput?.value &&
+            !notesInput?.value;
+
+        return isBlank ? firstRow : null;
+    }
+
+    function openEquipmentBulkPopup() {
+        loadEquipmentBulkPopup();
+
+        const popup = getEl("equipmentPopup");
+        if (!popup) return;
+
+        bootstrap.Modal.getOrCreateInstance(popup).show();
+    }
+
+    function loadEquipmentBulkPopup(forceReload = false) {
+        const tbody = getEl("equipmentPopupTableBody");
+        if (!tbody || equipmentPopupLoading) return;
+
+        if (equipmentPopupLoaded && !forceReload) {
+            updateBulkEquipmentSelectedCount();
+            return;
+        }
+
+        equipmentPopupLoading = true;
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center text-muted py-4">Loading equipment...</td>
+            </tr>
+        `;
+
+        fetch("{% url 'inventory:fetch_equipment_names' %}")
+            .then(response => response.json())
+            .then(data => {
+                const equipmentList = data.equipment_names || [];
+                equipmentOptionsCache = equipmentList;
+
+                if (!equipmentList.length) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">No equipment found.</td>
+                        </tr>
+                    `;
                     return;
                 }
 
-                if (qtyInput) qtyInput.classList.remove("is-invalid");
+                tbody.innerHTML = "";
 
-                let row = getReusableEquipmentRow();
+                equipmentList.forEach(item => {
+                    const availableQty = item.available_quantity || item.qty || 0;
 
-                if (!row) {
-                    row = createEquipmentRow();
-                    equipmentTableBody.appendChild(row);
-                    refreshSmartWizardHeight();
-                }
+                    const row = document.createElement("tr");
+                    row.classList.add("bulk-equipment-row");
 
-                const select = row.querySelector(".equipment_select");
-                loadEquipmentDropdown(select, popupRow.dataset.equipmentId || "");
+                    row.dataset.equipmentId = item.id;
+                    row.dataset.equipmentName = item.name || "";
+                    row.dataset.categoryName = item.category_name || "";
+                    row.dataset.subCategoryName = item.sub_category_name || "";
+                    row.dataset.rentalPrice = item.rental_price || 0;
+                    row.dataset.availableQty = availableQty;
+                    row.dataset.searchText = `${item.name || ""} ${item.category_name || ""} ${item.sub_category_name || ""}`.toLowerCase();
 
-                row.querySelector(".category_name").value = popupRow.dataset.categoryName || "";
-                row.querySelector(".sub_category_name").value = popupRow.dataset.subCategoryName || "";
-                row.querySelector(".rental_price").value = popupRow.dataset.rentalPrice || 0;
-                row.querySelector(".equipment_qty").value = qty;
+                    row.innerHTML = `
+                        <td><input type="checkbox" class="form-check-input bulk-equipment-check"></td>
+                        <td><input type="number" class="form-control bulk-equipment-qty" min="1" placeholder="Qty"></td>
+                        <td>${escapeHtml(item.name || "")}</td>
+                        <td>${escapeHtml(item.category_name || "-")}</td>
+                        <td>${escapeHtml(item.sub_category_name || "-")}</td>
+                        <td>${availableQty}</td>
+                        <td>${item.rental_price || 0}</td>
+                    `;
 
-                calculateEquipmentRow(row);
+                    tbody.appendChild(row);
+                });
 
-                popupRow.querySelector(".bulk-equipment-check").checked = false;
-                qtyInput.value = "";
-                addedCount++;
+                equipmentPopupLoaded = true;
+                updateBulkEquipmentSelectedCount();
+            })
+            .catch(error => {
+                console.error("Bulk equipment load error:", error);
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center text-danger py-4">Equipment loading error.</td>
+                    </tr>
+                `;
+            })
+            .finally(() => {
+                equipmentPopupLoading = false;
             });
+    }
 
-            updateBulkEquipmentSelectedCount();
+    function updateBulkEquipmentSelectedCount() {
+        const selectedCount = document.querySelectorAll(".bulk-equipment-check:checked").length;
+        const countLabel = getEl("bulkEquipmentSelectedCount");
 
-            if (addedCount > 0) {
-                refreshSmartWizardHeight();
-                const popup = document.getElementById("equipmentPopup");
-                const modal = bootstrap.Modal.getInstance(popup);
-                if (modal) modal.hide();
-            } else {
-                alert("Please enter quantity for selected equipment.");
-            }
+        if (countLabel) {
+            countLabel.textContent = `${selectedCount} selected`;
+        }
+    }
+
+    function addBulkEquipmentToMainTable() {
+        const tbody = getEl("equipmentTableBody");
+
+        const checkedRows = Array.from(document.querySelectorAll(".bulk-equipment-check:checked"))
+            .map(checkbox => checkbox.closest("tr"))
+            .filter(Boolean);
+
+        if (!checkedRows.length) {
+            alert("Please select at least one equipment item.");
+            return;
         }
 
+        let addedCount = 0;
 
+        checkedRows.forEach(popupRow => {
+            const qtyInput = popupRow.querySelector(".bulk-equipment-qty");
+            const qty = parseFloat(qtyInput?.value) || 0;
+            const availableQty = parseFloat(popupRow.dataset.availableQty) || 0;
+
+            if (qty <= 0) {
+                qtyInput.classList.add("is-invalid");
+                return;
+            }
+
+            if (qty > availableQty) {
+                alert(`Only ${availableQty} quantity available for ${popupRow.dataset.equipmentName}`);
+                qtyInput.classList.add("is-invalid");
+                return;
+            }
+
+            qtyInput.classList.remove("is-invalid");
+
+            let row = getReusableEquipmentRow();
+
+            if (!row) {
+                row = createEquipmentRow();
+                tbody.appendChild(row);
+            }
+
+            const select = row.querySelector(".equipment_select");
+
+            select.innerHTML = `
+                <option value="${popupRow.dataset.equipmentId}" selected>
+                    ${escapeHtml(popupRow.dataset.equipmentName)}
+                </option>
+            `;
+
+            row.querySelector(".category_name").value = popupRow.dataset.categoryName || "";
+            row.querySelector(".sub_category_name").value = popupRow.dataset.subCategoryName || "";
+            row.querySelector(".available_qty").value = popupRow.dataset.availableQty || 0;
+            row.querySelector(".equipment_qty").value = qty;
+            row.querySelector(".rental_price").value = popupRow.dataset.rentalPrice || 0;
+
+            row.dataset.availableQty = popupRow.dataset.availableQty || 0;
+
+            calculateEquipmentRow(row);
+
+            popupRow.querySelector(".bulk-equipment-check").checked = false;
+            qtyInput.value = "";
+
+            addedCount++;
+        });
+
+        updateBulkEquipmentSelectedCount();
+
+        collectEquipmentRowsBySection(currentEquipmentSectionKey);
+
+        if (addedCount > 0) {
+            refreshSmartWizardHeight();
+
+            const popup = getEl("equipmentPopup");
+            bootstrap.Modal.getOrCreateInstance(popup).hide();
+        }
+    }
+
+    function initEquipmentEvents() {
         document.querySelectorAll(".equipment_select").forEach(select => {
             loadEquipmentDropdown(select);
         });
 
-        if (addEquipmentBtn && equipmentTableBody) {
-            addEquipmentBtn.addEventListener("click", function () {
-                openEquipmentBulkPopup();
-            });
+        const addEquipmentBtn = getEl("addEquipmentBtn");
+        if (addEquipmentBtn) {
+            addEquipmentBtn.addEventListener("click", openEquipmentBulkPopup);
         }
 
         document.addEventListener("change", function (event) {
@@ -1981,8 +2029,10 @@
             if (!equipmentId) {
                 row.querySelector(".category_name").value = "";
                 row.querySelector(".sub_category_name").value = "";
+                row.querySelector(".available_qty").value = "";
                 row.querySelector(".rental_price").value = "";
                 row.querySelector(".equipment_total").value = "";
+                row.dataset.availableQty = 0;
                 calculateMainAmount();
                 return;
             }
@@ -1990,33 +2040,29 @@
             fetch(`{% url 'inventory:fetch_rental_price' %}?equipment_id=${encodeURIComponent(equipmentId)}`)
                 .then(response => response.json())
                 .then(data => {
-                    if (data.error) {
-                        console.error("Rental price error:", data.error);
-                        return;
-                    }
-
                     row.querySelector(".category_name").value = data.category_name || "";
                     row.querySelector(".sub_category_name").value = data.sub_category_name || "";
+                    row.querySelector(".available_qty").value = data.available_quantity || 0;
                     row.querySelector(".rental_price").value = data.rental_price || 0;
-
+                    row.dataset.availableQty = data.available_quantity || 0;
                     calculateEquipmentRow(row);
-                })
-                .catch(error => {
-                    console.error("Rental price error:", error);
                 });
         });
 
         document.addEventListener("input", function (event) {
             if (event.target.classList.contains("equipment_qty")) {
-                calculateEquipmentRow(event.target.closest("tr"));
+                const row = event.target.closest("tr");
+                const availableQty = parseInt(row.dataset.availableQty) || 0;
+                const enteredQty = parseInt(event.target.value) || 0;
+
+                if (availableQty > 0 && enteredQty > availableQty) {
+                    alert(`Only ${availableQty} quantity available`);
+                    event.target.value = availableQty;
+                }
+
+                calculateEquipmentRow(row);
             }
 
-            if (event.target.id === "discount") {
-                calculateDiscountFromAmount();
-            }
-        });
-
-        document.addEventListener("input", function (event) {
             if (event.target.id === "searchBar") {
                 const query = event.target.value.toLowerCase().trim();
 
@@ -2051,15 +2097,15 @@
             }
         });
 
-        const saveEquipmentListBtn = document.getElementById("saveEquipmentList");
+        const saveEquipmentListBtn = getEl("saveEquipmentList");
         if (saveEquipmentListBtn) {
             saveEquipmentListBtn.addEventListener("click", addBulkEquipmentToMainTable);
         }
 
-        const clearBulkEquipmentSelectionBtn = document.getElementById("clearBulkEquipmentSelection");
-        if (clearBulkEquipmentSelectionBtn) {
-            clearBulkEquipmentSelectionBtn.addEventListener("click", function () {
-                document.querySelectorAll(".bulk-equipment-check").forEach(checkbox => checkbox.checked = false);
+        const clearBtn = getEl("clearBulkEquipmentSelection");
+        if (clearBtn) {
+            clearBtn.addEventListener("click", function () {
+                document.querySelectorAll(".bulk-equipment-check").forEach(cb => cb.checked = false);
                 document.querySelectorAll(".bulk-equipment-qty").forEach(input => {
                     input.value = "";
                     input.classList.remove("is-invalid");
@@ -2071,806 +2117,181 @@
         document.addEventListener("click", function (event) {
             if (!event.target.closest(".remove-equipment-row")) return;
 
+            const tbody = getEl("equipmentTableBody");
             const row = event.target.closest("tr");
-            const rowCount = equipmentTableBody ? equipmentTableBody.querySelectorAll("tr").length : 0;
+            const rowCount = tbody ? tbody.querySelectorAll("tr").length : 0;
 
             if (rowCount <= 1) {
-                if (row) {
-                    row.querySelector(".category_name").value = "";
-                    row.querySelector(".sub_category_name").value = "";
-                    row.querySelector(".equipment_select").value = "";
-                    row.querySelector(".equipment_qty").value = "";
-                    row.querySelector(".rental_price").value = "";
-                    row.querySelector(".equipment_total").value = "";
-                    const notes = row.querySelector('[name="equipment_notes[]"]');
-                    if (notes) notes.value = "";
-                }
-            } else if (row) {
+                row.querySelectorAll("input").forEach(input => input.value = "");
+                row.querySelector(".equipment_select").innerHTML = `<option value="">Select Equipment</option>`;
+                row.dataset.availableQty = 0;
+                loadEquipmentDropdown(row.querySelector(".equipment_select"));
+            } else {
                 row.remove();
             }
 
             calculateMainAmount();
             refreshSmartWizardHeight();
         });
+    }
 
-        window.addEventListener("resize", refreshSmartWizardHeight);
+    /* =====================================================
+       SUB VENDOR
+    ===================================================== */
+    function calculateSubVendorTotals() {
+        let total = 0;
 
-    });
+        document.querySelectorAll("#sub-vendor-table tr").forEach(row => {
+            const qty = parseFloat(row.querySelector('[name="quantity"]')?.value) || 0;
+            const price = parseFloat(row.querySelector('[name="sub_unit_price"]')?.value) || 0;
+            const rowTotal = qty * price;
 
-    document.addEventListener("DOMContentLoaded", function () {
-        const transportRows = document.getElementById("transportRows");
-        const addTransportationRow = document.getElementById("addTransportationRow");
+            const totalInput = row.querySelector(".sub-total");
+            if (totalInput) totalInput.value = rowTotal.toFixed(2);
 
-        function getTransportType() {
-            return document.querySelector(".transport-type:checked")?.value || "Own Vehicle";
-        }
-
-        function refreshTransportFields() {
-            const type = getTransportType();
-
-            document.querySelectorAll(".transport-row").forEach(row => {
-                row.querySelectorAll(".own-vehicle-field").forEach(field => {
-                    field.classList.toggle("d-none", type !== "Own Vehicle");
-                });
-
-                row.querySelectorAll(".outside-vehicle-field").forEach(field => {
-                    field.classList.toggle("d-none", type !== "Outside Vehicle");
-                });
-            });
-
-            if (window.jQuery && $("#smartwizard").length) {
-                $("#smartwizard").smartWizard("fixHeight");
-            }
-        }
-
-        function createTransportRow() {
-            const row = document.createElement("div");
-            row.className = "transport-row row g-3 align-items-end mb-3";
-
-            row.innerHTML = `
-            <div class="col-lg-4 col-md-6 own-vehicle-field">
-                <label class="form-label">Driver Name</label>
-                <select class="form-select" name="driver_name[]">
-                    <option value="">Select Driver</option>
-                </select>
-            </div>
-
-            <div class="col-lg-3 col-md-6 own-vehicle-field">
-                <label class="form-label">Contact Number</label>
-                <input type="text"
-                       class="form-control"
-                       name="contact_number[]"
-                       placeholder="Enter Contact Number">
-            </div>
-
-            <div class="col-lg-3 col-md-6 own-vehicle-field">
-                <label class="form-label">Vehicle Number</label>
-                <select class="form-select" name="vehicle_number[]">
-                    <option value="">Select Vehicle</option>
-                </select>
-            </div>
-
-            <div class="col-lg-4 col-md-6 outside-vehicle-field d-none">
-                <label class="form-label">Outside Driver Name</label>
-                <input type="text"
-                       class="form-control"
-                       name="outside_driver_name[]"
-                       placeholder="Enter Driver Name">
-            </div>
-
-            <div class="col-lg-3 col-md-6 outside-vehicle-field d-none">
-                <label class="form-label">Outside Contact Number</label>
-                <input type="text"
-                       class="form-control"
-                       name="outside_contact_number[]"
-                       placeholder="Enter Contact Number">
-            </div>
-
-            <div class="col-lg-3 col-md-6 outside-vehicle-field d-none">
-                <label class="form-label">Outside Vehicle Number</label>
-                <input type="text"
-                       class="form-control"
-                       name="outside_vehicle_number[]"
-                       placeholder="Enter Vehicle Number">
-            </div>
-
-            <div class="col-auto">
-                <button type="button"
-                        class="btn btn-success save-transport-row">
-                    <i class="bi bi-save"></i>
-                </button>
-            </div>
-
-            <div class="col-auto">
-                <button type="button"
-                        class="btn btn-danger remove-transport-row">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
-        `;
-
-            return row;
-        }
-
-        document.querySelectorAll(".transport-type").forEach(radio => {
-            radio.addEventListener("change", refreshTransportFields);
+            total += rowTotal;
         });
 
-        if (addTransportationRow) {
-            addTransportationRow.addEventListener("click", function () {
-                transportRows.appendChild(createTransportRow());
-                refreshTransportFields();
+        setVal("sub_vendor_total_amount", total.toFixed(2));
+        calculateMainAmount();
+    }
+
+    function initSubVendorEvents() {
+        const addBtn = getEl("add-sub-vendor-row-btn");
+
+        if (addBtn) {
+            addBtn.addEventListener("click", function () {
+                const tbody = getEl("sub-vendor-table");
+                if (!tbody) return;
+
+                tbody.insertAdjacentHTML("beforeend", `
+                    <tr>
+                        <td><input type="text" name="vendor-name" class="form-control"></td>
+                        <td><input type="text" name="equipment-name" class="form-control"></td>
+                        <td><input type="number" name="quantity" class="form-control"></td>
+                        <td><input type="number" name="sub_unit_price" class="form-control sub-unit-price"></td>
+                        <td><input type="number" name="sub_total" class="form-control sub-total" readonly></td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-danger remove-sub-vendor-row">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `);
             });
         }
+
+        document.addEventListener("input", function (event) {
+            if (event.target.name === "quantity" || event.target.name === "sub_unit_price") {
+                calculateSubVendorTotals();
+            }
+        });
 
         document.addEventListener("click", function (event) {
-            if (!event.target.closest(".remove-transport-row")) return;
+            const removeBtn = event.target.closest(".remove-sub-vendor-row");
+            if (!removeBtn) return;
 
-            const row = event.target.closest(".transport-row");
+            const row = removeBtn.closest("tr");
+            if (row) row.remove();
 
-            if (transportRows.querySelectorAll(".transport-row").length > 1) {
-                row.remove();
-            } else {
-                row.querySelectorAll("input").forEach(input => input.value = "");
-                row.querySelectorAll("select").forEach(select => select.value = "");
-            }
-
-            refreshTransportFields();
+            calculateSubVendorTotals();
         });
+    }
 
-        refreshTransportFields();
-    });
+    /* =====================================================
+       CREW
+    ===================================================== */
+    const crewTypeOptions = [
+        {name: "Stage Hand", group: "General"},
+        {name: "Audio Engineer", group: "Audio"},
+        {name: "Lighting Engineer", group: "Lighting"},
+        {name: "Video Engineer", group: "Video"},
+        {name: "LED Technician", group: "LED"},
+        {name: "Rigging Crew", group: "Rigging"},
+        {name: "Production Manager", group: "Production"},
+        {name: "FOH Engineer", group: "Audio"},
+        {name: "Monitor Engineer", group: "Audio"},
+        {name: "Patch Crew", group: "Audio"},
+        {name: "Backline Crew", group: "Backline"},
+        {name: "Spot Operator", group: "Lighting"},
+        {name: "Camera Operator", group: "Video"},
+        {name: "Electrician", group: "Power"},
+        {name: "Generator Operator", group: "Power"},
+        {name: "Truck Loader", group: "Logistics"},
+        {name: "Forklift Operator", group: "Logistics"}
+    ];
 
-    document.addEventListener("DOMContentLoaded", function () {
+    function getCrewMenu() {
+        let menu = getEl("crewTypeFloatingMenu");
 
-        const transportRows =
-            document.getElementById("transportRows");
-
-        const addTransportationRow =
-            document.getElementById("addTransportationRow");
-
-        let driversData = [];
-        let vehiclesData = [];
-
-        // =========================================
-        // FETCH DRIVER LIST
-        // =========================================
-        async function loadDrivers() {
-
-            try {
-
-                const response = await fetch(
-                    "{% url 'inventory:employee_list' %}"
-                );
-
-                const data = await response.json();
-
-                driversData = (data.data || []).filter(
-                    emp =>
-                        emp.designation &&
-                        emp.designation.toLowerCase().includes("driver")
-                );
-
-                populateAllDriverDropdowns();
-
-            } catch (error) {
-
-                console.error("Driver load error:", error);
-            }
+        if (!menu) {
+            menu = document.createElement("div");
+            menu.id = "crewTypeFloatingMenu";
+            document.body.appendChild(menu);
         }
 
-        // =========================================
-        // FETCH VEHICLE LIST
-        // =========================================
-        async function loadVehicles() {
+        return menu;
+    }
 
-            try {
+    function positionCrewMenu(input) {
+        const menu = getCrewMenu();
+        const rect = input.getBoundingClientRect();
 
-                const response = await fetch(
-                    "{% url 'inventory:fetch_vehicle_list' %}"
-                );
+        menu.style.left = rect.left + "px";
+        menu.style.top = (rect.bottom + 6) + "px";
+        menu.style.width = rect.width + "px";
+    }
 
-                const data = await response.json();
+    function renderCrewMenu(input) {
+        activeCrewInput = input;
 
-                vehiclesData = data.vehicles || [];
+        const menu = getCrewMenu();
+        const query = input.value.trim().toLowerCase();
 
-                populateAllVehicleDropdowns();
+        const filtered = crewTypeOptions.filter(item =>
+            item.name.toLowerCase().includes(query) ||
+            item.group.toLowerCase().includes(query)
+        );
 
-            } catch (error) {
-
-                console.error("Vehicle load error:", error);
-            }
+        if (!filtered.length) {
+            menu.innerHTML = `<div class="crew-type-empty">No crew type found</div>`;
+        } else {
+            menu.innerHTML = filtered.map(item => `
+                <div class="crew-type-option" data-value="${escapeHtml(item.name)}">
+                    <span>${escapeHtml(item.name)}</span>
+                    <small>${escapeHtml(item.group)}</small>
+                </div>
+            `).join("");
         }
 
-        // =========================================
-        // POPULATE DRIVER DROPDOWN
-        // =========================================
-        function populateDriverDropdown(select) {
+        positionCrewMenu(input);
+        menu.classList.add("show");
+    }
 
-            if (!select) return;
+    function hideCrewMenu() {
+        getCrewMenu().classList.remove("show");
+        activeCrewInput = null;
+    }
 
-            const selectedValue = select.getAttribute("data-selected") || select.value || "";
+    function calculateCrewTotal(row) {
+        const days = parseFloat(row.querySelector(".crew-days")?.value) || 0;
+        const charge = parseFloat(row.querySelector(".crew-charge")?.value) || 0;
+        const total = row.querySelector(".crew-total");
 
-            select.innerHTML = `
-            <option value="">Select Driver</option>
-        `;
+        if (total) total.value = (days * charge).toFixed(2);
 
-            driversData.forEach(driver => {
+        calculateMainAmount();
+    }
 
-                const selected = String(driver.name) === String(selectedValue) ? "selected" : "";
+    function initCrewEvents() {
+        const addCrewBtn = getEl("addCrewAllocationRow");
 
-                select.innerHTML += `
-                <option value="${driver.name}"
-                        data-mobile="${driver.mobile_no}"
-                        ${selected}>
-                    ${driver.name}
-                </option>
-            `;
-            });
+        if (addCrewBtn) {
+            addCrewBtn.addEventListener("click", function () {
+                const tbody = getEl("crew-allocation-table-body");
+                if (!tbody) return;
 
-            if (selectedValue && !Array.from(select.options).some(option => option.value === selectedValue)) {
-                select.innerHTML += `
-                <option value="${selectedValue}" selected>
-                    ${selectedValue}
-                </option>
-            `;
-            }
-        }
-
-        // =========================================
-        // POPULATE VEHICLE DROPDOWN
-        // =========================================
-        function populateVehicleDropdown(select) {
-
-            if (!select) return;
-
-            const selectedValue = select.getAttribute("data-selected") || select.value || "";
-
-            select.innerHTML = `
-            <option value="">Select Vehicle</option>
-        `;
-
-            vehiclesData.forEach(vehicle => {
-
-                const selected = String(vehicle.vehicle_no) === String(selectedValue) ? "selected" : "";
-
-                select.innerHTML += `
-                <option value="${vehicle.vehicle_no}" ${selected}>
-                    ${vehicle.vehicle_no}
-                </option>
-            `;
-            });
-
-            if (selectedValue && !Array.from(select.options).some(option => option.value === selectedValue)) {
-                select.innerHTML += `
-                <option value="${selectedValue}" selected>
-                    ${selectedValue}
-                </option>
-            `;
-            }
-        }
-
-        // =========================================
-        // POPULATE ALL DRIVER DROPDOWNS
-        // =========================================
-        function populateAllDriverDropdowns() {
-
-            document.querySelectorAll(
-                'select[name="driver_name[]"]'
-            ).forEach(select => {
-
-                populateDriverDropdown(select);
-
-            });
-        }
-
-        // =========================================
-        // POPULATE ALL VEHICLE DROPDOWNS
-        // =========================================
-        function populateAllVehicleDropdowns() {
-
-            document.querySelectorAll(
-                'select[name="vehicle_number[]"]'
-            ).forEach(select => {
-
-                populateVehicleDropdown(select);
-
-            });
-        }
-
-        // =========================================
-        // TRANSPORT TYPE
-        // =========================================
-        function getTransportType() {
-
-            return document.querySelector(
-                ".transport-type:checked"
-            )?.value || "Own Vehicle";
-        }
-
-        // =========================================
-        // SHOW/HIDE FIELDS
-        // =========================================
-        function refreshTransportFields() {
-
-            const type = getTransportType();
-
-            document.querySelectorAll(".transport-row").forEach(row => {
-
-                row.querySelectorAll(".own-vehicle-field")
-                    .forEach(field => {
-
-                        field.classList.toggle(
-                            "d-none",
-                            type !== "Own Vehicle"
-                        );
-                    });
-
-                row.querySelectorAll(".outside-vehicle-field")
-                    .forEach(field => {
-
-                        field.classList.toggle(
-                            "d-none",
-                            type !== "Outside Vehicle"
-                        );
-                    });
-            });
-
-            if (window.jQuery && $("#smartwizard").length) {
-
-                $("#smartwizard").smartWizard("fixHeight");
-            }
-        }
-
-        // =========================================
-        // CREATE TRANSPORT ROW
-        // =========================================
-        function createTransportRow() {
-
-            const row = document.createElement("div");
-
-            row.className =
-                "transport-row row g-3 align-items-end mb-3";
-
-            row.innerHTML = `
-
-            <div class="col-lg-4 col-md-6 own-vehicle-field">
-
-                <label class="form-label">
-                    Driver Name
-                </label>
-
-                <select class="form-select"
-                        name="driver_name[]">
-
-                    <option value="">
-                        Select Driver
-                    </option>
-
-                </select>
-
-            </div>
-
-            <div class="col-lg-3 col-md-6 own-vehicle-field">
-
-                <label class="form-label">
-                    Contact Number
-                </label>
-
-                <input type="text"
-                       class="form-control"
-                       name="contact_number[]"
-                       placeholder="Enter Contact Number">
-
-            </div>
-
-            <div class="col-lg-3 col-md-6 own-vehicle-field">
-
-                <label class="form-label">
-                    Vehicle Number
-                </label>
-
-                <select class="form-select"
-                        name="vehicle_number[]">
-
-                    <option value="">
-                        Select Vehicle
-                    </option>
-
-                </select>
-
-            </div>
-
-            <div class="col-lg-4 col-md-6 outside-vehicle-field d-none">
-
-                <label class="form-label">
-                    Outside Driver Name
-                </label>
-
-                <input type="text"
-                       class="form-control"
-                       name="outside_driver_name[]"
-                       placeholder="Enter Driver Name">
-
-            </div>
-
-            <div class="col-lg-3 col-md-6 outside-vehicle-field d-none">
-
-                <label class="form-label">
-                    Outside Contact Number
-                </label>
-
-                <input type="text"
-                       class="form-control"
-                       name="outside_contact_number[]"
-                       placeholder="Enter Contact Number">
-
-            </div>
-
-            <div class="col-lg-3 col-md-6 outside-vehicle-field d-none">
-
-                <label class="form-label">
-                    Outside Vehicle Number
-                </label>
-
-                <input type="text"
-                       class="form-control"
-                       name="outside_vehicle_number[]"
-                       placeholder="Enter Vehicle Number">
-
-            </div>
-
-            <div class="col-auto">
-
-                <button type="button"
-                        class="btn btn-success save-transport-row">
-
-                    <i class="bi bi-save"></i>
-
-                </button>
-
-            </div>
-
-            <div class="col-auto">
-
-                <button type="button"
-                        class="btn btn-danger remove-transport-row">
-
-                    <i class="bi bi-x-lg"></i>
-
-                </button>
-
-            </div>
-        `;
-
-            populateDriverDropdown(
-                row.querySelector(
-                    'select[name="driver_name[]"]'
-                )
-            );
-
-            populateVehicleDropdown(
-                row.querySelector(
-                    'select[name="vehicle_number[]"]'
-                )
-            );
-
-            return row;
-        }
-
-        // =========================================
-        // DRIVER CHANGE
-        // =========================================
-        document.addEventListener("change", function (event) {
-
-            if (
-                event.target.name !== "driver_name[]"
-            ) return;
-
-            const selected =
-                event.target.selectedOptions[0];
-
-            const mobile =
-                selected.getAttribute("data-mobile");
-
-            const row =
-                event.target.closest(".transport-row");
-
-            const contactInput =
-                row.querySelector(
-                    'input[name="contact_number[]"]'
-                );
-
-            if (contactInput) {
-
-                contactInput.value = mobile || "";
-            }
-        });
-
-        // =========================================
-        // TRANSPORT TYPE CHANGE
-        // =========================================
-        document.querySelectorAll(".transport-type")
-            .forEach(radio => {
-
-                radio.addEventListener(
-                    "change",
-                    refreshTransportFields
-                );
-            });
-
-        // =========================================
-        // ADD ROW
-        // =========================================
-        if (addTransportationRow) {
-
-            addTransportationRow.addEventListener(
-                "click",
-                function () {
-
-                    transportRows.appendChild(
-                        createTransportRow()
-                    );
-
-                    refreshTransportFields();
-                }
-            );
-        }
-        window.saveJobAjax = function (event) {
-            event.preventDefault();
-
-            const jobForm = document.getElementById("jobForm");
-            const formData = new FormData(jobForm);
-
-            fetch(jobForm.action, {
-                method: "POST",
-                body: formData,
-                headers: {
-                    "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
-                    "X-Requested-With": "XMLHttpRequest"
-                }
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        let message = data.message || "Quotation saved successfully.";
-
-                        if (data.quotation_no) {
-                            message += "\nQuotation No: " + data.quotation_no;
-                        }
-
-                        alert(message);
-                        window.location.href = "{% url 'inventory:job_book' %}";
-                    } else {
-                        alert(data.error || "Something went wrong.");
-                    }
-                })
-                .catch(error => {
-                    console.error("Save job error:", error);
-                    alert("Error while saving job.");
-                });
-        };
-
-        // =========================================
-        // REMOVE ROW
-        // =========================================
-        document.addEventListener("click", function (event) {
-
-            if (
-                !event.target.closest(
-                    ".remove-transport-row"
-                )
-            ) return;
-
-            const row =
-                event.target.closest(".transport-row");
-
-            if (
-                transportRows.querySelectorAll(
-                    ".transport-row"
-                ).length > 1
-            ) {
-
-                row.remove();
-
-            } else {
-
-                row.querySelectorAll("input")
-                    .forEach(input => input.value = "");
-
-                row.querySelectorAll("select")
-                    .forEach(select => select.value = "");
-            }
-
-            refreshTransportFields();
-        });
-
-        // =========================================
-        // INITIAL LOAD
-        // =========================================
-        loadDrivers();
-
-        loadVehicles();
-
-        refreshTransportFields();
-
-    });
-
-
-    // =====================================================
-    // EDIT MODE DATA BINDING
-    // Keeps already-added selected values visible in all wizard tabs.
-    // =====================================================
-    document.addEventListener("DOMContentLoaded", function () {
-        const editMode = "{{ edit_mode|yesno:'true,false' }}";
-        if (editMode !== "true") return;
-
-        const jobData = {{ job_data|safe }};
-        const equipmentData = {{ equipment_data|safe }};
-        const crewData = {{ crew_data|safe }};
-        const subVendorData = {{ sub_vendor_data|safe }};
-        const transportData = {{ transport_data|safe }};
-
-        function safe(value) {
-            return value === null || value === undefined ? "" : value;
-        }
-
-        function escapeHtmlEdit(value) {
-            return String(safe(value))
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-
-        function setValue(id, value) {
-            const el = document.getElementById(id);
-            if (el) el.value = safe(value);
-        }
-
-        function getJobValue(...keys) {
-            for (const key of keys) {
-                if (jobData && jobData[key] !== undefined && jobData[key] !== null) {
-                    return jobData[key];
-                }
-            }
-            return "";
-        }
-
-        // ---------------- GENERAL DETAILS ----------------
-        if (jobData && Object.keys(jobData).length) {
-            setValue("titleInput", getJobValue("title"));
-            setValue("venueAddressDropdown", getJobValue("venue_name", "venue", "venueName"));
-            setValue("venueAddressInput", getJobValue("venue_address"));
-            setValue("clientNameDropdown", getJobValue("client_name"));
-            setValue("clientContactNumber", getJobValue("contact_person_number"));
-            setValue("prepDate", getJobValue("setup_date"));
-            setValue("outDate", getJobValue("rehearsal_date"));
-            setValue("showStart", getJobValue("show_start_date", "event_date", "start_date"));
-            setValue("showEnd", getJobValue("show_end_date", "dismantle_date", "end_date"));
-            setValue("status", getJobValue("status"));
-            setValue("crewQuantity", getJobValue("crew_type"));
-            setValue("inputNotes", getJobValue("notes", "input_notes"));
-            setValue("number_of_days", getJobValue("total_days"));
-            setValue("total_amount", getJobValue("amount_row"));
-            setValue("discount", getJobValue("discount"));
-            setValue("discounted_amount", getJobValue("amount_after_discount", "discounted_amount"));
-            setValue("total_amount_cal", getJobValue("total_amount"));
-
-            const contactName = getJobValue("contact_person_name");
-            const clientName = getJobValue("client_name");
-            const contactSelect = document.getElementById("clientContactName");
-
-            if (contactSelect && contactName) {
-                contactSelect.innerHTML = `
-                    <option value="">Select Contact Person</option>
-                    <option value="${escapeHtmlEdit(contactName)}" selected>${escapeHtmlEdit(contactName)}</option>
-                `;
-            }
-
-            if (clientName && typeof fetchContactPersons === "function") {
-                fetchContactPersons(clientName);
-                setTimeout(function () {
-                    const select = document.getElementById("clientContactName");
-                    if (!select) return;
-
-                    const exists = Array.from(select.options).some(option => option.value === String(contactName));
-                    if (!exists && contactName) {
-                        select.innerHTML += `<option value="${escapeHtmlEdit(contactName)}">${escapeHtmlEdit(contactName)}</option>`;
-                    }
-                    select.value = contactName || "";
-                    setValue("clientContactNumber", getJobValue("contact_person_number"));
-                }, 500);
-            }
-        }
-
-        // ---------------- EQUIPMENT ----------------
-        const equipmentTbody = document.getElementById("equipmentTableBody");
-        if (equipmentTbody && Array.isArray(equipmentData) && equipmentData.length) {
-            equipmentTbody.innerHTML = "";
-
-            const first = equipmentData[0] || {};
-            setValue("equipment_location", first.location || first.equipment_location || "");
-            setValue("equipment_incharge", first.incharge || first.equipment_incharge || "");
-            setValue("equipment_rehearsal_date", first.equipment_rehearsal_date || first.rehearsal_date || "");
-            setValue("equipment_event_date", first.equipment_event_date || first.equipment_setup_date || first.event_date || "");
-
-            window.editSelectedSplitId = first.split_id || first.selected_split_id || "";
-
-            equipmentData.forEach(item => {
-                const equipmentId = item.equipment_detail_id || item.equipment_id || "";
-                const equipmentName = item.equipment_name || item.name || "Selected Equipment";
-
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>
-                        <input type="text"
-                               class="form-control category_name"
-                               name="equipment_category[]"
-                               value="${escapeHtmlEdit(item.category_name || item.equipment_category || "")}"
-                               readonly>
-                    </td>
-                    <td>
-                        <input type="text"
-                               class="form-control sub_category_name"
-                               name="equipment_sub_category[]"
-                               value="${escapeHtmlEdit(item.sub_category_name || item.equipment_sub_category || "")}"
-                               readonly>
-                    </td>
-                    <td>
-                        <select class="form-select equipment_select"
-                                name="equipment_name[]"
-                                data-selected="${escapeHtmlEdit(equipmentId)}">
-                            <option value="${escapeHtmlEdit(equipmentId)}" selected>${escapeHtmlEdit(equipmentName)}</option>
-                        </select>
-                    </td>
-                    <td>
-                        <input type="number"
-                               class="form-control equipment_qty"
-                               name="equipment_qty[]"
-                               min="1"
-                               value="${escapeHtmlEdit(item.quantity || item.equipment_qty || "")}">
-                    </td>
-                    <td>
-                        <input type="number"
-                               class="form-control rental_price"
-                               name="rental_price[]"
-                               value="${escapeHtmlEdit(item.equipment_unit_price || item.rental_price || "") }"
-                               readonly>
-                    </td>
-                    <td>
-                        <input type="number"
-                               class="form-control equipment_total"
-                               name="equipment_total[]"
-                               value="${escapeHtmlEdit(item.equipment_total || item.total || "") }"
-                               readonly>
-                    </td>
-                    <td>
-                        <input type="text"
-                               class="form-control"
-                               name="equipment_notes[]"
-                               value="${escapeHtmlEdit(item.equipment_notes || item.notes || "") }"
-                               placeholder="Notes">
-                    </td>
-                    <td class="text-center">
-                        <button type="button" class="btn btn-sm btn-danger remove-equipment-row">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </td>
-                `;
-
-                equipmentTbody.appendChild(row);
-            });
-        }
-
-        // ---------------- CREW ----------------
-        const crewTbody = document.getElementById("crew-allocation-table-body");
-        if (crewTbody && Array.isArray(crewData) && crewData.length) {
-            crewTbody.innerHTML = "";
-
-            crewData.forEach(item => {
-                crewTbody.insertAdjacentHTML("beforeend", `
+                tbody.insertAdjacentHTML("beforeend", `
                     <tr>
                         <td>
                             <button type="button" class="btn btn-sm btn-danger remove-row">
@@ -2882,479 +2303,740 @@
                                 <input type="text"
                                        class="form-control crew-type-input"
                                        name="crew_type[]"
-                                       value="${escapeHtmlEdit(item.crew_type || "") }"
+                                       placeholder="Search Crew Type"
                                        autocomplete="off">
                             </div>
                         </td>
-                        <td><input type="number" class="form-control crew-days" name="crew_no_of_days[]" value="${escapeHtmlEdit(item.crew_no_of_days || item.no_of_days || "") }"></td>
-                        <td><input type="number" class="form-control crew-charge" name="perday_charges[]" value="${escapeHtmlEdit(item.perday_charges || item.per_day || "") }"></td>
-                        <td><input type="number" class="form-control crew-total" name="crew_total[]" value="${escapeHtmlEdit(item.total || item.crew_total || "") }" readonly></td>
-                        <td><input type="text" class="form-control" name="crew_notes[]" value="${escapeHtmlEdit(item.crew_notes || item.notes || "") }"></td>
+                        <td><input type="number" class="form-control crew-days" name="crew_no_of_days[]" placeholder="Days"></td>
+                        <td><input type="number" class="form-control crew-charge" name="perday_charges[]" placeholder="Per Day"></td>
+                        <td><input type="number" class="form-control crew-total" name="crew_total[]" readonly></td>
+                        <td><input type="text" class="form-control" name="crew_notes[]" placeholder="Notes"></td>
                     </tr>
                 `);
+
+                refreshSmartWizardHeight();
             });
         }
 
-        // ---------------- SUB VENDOR ----------------
-        const subTbody = document.getElementById("sub-vendor-table");
-        if (subTbody && Array.isArray(subVendorData) && subVendorData.length) {
-            subTbody.innerHTML = "";
-
-            subVendorData.forEach(item => {
-                subTbody.insertAdjacentHTML("beforeend", `
-                    <tr>
-                        <td><input type="text" name="vendor-name" class="form-control" value="${escapeHtmlEdit(item.vendor_name || "") }"></td>
-                        <td><input type="text" name="equipment-name" class="form-control" value="${escapeHtmlEdit(item.sub_equipment_name || item.equipment_name || "") }"></td>
-                        <td><input type="number" name="quantity" class="form-control" value="${escapeHtmlEdit(item.sub_quantity || item.quantity || "") }"></td>
-                        <td>
-                            <button type="button" class="btn btn-sm btn-danger remove-sub-vendor-row">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `);
-            });
-        }
-
-        // ---------------- TRANSPORT ----------------
-        const transportRows = document.getElementById("transportRows");
-        if (transportRows && Array.isArray(transportData) && transportData.length) {
-            transportRows.innerHTML = "";
-
-            transportData.forEach(item => {
-                const isOutside = item.outside_driver_name || item.outside_contact_number || item.outside_vehicle_number;
-                const transportType = isOutside ? "Outside Vehicle" : "Own Vehicle";
-
-                const selectedRadio = document.querySelector(`.transport-type[value="${transportType}"]`);
-                if (selectedRadio) selectedRadio.checked = true;
-
-                transportRows.insertAdjacentHTML("beforeend", `
-                    <div class="transport-row row g-3 align-items-end mb-3">
-                        <div class="col-lg-4 col-md-6 own-vehicle-field ${isOutside ? "d-none" : ""}">
-                            <label class="form-label">Driver Name</label>
-                            <select class="form-select"
-                                    name="driver_name[]"
-                                    data-selected="${escapeHtmlEdit(item.driver_name || "")}">
-                                <option value="${escapeHtmlEdit(item.driver_name || "")}" selected>${escapeHtmlEdit(item.driver_name || "Select Driver")}</option>
-                            </select>
-                        </div>
-
-                        <div class="col-lg-3 col-md-6 own-vehicle-field ${isOutside ? "d-none" : ""}">
-                            <label class="form-label">Contact Number</label>
-                            <input type="text" class="form-control" name="contact_number[]" value="${escapeHtmlEdit(item.contact_number || "")}">
-                        </div>
-
-                        <div class="col-lg-3 col-md-6 own-vehicle-field ${isOutside ? "d-none" : ""}">
-                            <label class="form-label">Vehicle Number</label>
-                            <select class="form-select"
-                                    name="vehicle_number[]"
-                                    data-selected="${escapeHtmlEdit(item.vehicle_number || "")}">
-                                <option value="${escapeHtmlEdit(item.vehicle_number || "")}" selected>${escapeHtmlEdit(item.vehicle_number || "Select Vehicle")}</option>
-                            </select>
-                        </div>
-
-                        <div class="col-lg-4 col-md-6 outside-vehicle-field ${isOutside ? "" : "d-none"}">
-                            <label class="form-label">Outside Driver Name</label>
-                            <input type="text" class="form-control" name="outside_driver_name[]" value="${escapeHtmlEdit(item.outside_driver_name || "")}">
-                        </div>
-
-                        <div class="col-lg-3 col-md-6 outside-vehicle-field ${isOutside ? "" : "d-none"}">
-                            <label class="form-label">Outside Contact Number</label>
-                            <input type="text" class="form-control" name="outside_contact_number[]" value="${escapeHtmlEdit(item.outside_contact_number || "")}">
-                        </div>
-
-                        <div class="col-lg-3 col-md-6 outside-vehicle-field ${isOutside ? "" : "d-none"}">
-                            <label class="form-label">Outside Vehicle Number</label>
-                            <input type="text" class="form-control" name="outside_vehicle_number[]" value="${escapeHtmlEdit(item.outside_vehicle_number || "")}">
-                        </div>
-
-                        <div class="col-auto">
-                            <button type="button" class="btn btn-success save-transport-row">
-                                <i class="bi bi-save"></i>
-                            </button>
-                        </div>
-
-                        <div class="col-auto">
-                            <button type="button" class="btn btn-danger remove-transport-row">
-                                <i class="bi bi-x-lg"></i>
-                            </button>
-                        </div>
-                    </div>
-                `);
-            });
-        }
-
-        setTimeout(function () {
-            if (typeof populateAllDriverDropdowns === "function") populateAllDriverDropdowns();
-            if (typeof populateAllVehicleDropdowns === "function") populateAllVehicleDropdowns();
-            if (window.jQuery && $("#smartwizard").length) {
-                $("#smartwizard").smartWizard("fixHeight");
+        document.addEventListener("focusin", function (event) {
+            if (event.target.classList.contains("crew-type-input")) {
+                renderCrewMenu(event.target);
             }
-        }, 700);
-    });
-
-    // =====================================================
-    // CO JOB LOGIC - WORKS IN ADD JOB + EDIT JOB
-    // Location/Incharge/Rehearsal/Event Date are tied to selected co job.
-    // =====================================================
-    let localCoJobs = [];
-    let remoteCoJobs = [];
-
-    document.addEventListener("DOMContentLoaded", function () {
-        const editMode = "{{ edit_mode|yesno:'true,false' }}";
-        const editType = "{{ edit_type|default:'' }}";
-
-        const splitSelect = document.getElementById("selected_split_id");
-        if (splitSelect) {
-            splitSelect.addEventListener("change", function () {
-                applySelectedCoJobDetails(this.value || "");
-            });
-        }
-
-        if (editMode === "true" && editType === "job") {
-            loadSplitJobs();
-        } else {
-            renderLocalCoJobs();
-        }
-    });
-
-    function getSplitModalValues() {
-        return {
-            section_name: document.getElementById("splitJobSection")?.value.trim() || "",
-            location: document.getElementById("splitLocation")?.value.trim() || "",
-            incharge: document.getElementById("splitIncharge")?.value.trim() || "",
-            rehearsal_date: document.getElementById("splitRehearsalDate")?.value || "",
-            event_date: document.getElementById("splitEventDate")?.value || ""
-        };
-    }
-
-    function setEquipmentSectionDetails(item) {
-        document.getElementById("equipment_location").value = item?.location || "";
-        document.getElementById("equipment_incharge").value = item?.incharge || "";
-        document.getElementById("equipment_rehearsal_date").value = item?.rehearsal_date || "";
-        document.getElementById("equipment_event_date").value = item?.event_date || "";
-    }
-
-    function applySelectedCoJobDetails(splitId) {
-        if (!splitId) {
-            return;
-        }
-
-        let selected = null;
-
-        if (String(splitId).startsWith("local_")) {
-            selected = localCoJobs.find(item => String(item.temp_id) === String(splitId));
-        } else {
-            selected = remoteCoJobs.find(item => String(item.split_id) === String(splitId));
-        }
-
-        if (selected) {
-            setEquipmentSectionDetails(selected);
-        }
-    }
-
-    function loadSplitJobs() {
-        const jobId = "{{ edit_id|default:'' }}";
-        const tbody = document.getElementById("splitJobTableBody");
-        const splitSelect = document.getElementById("selected_split_id");
-
-        if (!tbody || !splitSelect) return;
-
-        splitSelect.innerHTML = `<option value="">Main Job Equipment</option>`;
-
-        if (!jobId) {
-            renderLocalCoJobs();
-            return;
-        }
-
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="4" class="text-center text-muted py-4">
-                    Loading co jobs...
-                </td>
-            </tr>
-        `;
-
-        fetch(`/get-split-jobs/${jobId}/`)
-            .then(res => res.json())
-            .then(data => {
-                const splitJobs = data.split_jobs || data.data || [];
-                remoteCoJobs = splitJobs.map(item => ({
-                    split_id: item.split_id || item.id || "",
-                    split_job_no: item.split_job_no || item.job_order_no || "-",
-                    section_name: item.section_name || item.job_section || "-",
-                    location: item.location || "",
-                    incharge: item.incharge || "",
-                    rehearsal_date: item.rehearsal_date || "",
-                    event_date: item.event_date || "",
-                    status: item.status || "Active"
-                }));
-
-                tbody.innerHTML = "";
-
-                if (!remoteCoJobs.length) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="4" class="text-center text-muted py-4">
-                                No co jobs created yet.
-                            </td>
-                        </tr>
-                    `;
-                }
-
-                remoteCoJobs.forEach(item => {
-                    tbody.innerHTML += `
-                        <tr>
-                            <td class="fw-semibold text-success">${escapeHtmlLocal(item.split_job_no)}</td>
-                            <td>
-                                <div class="fw-semibold">${escapeHtmlLocal(item.section_name)}</div>
-                                <small class="text-muted">
-                                    ${escapeHtmlLocal(item.location || "-")} |
-                                    ${escapeHtmlLocal(item.incharge || "-")}
-                                </small>
-                            </td>
-                            <td>
-                                <span class="badge bg-info">${escapeHtmlLocal(item.status)}</span>
-                            </td>
-                            <td class="text-center">
-                                <button type="button"
-                                        class="btn btn-sm btn-theme"
-                                        onclick="selectCoJob('${item.split_id}')">
-                                    Select
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-
-                    splitSelect.innerHTML += `
-                        <option value="${item.split_id}">
-                            ${escapeHtmlLocal(item.split_job_no)} - ${escapeHtmlLocal(item.section_name)}
-                        </option>
-                    `;
-                });
-
-                if (window.editSelectedSplitId) {
-                    splitSelect.value = String(window.editSelectedSplitId);
-                    applySelectedCoJobDetails(String(window.editSelectedSplitId));
-                }
-            })
-            .catch(error => {
-                console.error("Load co jobs error:", error);
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="4" class="text-center text-danger py-4">
-                            Failed to load co jobs.
-                        </td>
-                    </tr>
-                `;
-            });
-    }
-
-    function createSplitJob() {
-        const editId = document.getElementById("edit_id")?.value || "";
-        const editType = document.getElementById("edit_type")?.value || "";
-        const values = getSplitModalValues();
-
-        if (!values.section_name) {
-            alert("Please enter section / ballroom name.");
-            return;
-        }
-
-        // EDIT JOB MODE: save co job directly in DB
-        if (editId && editType === "job") {
-            const bodyParams = new URLSearchParams({
-                job_section: values.section_name,
-                location: values.location,
-                incharge: values.incharge,
-                rehearsal_date: values.rehearsal_date,
-                event_date: values.event_date
-            });
-
-            fetch(`/create-split-job/${editId}/`, {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
-                    "X-Requested-With": "XMLHttpRequest",
-                    "Content-Type": "application/x-www-form-urlencoded"
-                },
-                body: bodyParams
-            })
-            .then(async response => {
-                const data = await response.json();
-
-                if (!response.ok || !data.success) {
-                    throw new Error(data.error || "Failed to create co job.");
-                }
-
-                return data;
-            })
-            .then(data => {
-                closeSplitJobModal();
-
-                const newSplitId = data.split_id || data.split_job_id || "";
-
-                loadSplitJobs();
-
-                setTimeout(function () {
-                    const splitSelect = document.getElementById("selected_split_id");
-
-                    if (splitSelect && newSplitId) {
-                        splitSelect.value = String(newSplitId);
-                        setEquipmentSectionDetails({
-                            location: values.location,
-                            incharge: values.incharge,
-                            rehearsal_date: values.rehearsal_date,
-                            event_date: values.event_date
-                        });
-                    }
-                }, 400);
-            })
-            .catch(error => {
-                console.error("Create co job error:", error);
-                alert(error.message || "Error while creating co job.");
-            });
-
-            return;
-        }
-
-        // ADD JOB MODE: keep co job locally until main job is saved
-        const tempId = "local_" + Date.now();
-
-        localCoJobs.push({
-            temp_id: tempId,
-            section_name: values.section_name,
-            location: values.location,
-            incharge: values.incharge,
-            rehearsal_date: values.rehearsal_date,
-            event_date: values.event_date,
-            split_job_no: "Will generate after save"
         });
 
-        syncLocalCoJobsJson();
-        closeSplitJobModal();
-        renderLocalCoJobs();
+        document.addEventListener("input", function (event) {
+            if (event.target.classList.contains("crew-type-input")) {
+                renderCrewMenu(event.target);
+            }
 
-        const splitSelect = document.getElementById("selected_split_id");
-        if (splitSelect) {
-            splitSelect.value = tempId;
-            setEquipmentSectionDetails(values);
+            if (event.target.classList.contains("crew-days") ||
+                event.target.classList.contains("crew-charge")) {
+                calculateCrewTotal(event.target.closest("tr"));
+            }
+        });
+
+        document.addEventListener("click", function (event) {
+            const option = event.target.closest(".crew-type-option");
+
+            if (option && activeCrewInput) {
+                activeCrewInput.value = option.dataset.value;
+                hideCrewMenu();
+                return;
+            }
+
+            if (!event.target.closest(".crew-type-wrapper") &&
+                !event.target.closest("#crewTypeFloatingMenu")) {
+                hideCrewMenu();
+            }
+
+            const removeBtn = event.target.closest(".remove-row");
+            if (removeBtn) {
+                const row = removeBtn.closest("tr");
+                if (row) row.remove();
+                calculateMainAmount();
+            }
+        });
+
+        window.addEventListener("scroll", function () {
+            if (activeCrewInput) positionCrewMenu(activeCrewInput);
+        }, true);
+
+        window.addEventListener("resize", function () {
+            if (activeCrewInput) positionCrewMenu(activeCrewInput);
+        });
+    }
+
+    /* =====================================================
+       TRANSPORT
+    ===================================================== */
+    function getTransportType() {
+        return document.querySelector(".transport-type:checked")?.value || "Own Vehicle";
+    }
+
+    function refreshTransportFields() {
+        const type = getTransportType();
+
+        document.querySelectorAll(".transport-row").forEach(row => {
+            row.querySelectorAll(".own-vehicle-field").forEach(field => {
+                field.classList.toggle("d-none", type !== "Own Vehicle");
+            });
+
+            row.querySelectorAll(".outside-vehicle-field").forEach(field => {
+                field.classList.toggle("d-none", type !== "Outside Vehicle");
+            });
+        });
+
+        calculateMainAmount();
+        refreshSmartWizardHeight();
+    }
+
+    async function loadDrivers() {
+        try {
+            const response = await fetch("{% url 'inventory:employee_list' %}");
+            const data = await response.json();
+
+            driversData = (data.data || []).filter(emp =>
+                emp.designation &&
+                emp.designation.toLowerCase().includes("driver")
+            );
+
+            populateAllDriverDropdowns();
+        } catch (error) {
+            console.error("Driver load error:", error);
         }
     }
 
-    function renderLocalCoJobs() {
-        const tbody = document.getElementById("splitJobTableBody");
-        const splitSelect = document.getElementById("selected_split_id");
+    async function loadVehicles() {
+        try {
+            const response = await fetch("{% url 'inventory:fetch_vehicle_list' %}");
+            const data = await response.json();
 
-        if (!tbody || !splitSelect) return;
+            vehiclesData = data.vehicles || [];
 
-        tbody.innerHTML = "";
-        splitSelect.innerHTML = `<option value="">Main Job Equipment</option>`;
-
-        if (!localCoJobs.length) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="4" class="text-center text-muted py-4">
-                        No co jobs added yet.
-                    </td>
-                </tr>
-            `;
-            return;
+            populateAllVehicleDropdowns();
+        } catch (error) {
+            console.error("Vehicle load error:", error);
         }
+    }
 
-        localCoJobs.forEach(item => {
-            tbody.innerHTML += `
-                <tr>
-                    <td class="fw-semibold text-warning">${escapeHtmlLocal(item.split_job_no)}</td>
-                    <td>
-                        <div class="fw-semibold">${escapeHtmlLocal(item.section_name)}</div>
-                        <small class="text-muted">
-                            ${escapeHtmlLocal(item.location || "-")} |
-                            ${escapeHtmlLocal(item.incharge || "-")}
-                        </small>
-                    </td>
-                    <td>
-                        <span class="badge bg-warning text-dark">Pending Save</span>
-                    </td>
-                    <td class="text-center">
-                        <button type="button"
-                                class="btn btn-sm btn-theme"
-                                onclick="selectCoJob('${item.temp_id}')">
-                            Select
-                        </button>
-                        <button type="button"
-                                class="btn btn-sm btn-danger"
-                                onclick="removeLocalCoJob('${item.temp_id}')">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
+    function populateDriverDropdown(select) {
+        if (!select) return;
 
-            splitSelect.innerHTML += `
-                <option value="${item.temp_id}">
-                    ${escapeHtmlLocal(item.section_name)}
+        const selectedValue = select.getAttribute("data-selected") || select.value || "";
+
+        select.innerHTML = `<option value="">Select Driver</option>`;
+
+        driversData.forEach(driver => {
+            const selected = String(driver.name) === String(selectedValue) ? "selected" : "";
+
+            select.innerHTML += `
+                <option value="${escapeHtml(driver.name)}"
+                        data-mobile="${escapeHtml(driver.mobile_no || "")}"
+                        ${selected}>
+                    ${escapeHtml(driver.name)}
                 </option>
             `;
         });
     }
 
-    function selectCoJob(splitId) {
-        const splitSelect = document.getElementById("selected_split_id");
+    function populateVehicleDropdown(select) {
+        if (!select) return;
 
-        if (splitSelect) {
-            splitSelect.value = splitId || "";
-        }
+        const selectedValue = select.getAttribute("data-selected") || select.value || "";
 
-        applySelectedCoJobDetails(splitId || "");
+        select.innerHTML = `<option value="">Select Vehicle</option>`;
 
-        const equipmentTitle = document.querySelector("#wizard_Equipment .h6");
-        if (equipmentTitle) {
-            equipmentTitle.scrollIntoView({behavior: "smooth", block: "center"});
-        }
-    }
+        vehiclesData.forEach(vehicle => {
+            const selected = String(vehicle.vehicle_no) === String(selectedValue) ? "selected" : "";
 
-    function removeLocalCoJob(tempId) {
-        localCoJobs = localCoJobs.filter(item => item.temp_id !== tempId);
-
-        const splitSelect = document.getElementById("selected_split_id");
-        if (splitSelect && splitSelect.value === tempId) {
-            splitSelect.value = "";
-        }
-
-        syncLocalCoJobsJson();
-        renderLocalCoJobs();
-    }
-
-    function syncLocalCoJobsJson() {
-        const input = document.getElementById("co_jobs_json");
-
-        if (input) {
-            input.value = JSON.stringify(localCoJobs);
-        }
-    }
-
-    function closeSplitJobModal() {
-        const modalEl = document.getElementById("splitJobModal");
-        const modal = bootstrap.Modal.getInstance(modalEl);
-
-        if (modal) {
-            modal.hide();
-        }
-
-        ["splitJobSection", "splitLocation", "splitIncharge", "splitRehearsalDate", "splitEventDate"].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = "";
+            select.innerHTML += `
+                <option value="${escapeHtml(vehicle.vehicle_no)}" ${selected}>
+                    ${escapeHtml(vehicle.vehicle_no)}
+                </option>
+            `;
         });
     }
 
-    function escapeHtmlLocal(value) {
-        const div = document.createElement("div");
-        div.textContent = value || "";
-        return div.innerHTML;
+    function populateAllDriverDropdowns() {
+        document.querySelectorAll('select[name="driver_name[]"]').forEach(populateDriverDropdown);
     }
 
-</script>
+    function populateAllVehicleDropdowns() {
+        document.querySelectorAll('select[name="vehicle_number[]"]').forEach(populateVehicleDropdown);
+    }
 
+    function createTransportRow() {
+        const row = document.createElement("div");
+        row.className = "transport-row row g-3 align-items-end mb-3";
+
+        row.innerHTML = `
+            <div class="col-lg-3 col-md-6 own-vehicle-field">
+                <label class="form-label">Driver Name</label>
+                <select class="form-select" name="driver_name[]">
+                    <option value="">Select Driver</option>
+                </select>
+            </div>
+
+            <div class="col-lg-3 col-md-6 own-vehicle-field">
+                <label class="form-label">Contact Number</label>
+                <input type="text" class="form-control" name="contact_number[]" placeholder="Enter Contact Number">
+            </div>
+
+            <div class="col-lg-3 col-md-6 own-vehicle-field">
+                <label class="form-label">Vehicle Number</label>
+                <select class="form-select" name="vehicle_number[]">
+                    <option value="">Select Vehicle</option>
+                </select>
+            </div>
+
+            <div class="col-lg-3 col-md-6 own-vehicle-field">
+                <label class="form-label">Amount</label>
+                <input type="number" class="form-control transport-amount" name="transport_amount[]" placeholder="Amount">
+            </div>
+
+            <div class="col-lg-3 col-md-6 outside-vehicle-field d-none">
+                <label class="form-label">Outside Driver Name</label>
+                <input type="text" class="form-control" name="outside_driver_name[]" placeholder="Enter Driver Name">
+            </div>
+
+            <div class="col-lg-3 col-md-6 outside-vehicle-field d-none">
+                <label class="form-label">Outside Contact Number</label>
+                <input type="text" class="form-control" name="outside_contact_number[]" placeholder="Enter Contact Number">
+            </div>
+
+            <div class="col-lg-3 col-md-6 outside-vehicle-field d-none">
+                <label class="form-label">Outside Vehicle Number</label>
+                <input type="text" class="form-control" name="outside_vehicle_number[]" placeholder="Enter Vehicle Number">
+            </div>
+
+            <div class="col-lg-3 col-md-6 outside-vehicle-field d-none">
+                <label class="form-label">Amount</label>
+                <input type="number" class="form-control transport-amount" name="transport_amount[]" placeholder="Amount">
+            </div>
+
+            <div class="col-auto">
+                <button type="button" class="btn btn-danger remove-transport-row">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        `;
+
+        populateDriverDropdown(row.querySelector('select[name="driver_name[]"]'));
+        populateVehicleDropdown(row.querySelector('select[name="vehicle_number[]"]'));
+
+        return row;
+    }
+
+    function initTransportEvents() {
+        document.querySelectorAll(".transport-type").forEach(radio => {
+            radio.addEventListener("change", refreshTransportFields);
+        });
+
+        const addTransportationRow = getEl("addTransportationRow");
+        const transportRows = getEl("transportRows");
+
+        if (addTransportationRow && transportRows) {
+            addTransportationRow.addEventListener("click", function () {
+                transportRows.appendChild(createTransportRow());
+                refreshTransportFields();
+            });
+        }
+
+        document.addEventListener("change", function (event) {
+            if (event.target.name === "driver_name[]") {
+                const selected = event.target.selectedOptions[0];
+                const mobile = selected?.getAttribute("data-mobile") || "";
+                const row = event.target.closest(".transport-row");
+
+                const contactInput = row?.querySelector('input[name="contact_number[]"]');
+                if (contactInput) contactInput.value = mobile;
+            }
+        });
+
+        document.addEventListener("input", function (event) {
+            if (event.target.classList.contains("transport-amount")) {
+                calculateMainAmount();
+            }
+        });
+
+        document.addEventListener("click", function (event) {
+            if (!event.target.closest(".remove-transport-row")) return;
+
+            const row = event.target.closest(".transport-row");
+            const transportRows = getEl("transportRows");
+
+            if (transportRows.querySelectorAll(".transport-row").length > 1) {
+                row.remove();
+            } else {
+                row.querySelectorAll("input").forEach(input => input.value = "");
+                row.querySelectorAll("select").forEach(select => select.value = "");
+            }
+
+            refreshTransportFields();
+        });
+
+        loadDrivers();
+        loadVehicles();
+        refreshTransportFields();
+    }
+
+    /* =====================================================
+       SAVE JOB
+    ===================================================== */
+    function saveJobAjax(event) {
+        event.preventDefault();
+
+        const jobForm = getEl("jobForm");
+        const tbody = getEl("equipmentTableBody");
+
+        collectEquipmentRowsBySection(currentEquipmentSectionKey);
+        syncCoJobsJson();
+
+        tbody.innerHTML = "";
+
+        Object.keys(equipmentSectionData).forEach(sectionKey => {
+            const rows = equipmentSectionData[sectionKey] || [];
+
+            rows.forEach(item => {
+                if (!item.equipment_id) return;
+
+                const row = createEquipmentRow();
+
+                row.querySelector(".equipment_split_id").value =
+                    sectionKey === "main" ? "" : sectionKey;
+
+                row.querySelector(".category_name").value = item.category_name || "";
+                row.querySelector(".sub_category_name").value = item.sub_category_name || "";
+                row.querySelector(".available_qty").value = item.available_qty || "";
+                row.querySelector(".equipment_qty").value = item.qty || "";
+                row.querySelector(".rental_price").value = item.rental_price || "";
+                row.querySelector(".equipment_total").value = item.total || "";
+                row.querySelector('[name="equipment_notes[]"]').value = item.notes || "";
+
+                const select = row.querySelector(".equipment_select");
+                select.innerHTML = `
+                    <option value="${item.equipment_id}" selected>
+                        ${item.equipment_name || ""}
+                    </option>
+                `;
+
+                tbody.appendChild(row);
+            });
+        });
+
+        calculateMainAmount();
+
+        const formData = new FormData(jobForm);
+
+        fetch(jobForm.action, {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message || "Job saved successfully.");
+                    window.location.href = "{% url 'inventory:job_book' %}";
+                } else {
+                    alert(data.error || "Something went wrong.");
+                }
+            })
+            .catch(error => {
+                console.error("Save job error:", error);
+                alert("Error while saving job.");
+            });
+    }
+
+    function syncEquipmentRowsForSubmit() {
+        const selectedSplit = getEl("selected_split_id");
+        const currentSection = selectedSplit && selectedSplit.value ? selectedSplit.value : "main";
+
+        renderEquipmentRowsForSection(currentSection);
+    }
+
+    /* =====================================================
+       EDIT MODE BINDING - BASIC SAFE VERSION
+    ===================================================== */
+
+
+    function bindEditEquipmentRows(equipmentData) {
+        const tbody = getEl("equipmentTableBody");
+        if (!tbody) return;
+
+        tbody.innerHTML = "";
+
+        if (!equipmentData || !equipmentData.length) {
+            const row = createEquipmentRow();
+            tbody.appendChild(row);
+            loadEquipmentDropdown(row.querySelector(".equipment_select"));
+            return;
+        }
+
+        equipmentSectionData = {main: []};
+
+        equipmentData.forEach(item => {
+            const sectionKey = item.split_id ? String(item.split_id) : "main";
+
+            if (!equipmentSectionData[sectionKey]) {
+                equipmentSectionData[sectionKey] = [];
+            }
+
+            equipmentSectionData[sectionKey].push({
+                equipment_id: item.equipment_id || "",
+                equipment_name: item.equipment_name || "",
+                category_name: item.category_name || "",
+                sub_category_name: item.sub_category_name || "",
+                available_qty: item.available_qty || "",
+                qty: item.equipment_qty || "",
+                rental_price: item.rental_price || "",
+                total: item.equipment_total || "",
+                notes: item.equipment_notes || "",
+                available_dataset: item.available_qty || 0
+            });
+        });
+
+        renderEquipmentRowsForSection("main");
+    }
+
+    function bindEditCrewRows(crewData) {
+        const tbody = getEl("crew-allocation-table-body");
+        if (!tbody) return;
+
+        tbody.innerHTML = "";
+
+        if (!crewData || !crewData.length) {
+            tbody.innerHTML = `
+                <tr>
+                    <td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bi bi-trash"></i></button></td>
+                    <td><div class="crew-type-wrapper"><input type="text" class="form-control crew-type-input" name="crew_type[]" placeholder="Search Crew Type" autocomplete="off"></div></td>
+                    <td><input type="number" class="form-control crew-days" name="crew_no_of_days[]" placeholder="Days"></td>
+                    <td><input type="number" class="form-control crew-charge" name="perday_charges[]" placeholder="Per Day"></td>
+                    <td><input type="number" class="form-control crew-total" name="crew_total[]" readonly></td>
+                    <td><input type="text" class="form-control" name="crew_notes[]" placeholder="Notes"></td>
+                </tr>
+            `;
+            return;
+        }
+
+        crewData.forEach(item => {
+            tbody.insertAdjacentHTML("beforeend", `
+                <tr>
+                    <td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bi bi-trash"></i></button></td>
+                    <td><div class="crew-type-wrapper"><input type="text" class="form-control crew-type-input" name="crew_type[]" value="${escapeHtml(item.crew_type || "")}" autocomplete="off"></div></td>
+                    <td><input type="number" class="form-control crew-days" name="crew_no_of_days[]" value="${item.no_of_days || item.crew_no_of_days || ""}"></td>
+                    <td><input type="number" class="form-control crew-charge" name="perday_charges[]" value="${item.perday_charges || item.per_day || ""}"></td>
+                    <td><input type="number" class="form-control crew-total" name="crew_total[]" value="${item.total || item.crew_total || ""}" readonly></td>
+                    <td><input type="text" class="form-control" name="crew_notes[]" value="${escapeHtml(item.notes || "")}"></td>
+                </tr>
+            `);
+        });
+    }
+
+    function bindEditSubVendorRows(subVendorData) {
+        const tbody = getEl("sub-vendor-table");
+        if (!tbody) return;
+
+        tbody.innerHTML = "";
+
+        if (!subVendorData || !subVendorData.length) {
+            tbody.innerHTML = `
+                <tr>
+                    <td><input type="text" name="vendor-name" class="form-control"></td>
+                    <td><input type="text" name="equipment-name" class="form-control"></td>
+                    <td><input type="number" name="quantity" class="form-control"></td>
+                    <td><input type="number" name="sub_unit_price" class="form-control sub-unit-price"></td>
+                    <td><input type="number" name="sub_total" class="form-control sub-total" readonly></td>
+                    <td><button type="button" class="btn btn-sm btn-danger remove-sub-vendor-row"><i class="bi bi-trash"></i></button></td>
+                </tr>
+            `;
+            return;
+        }
+
+        subVendorData.forEach(item => {
+            tbody.insertAdjacentHTML("beforeend", `
+                <tr>
+                    <td><input type="text" name="vendor-name" class="form-control" value="${escapeHtml(item.vendor_name || "")}"></td>
+                    <td><input type="text" name="equipment-name" class="form-control" value="${escapeHtml(item.equipment_name || "")}"></td>
+                    <td><input type="number" name="quantity" class="form-control" value="${item.quantity || ""}"></td>
+                    <td><input type="number" name="sub_unit_price" class="form-control sub-unit-price" value="${item.unit_price || item.sub_unit_price || ""}"></td>
+                    <td><input type="number" name="sub_total" class="form-control sub-total" value="${item.total || item.sub_total || ""}" readonly></td>
+                    <td><button type="button" class="btn btn-sm btn-danger remove-sub-vendor-row"><i class="bi bi-trash"></i></button></td>
+                </tr>
+            `);
+        });
+    }
+
+
+    function bindEditSplitJobs(splitData) {
+        coJobs = [];
+
+        if (splitData && splitData.length) {
+            splitData.forEach(item => {
+                coJobs.push({
+                    local_id: String(item.split_id),
+                    split_id: item.split_id,
+                    split_job_no: item.split_job_no || "",
+                    section_name: item.section_name || "",
+                    location: item.location || "",
+                    incharge: item.incharge || "",
+                    rehearsal_date: item.rehearsal_date || "",
+                    event_date: item.event_date || "",
+                    status: item.status || "Active"
+                });
+            });
+        }
+
+        renderCoJobs();
+        renderCoJobDropdown();
+    }
+
+    function bindEditEquipmentRows(equipmentData) {
+        const tbody = getEl("equipmentTableBody");
+        if (!tbody) return;
+
+        equipmentSectionData = {main: []};
+
+        if (equipmentData && equipmentData.length) {
+            equipmentData.forEach(item => {
+                const sectionKey = item.split_id ? String(item.split_id) : "main";
+
+                if (!equipmentSectionData[sectionKey]) {
+                    equipmentSectionData[sectionKey] = [];
+                }
+
+                equipmentSectionData[sectionKey].push({
+                    equipment_id: item.equipment_id || "",
+                    equipment_name: item.equipment_name || "",
+                    category_name: item.category_name || item.equipment_category || "",
+                    sub_category_name: item.sub_category_name || item.equipment_sub_category || "",
+                    available_qty: item.available_qty || "",
+                    qty: item.equipment_qty || item.quantity || "",
+                    rental_price: item.rental_price || "",
+                    total: item.equipment_total || item.total || "",
+                    notes: item.equipment_notes || item.notes || "",
+                    available_dataset: item.available_qty || 0
+                });
+            });
+        }
+
+        currentEquipmentSectionKey = "main";
+        renderEquipmentRowsForSection("main");
+    }
+
+    function bindEditCrewRows(crewData) {
+        const tbody = getEl("crew-allocation-table-body");
+        if (!tbody) return;
+
+        tbody.innerHTML = "";
+
+        if (!crewData || !crewData.length) {
+            tbody.innerHTML = `
+                <tr>
+                    <td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bi bi-trash"></i></button></td>
+                    <td><div class="crew-type-wrapper"><input type="text" class="form-control crew-type-input" name="crew_type[]" placeholder="Search Crew Type" autocomplete="off"></div></td>
+                    <td><input type="number" class="form-control crew-days" name="crew_no_of_days[]" placeholder="Days"></td>
+                    <td><input type="number" class="form-control crew-charge" name="perday_charges[]" placeholder="Per Day"></td>
+                    <td><input type="number" class="form-control crew-total" name="crew_total[]" readonly></td>
+                    <td><input type="text" class="form-control" name="crew_notes[]" placeholder="Notes"></td>
+                </tr>
+            `;
+            return;
+        }
+
+        crewData.forEach(item => {
+            tbody.insertAdjacentHTML("beforeend", `
+                <tr>
+                    <td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bi bi-trash"></i></button></td>
+                    <td><div class="crew-type-wrapper"><input type="text" class="form-control crew-type-input" name="crew_type[]" value="${escapeHtml(item.crew_type || "")}" autocomplete="off"></div></td>
+                    <td><input type="number" class="form-control crew-days" name="crew_no_of_days[]" value="${item.crew_no_of_days || ""}"></td>
+                    <td><input type="number" class="form-control crew-charge" name="perday_charges[]" value="${item.perday_charges || ""}"></td>
+                    <td><input type="number" class="form-control crew-total" name="crew_total[]" value="${item.crew_total || ""}" readonly></td>
+                    <td><input type="text" class="form-control" name="crew_notes[]" value="${escapeHtml(item.notes || "")}"></td>
+                </tr>
+            `);
+        });
+    }
+
+    function bindEditSubVendorRows(subVendorData) {
+        const tbody = getEl("sub-vendor-table");
+        if (!tbody) return;
+
+        tbody.innerHTML = "";
+
+        if (!subVendorData || !subVendorData.length) {
+            tbody.innerHTML = `
+                <tr>
+                    <td><input type="text" name="vendor-name" class="form-control"></td>
+                    <td><input type="text" name="equipment-name" class="form-control"></td>
+                    <td><input type="number" name="quantity" class="form-control"></td>
+                    <td><input type="number" name="sub_unit_price" class="form-control sub-unit-price"></td>
+                    <td><input type="number" name="sub_total" class="form-control sub-total" readonly></td>
+                    <td><button type="button" class="btn btn-sm btn-danger remove-sub-vendor-row"><i class="bi bi-trash"></i></button></td>
+                </tr>
+            `;
+            return;
+        }
+
+        subVendorData.forEach(item => {
+            tbody.insertAdjacentHTML("beforeend", `
+                <tr>
+                    <td><input type="text" name="vendor-name" class="form-control" value="${escapeHtml(item.vendor_name || "")}"></td>
+                    <td><input type="text" name="equipment-name" class="form-control" value="${escapeHtml(item.equipment_name || "")}"></td>
+                    <td><input type="number" name="quantity" class="form-control" value="${item.quantity || ""}"></td>
+                    <td><input type="number" name="sub_unit_price" class="form-control sub-unit-price" value="${item.sub_unit_price || ""}"></td>
+                    <td><input type="number" name="sub_total" class="form-control sub-total" value="${item.sub_total || ""}" readonly></td>
+                    <td><button type="button" class="btn btn-sm btn-danger remove-sub-vendor-row"><i class="bi bi-trash"></i></button></td>
+                </tr>
+            `);
+        });
+    }
+
+    function bindEditTransportRows(transportData) {
+        const wrapper = getEl("transportRows");
+        if (!wrapper) return;
+
+        wrapper.innerHTML = "";
+
+        if (!transportData || !transportData.length) {
+            wrapper.appendChild(createTransportRow());
+            refreshTransportFields();
+            return;
+        }
+
+        transportData.forEach(item => {
+            const row = createTransportRow();
+            wrapper.appendChild(row);
+
+            const driverSelect = row.querySelector('[name="driver_name[]"]');
+            const vehicleSelect = row.querySelector('[name="vehicle_number[]"]');
+
+            if (driverSelect) {
+                driverSelect.setAttribute("data-selected", item.driver_name || "");
+                driverSelect.innerHTML = `<option value="${escapeHtml(item.driver_name || "")}" selected>${escapeHtml(item.driver_name || "Select Driver")}</option>`;
+            }
+
+            const contactInput = row.querySelector('[name="contact_number[]"]');
+            if (contactInput) contactInput.value = item.contact_number || "";
+
+            if (vehicleSelect) {
+                vehicleSelect.setAttribute("data-selected", item.vehicle_number || "");
+                vehicleSelect.innerHTML = `<option value="${escapeHtml(item.vehicle_number || "")}" selected>${escapeHtml(item.vehicle_number || "Select Vehicle")}</option>`;
+            }
+
+            const outsideDriver = row.querySelector('[name="outside_driver_name[]"]');
+            const outsideContact = row.querySelector('[name="outside_contact_number[]"]');
+            const outsideVehicle = row.querySelector('[name="outside_vehicle_number[]"]');
+
+            if (outsideDriver) outsideDriver.value = item.outside_driver_name || "";
+            if (outsideContact) outsideContact.value = item.outside_contact_number || "";
+            if (outsideVehicle) outsideVehicle.value = item.outside_vehicle_number || "";
+
+            const amountInputs = row.querySelectorAll(".transport-amount");
+            amountInputs.forEach(input => {
+                input.value = item.transport_amount || "";
+            });
+
+            if (item.outside_driver_name || item.outside_vehicle_number) {
+                const outsideRadio = document.querySelector('.transport-type[value="Outside Vehicle"]');
+                if (outsideRadio) outsideRadio.checked = true;
+            }
+        });
+
+        populateAllDriverDropdowns();
+        populateAllVehicleDropdowns();
+        refreshTransportFields();
+    }
+
+    function initEditModeBinding() {
+        const editMode = "{{ edit_mode|yesno:'true,false' }}";
+        if (editMode !== "true") return;
+
+        const jobData = {{ job_data|default:"{}"|safe }};
+        const equipmentData = {{ equipment_data|default:"[]"|safe }};
+        const crewData = {{ crew_data|default:"[]"|safe }};
+        const subVendorData = {{ sub_vendor_data|default:"[]"|safe }};
+        const transportData = {{ transport_data|default:"[]"|safe }};
+        const splitData = {{ split_data|default:"[]"|safe }};
+
+        console.log("JOB DATA:", jobData);
+        console.log("EQUIPMENT DATA:", equipmentData);
+        console.log("CREW DATA:", crewData);
+        console.log("SUB VENDOR DATA:", subVendorData);
+        console.log("TRANSPORT DATA:", transportData);
+        console.log("SPLIT DATA:", splitData);
+
+        function getJobValue(...keys) {
+            for (const key of keys) {
+                if (jobData && jobData[key] !== undefined && jobData[key] !== null) {
+                    return jobData[key];
+                }
+            }
+            return "";
+        }
+
+        setVal("titleInput", getJobValue("title"));
+        setVal("venueAddressDropdown", getJobValue("venue_name"));
+        setVal("venueAddressInput", getJobValue("venue_address"));
+        setVal("clientNameDropdown", getJobValue("client_name"));
+        setVal("clientContactNumber", getJobValue("contact_person_number"));
+        setVal("prepDate", getJobValue("setup_date"));
+        setVal("outDate", getJobValue("rehearsal_date"));
+        setVal("showStart", getJobValue("show_start_date", "event_date", "start_date"));
+        setVal("showEnd", getJobValue("show_end_date", "dismantle_date", "end_date"));
+        setVal("status", getJobValue("status"));
+        setVal("crewQuantity", getJobValue("crew_type"));
+        setVal("inputNotes", getJobValue("notes"));
+        setVal("number_of_days", getJobValue("total_days"));
+        setVal("equipment_total_amount", getJobValue("equipment_total_amount"));
+        setVal("sub_vendor_total_amount", getJobValue("sub_vendor_total_amount"));
+        setVal("crew_total_amount", getJobValue("crew_total_amount"));
+        setVal("transport_total_amount", getJobValue("transport_total_amount"));
+        setVal("total_amount", getJobValue("amount_row"));
+        setVal("discount", getJobValue("discount"));
+        setVal("discounted_amount", getJobValue("amount_after_discount"));
+        setVal("total_amount_cal", getJobValue("total_amount"));
+
+        setVal("equipment_location", val("venueAddressDropdown"));
+        setVal("equipment_rehearsal_date", val("outDate"));
+        setVal("equipment_event_date", val("showStart"));
+
+        bindEditSplitJobs(splitData);
+        bindEditEquipmentRows(equipmentData);
+        bindEditCrewRows(crewData);
+        bindEditSubVendorRows(subVendorData);
+        bindEditTransportRows(transportData);
+
+        calculateJobDaysNow();
+        calculateMainAmount();
+        refreshSmartWizardHeight();
+    }
+
+    /* =====================================================
+       INIT
+    ===================================================== */
+    document.addEventListener("DOMContentLoaded", function () {
+        initSmartWizard();
+        initDateCalculation();
+        initClientVenueDropdowns();
+        initCoJobEvents();
+        initEquipmentEvents();
+        initSubVendorEvents();
+        initCrewEvents();
+        initTransportEvents();
+        initEditModeBinding();
+
+        const discountAmountInput = getEl("discounted_amount");
+        if (discountAmountInput) {
+            discountAmountInput.addEventListener("input", calculateDiscountFromAmount);
+        }
+
+        window.addEventListener("resize", refreshSmartWizardHeight);
+    });
+</script>
 
 </body>
 </html>

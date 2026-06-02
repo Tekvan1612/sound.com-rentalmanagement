@@ -1,0 +1,193 @@
+{% extends 'inventory/movement_base.html' %}
+
+{% block form_content %}
+<div class="row g-3">
+
+    <div class="col-md-12">
+        <div class="alert alert-info mb-0">
+            Scan barcode directly. System will find latest OUT transaction automatically.
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <label class="form-label fw-semibold">Scan Barcode</label>
+        <input type="text"
+               id="quickBarcodeInput"
+               class="form-control form-control-lg"
+               placeholder="Scan barcode here"
+               autocomplete="off">
+    </div>
+
+    <div class="col-md-12">
+        <div id="messageBox" class="alert mt-2 d-none"></div>
+    </div>
+
+    <div class="col-md-12">
+        <h6 class="mt-3">Quick Return Scanned List</h6>
+
+        <div class="table-responsive" style="max-height:420px; overflow-y:auto;">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Barcode</th>
+                    <th>Equipment</th>
+                    <th>Job No</th>
+                    <th>Client</th>
+                    <th>Status</th>
+                    <th>Return Time</th>
+                </tr>
+                </thead>
+
+                <tbody id="quickReturnBody">
+                <tr>
+                    <td colspan="7" class="text-center text-muted">
+                        No barcode scanned yet
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let quickReturnList = [];
+
+document.addEventListener("DOMContentLoaded", function () {
+    const input = document.getElementById("quickBarcodeInput");
+
+    input.focus();
+
+    input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            scanQuickReturn();
+        }
+    });
+});
+
+function collectPayload() {
+    return {
+        movement_type: "QUICK_RETURN",
+        barcode: document.getElementById("quickBarcodeInput").value.trim()
+    };
+}
+
+function scanQuickReturn() {
+    const input = document.getElementById("quickBarcodeInput");
+    const barcode = input.value.trim();
+
+    if (!barcode) {
+        showMessage("Please scan barcode", "warning");
+        return;
+    }
+
+    fetch("/api/quick-return-scan/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: JSON.stringify({
+            movement_type: "QUICK_RETURN",
+            barcode: barcode
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 1) {
+            showMessage(data.message, "success");
+
+            quickReturnList.unshift({
+                barcode: data.barcode,
+                equipment_name: data.equipment_name,
+                job_no: data.job_no,
+                client_name: data.client_name,
+                status_text: data.status_text,
+                return_time: data.return_time
+            });
+
+            renderQuickReturnList();
+        } else {
+            showMessage(data.message || "Return failed", "danger");
+        }
+
+        input.value = "";
+        input.focus();
+    })
+    .catch(() => {
+        showMessage("Quick return failed", "danger");
+        input.value = "";
+        input.focus();
+    });
+}
+
+function renderQuickReturnList() {
+    const tbody = document.getElementById("quickReturnBody");
+    tbody.innerHTML = "";
+
+    if (!quickReturnList.length) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center text-muted">
+                    No barcode scanned yet
+                </td>
+            </tr>`;
+        return;
+    }
+
+    quickReturnList.forEach((item, index) => {
+        tbody.innerHTML += `
+            <tr class="table-success">
+                <td>${index + 1}</td>
+                <td>${escapeHtml(item.barcode)}</td>
+                <td>${escapeHtml(item.equipment_name)}</td>
+                <td>${escapeHtml(item.job_no)}</td>
+                <td>${escapeHtml(item.client_name)}</td>
+                <td>
+                    <span class="badge bg-success">
+                        ${escapeHtml(item.status_text)}
+                    </span>
+                </td>
+                <td>${escapeHtml(item.return_time)}</td>
+            </tr>`;
+    });
+}
+
+function showMessage(message, type) {
+    const box = document.getElementById("messageBox");
+    box.className = `alert alert-${type} mt-2`;
+    box.textContent = message;
+    box.classList.remove("d-none");
+}
+
+function escapeHtml(value) {
+    const div = document.createElement("div");
+    div.textContent = value || "";
+    return div.innerHTML;
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+
+    if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+
+            if (cookie.substring(0, name.length + 1) === name + "=") {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+
+    return cookieValue;
+}
+</script>
+{% endblock %}

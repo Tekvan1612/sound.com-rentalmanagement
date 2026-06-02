@@ -1,0 +1,530 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'inventory/includes/head.html' %}
+</head>
+
+<body class="main-bg main-bg-opac main-bg-blur roundedui adminuiux-header-standard adminuiux-sidebar-standard adminuiux-mobile-footer-fill-theme adminuiux-header-transparent theme-pista bg-r-gradient adminuiux-sidebar-fill-none scrollup">
+
+{% include 'inventory/includes/header.html' %}
+
+<div class="adminuiux-wrap">
+    {% include 'inventory/includes/sidebar.html' %}
+
+    <main class="adminuiux-content has-sidebar" onclick="contentClick()">
+
+        <div class="container mt-3">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h4 class="mb-0">Dispatch Loading</h4>
+                    <small class="text-muted">Scan equipment barcode against Delivery Challan</small>
+                </div>
+
+                <div class="col-auto">
+                    <button class="btn btn-theme" data-bs-toggle="modal" data-bs-target="#jobModal">
+                        <i class="bi bi-search me-1"></i> Select Delivery Challan
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container mt-3">
+
+            <div class="card asset-master-card mb-3">
+                <div class="card-body">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-3">
+                            <label class="form-label">Selected Job No</label>
+                            <input type="hidden" id="selectedJobId">
+                            <input type="text" id="selectedJobNo" class="form-control" readonly
+                                   placeholder="No job selected">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Job Section / Co Job</label>
+                            <select id="selectedSplitId" class="form-select"
+                                    onchange="loadEquipmentList(); loadScannedList();">
+                                <option value="">Main Job Equipment</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Client</label>
+                            <input type="text" id="selectedClient" class="form-control" readonly>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Title</label>
+                            <input type="text" id="selectedTitle" class="form-control" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3">
+
+                <div class="col-lg-6">
+                    <div class="card asset-master-card h-100">
+                        <div class="card-body">
+                            <h6 class="mb-3">Equipment List</h6>
+
+                            <div class="table-responsive">
+                                <table class="table table-bordered align-middle">
+                                    <thead>
+                                    <tr>
+                                        <th>Equipment</th>
+                                        <th>Qty</th>
+                                        <th>Scanned</th>
+                                        <th>Pending</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="equipmentBody">
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted">
+                                            Select Delivery Challan
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card asset-master-card h-100">
+                        <div class="card-body">
+                            <h6 class="mb-3">Barcode Scanning</h6>
+
+                            <label class="form-label fw-semibold">Scan Barcode</label>
+                            <input type="text"
+                                   id="barcodeInput"
+                                   class="form-control form-control-lg"
+                                   placeholder="Scan barcode here"
+                                   autocomplete="off">
+
+                            <small class="text-muted">
+                                Keep cursor here and scan using Zebra DS2208.
+                            </small>
+
+                            <div id="messageBox" class="alert mt-3 d-none"></div>
+
+                            <hr>
+
+                            <h6 class="mb-3">Scanned Barcode List</h6>
+
+                            <div class="table-responsive" style="max-height: 360px; overflow-y: auto;">
+                                <table class="table table-bordered align-middle">
+                                    <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Barcode</th>
+                                        <th>Equipment</th>
+                                        <th>Time</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="scannedBody">
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted">
+                                            No barcode scanned
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<div class="modal fade" id="jobModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Select Delivery Challan Job</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <input type="text"
+                       id="jobSearch"
+                       class="form-control mb-3"
+                       placeholder="Search job no, client, title..."
+                       onkeyup="filterJobs()">
+
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead>
+                        <tr>
+                            <th>Job No</th>
+                            <th>Title</th>
+                            <th>Client</th>
+                            <th style="width: 100px;">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody id="jobListBody">
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">Loading...</td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="text-muted">
+                            <span id="jobShowingInfo">Showing 0 records</span>
+                        </div>
+
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button"
+                                    class="btn btn-sm btn-secondary"
+                                    id="prevJobPageBtn"
+                                    onclick="loadDispatchJobs(currentJobPage - 1)">
+                                Previous
+                            </button>
+
+                            <span id="jobPageInfo" class="fw-semibold">Page 1 of 1</span>
+
+                            <button type="button"
+                                    class="btn btn-sm btn-secondary"
+                                    id="nextJobPageBtn"
+                                    onclick="loadDispatchJobs(currentJobPage + 1)">
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% include 'inventory/includes/footer.html' %}
+
+<script>
+
+
+    let allJobs = [];
+    let currentJobPage = 1;
+    let totalJobPages = 1;
+    let jobPageSize = 25;
+
+    document.addEventListener("DOMContentLoaded", function () {
+        loadDispatchJobs(1);
+
+        const barcodeInput = document.getElementById("barcodeInput");
+
+        if (barcodeInput) {
+            barcodeInput.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    scanBarcode();
+                }
+            });
+        }
+    });
+
+    function loadDispatchJobs(page = 1) {
+        const search = document.getElementById("jobSearch")?.value || "";
+
+        if (page < 1) page = 1;
+
+        fetch(`/api/dispatch-jobs/?page=${page}&page_size=${jobPageSize}&search=${encodeURIComponent(search)}`)
+            .then(res => res.json())
+            .then(response => {
+                if (response.status !== 1) {
+                    document.getElementById("jobListBody").innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center text-danger">
+                            ${response.message || "Failed to load jobs"}
+                        </td>
+                    </tr>`;
+                    return;
+                }
+
+                allJobs = response.data || [];
+                currentJobPage = response.page || 1;
+                totalJobPages = response.total_pages || 1;
+
+                renderJobs(allJobs);
+                renderJobPagination(response);
+            })
+            .catch(() => {
+                document.getElementById("jobListBody").innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center text-danger">
+                        Failed to load jobs
+                    </td>
+                </tr>`;
+            });
+    }
+
+    function renderJobPagination(response) {
+        const showingInfo = document.getElementById("jobShowingInfo");
+        const pageInfo = document.getElementById("jobPageInfo");
+        const prevBtn = document.getElementById("prevJobPageBtn");
+        const nextBtn = document.getElementById("nextJobPageBtn");
+
+        const totalRecords = response.total_records || 0;
+        const page = response.page || 1;
+        const pageSize = response.page_size || jobPageSize;
+        const totalPages = response.total_pages || 1;
+
+        const start = totalRecords === 0 ? 0 : ((page - 1) * pageSize) + 1;
+        const end = Math.min(page * pageSize, totalRecords);
+
+        showingInfo.textContent = `Showing ${start} to ${end} of ${totalRecords} records`;
+        pageInfo.textContent = `Page ${page} of ${totalPages}`;
+
+        prevBtn.disabled = page <= 1;
+        nextBtn.disabled = page >= totalPages;
+    }
+
+    function renderJobs(jobs) {
+        const tbody = document.getElementById("jobListBody");
+        tbody.innerHTML = "";
+
+        if (!jobs.length) {
+            tbody.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center text-muted">
+                    No Delivery Challan jobs found
+                </td>
+            </tr>`;
+            return;
+        }
+
+        jobs.forEach(job => {
+            tbody.innerHTML += `
+            <tr>
+                <td>${escapeHtml(job.job_no)}</td>
+                <td>${escapeHtml(job.title)}</td>
+                <td>${escapeHtml(job.client_name)}</td>
+                <td>
+                    <button class="btn btn-sm btn-theme"
+                            onclick="selectJob('${job.job_id}', '${escapeJs(job.job_no)}', '${escapeJs(job.title)}', '${escapeJs(job.client_name)}')">
+                        Select
+                    </button>
+                </td>
+            </tr>`;
+        });
+    }
+
+    function filterJobs() {
+        loadDispatchJobs(1);
+    }
+
+    function selectJob(jobId, jobNo, title, clientName) {
+        document.getElementById("selectedJobId").value = jobId;
+        document.getElementById("selectedJobNo").value = jobNo;
+        document.getElementById("selectedTitle").value = title;
+        document.getElementById("selectedClient").value = clientName;
+
+        const sectionSelect = document.getElementById("selectedSplitId");
+        sectionSelect.innerHTML = `<option value="">Main Job Equipment</option>`;
+
+        const modal = bootstrap.Modal.getInstance(document.getElementById("jobModal"));
+        modal.hide();
+
+        loadJobSections(jobId);
+        loadEquipmentList();
+        loadScannedList();
+
+        setTimeout(() => {
+            document.getElementById("barcodeInput").focus();
+        }, 300);
+    }
+
+    function loadJobSections(jobId) {
+        const select = document.getElementById("selectedSplitId");
+
+        select.innerHTML = `<option value="">Main Job Equipment</option>`;
+
+        fetch(`/api/job-sections/${jobId}/`)
+            .then(res => res.json())
+            .then(data => {
+                console.log("JOB SECTIONS:", data);
+
+                data.forEach(item => {
+                    select.innerHTML += `
+                    <option value="${item.split_id}">
+                        ${escapeHtml(item.split_job_no)} - ${escapeHtml(item.section_name)}
+                    </option>`;
+                });
+            });
+    }
+
+    function loadEquipmentList() {
+        const jobId = document.getElementById("selectedJobId").value;
+        const splitId = document.getElementById("selectedSplitId").value;
+        const tbody = document.getElementById("equipmentBody");
+
+        if (!jobId) return;
+
+        fetch(`/api/dispatch-job-equipment/${jobId}/?split_id=${encodeURIComponent(splitId)}`)
+            .then(res => res.json())
+            .then(data => {
+                tbody.innerHTML = "";
+
+                if (!data.length) {
+                    tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">
+                            No equipment found
+                        </td>
+                    </tr>`;
+                    return;
+                }
+
+                data.forEach(item => {
+                    let pendingClass = item.pending_qty <= 0 ? "text-success fw-bold" : "text-danger fw-bold";
+
+                    tbody.innerHTML += `
+                    <tr>
+                        <td>${escapeHtml(item.equipment_name)}</td>
+                        <td>${item.required_qty}</td>
+                        <td>${item.scanned_qty}</td>
+                        <td class="${pendingClass}">${item.pending_qty}</td>
+                    </tr>`;
+                });
+            });
+    }
+
+    function loadScannedList() {
+        const jobId = document.getElementById("selectedJobId").value;
+        const splitId = document.getElementById("selectedSplitId").value;
+        const tbody = document.getElementById("scannedBody");
+
+        if (!jobId) return;
+
+        fetch(`/api/dispatch-scanned-list/${jobId}/?split_id=${encodeURIComponent(splitId)}`)
+            .then(res => res.json())
+            .then(data => {
+                tbody.innerHTML = "";
+
+                if (!data.length) {
+                    tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">
+                            No barcode scanned
+                        </td>
+                    </tr>`;
+                    return;
+                }
+
+                data.forEach((item, index) => {
+                    tbody.innerHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${escapeHtml(item.barcode)}</td>
+                        <td>${escapeHtml(item.equipment_name)}</td>
+                        <td>${escapeHtml(item.scan_time)}</td>
+                    </tr>`;
+                });
+            });
+    }
+
+    function scanBarcode() {
+        const jobId = document.getElementById("selectedJobId").value;
+        const splitId = document.getElementById("selectedSplitId").value;
+        const barcodeInput = document.getElementById("barcodeInput");
+        const barcode = barcodeInput.value.trim();
+
+        if (!jobId) {
+            showMessage("Please select Delivery Challan first", "warning");
+            barcodeInput.value = "";
+            return;
+        }
+
+        if (!barcode) {
+            showMessage("Please scan barcode", "warning");
+            return;
+        }
+
+        fetch("/api/dispatch-scan/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken")
+            },
+            body: JSON.stringify({
+                job_id: jobId,
+                split_id: splitId,
+                barcode: barcode
+            })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 1) {
+                    showMessage(data.message + " - " + data.equipment_name, "success");
+                    loadEquipmentList();
+                    loadScannedList();
+                    loadDispatchJobs();
+                } else {
+                    showMessage(data.message, "danger");
+                }
+
+                barcodeInput.value = "";
+                barcodeInput.focus();
+            })
+            .catch(() => {
+                showMessage("Scan failed", "danger");
+                barcodeInput.value = "";
+                barcodeInput.focus();
+            });
+    }
+
+    function showMessage(message, type) {
+        const box = document.getElementById("messageBox");
+        box.className = `alert alert-${type} mt-3`;
+        box.textContent = message;
+        box.classList.remove("d-none");
+    }
+
+    function escapeHtml(value) {
+        const div = document.createElement("div");
+        div.textContent = value || "";
+        return div.innerHTML;
+    }
+
+    function escapeJs(value) {
+        return String(value || "")
+            .replace(/\\/g, "\\\\")
+            .replace(/'/g, "\\'")
+            .replace(/"/g, "&quot;");
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+
+                if (cookie.substring(0, name.length + 1) === name + "=") {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+
+        return cookieValue;
+    }
+</script>
+
+</body>
+</html>

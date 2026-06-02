@@ -1,0 +1,36 @@
+{% extends 'inventory/movement_base.html' %}
+
+{% block form_content %}
+<div class="row g-3">
+    <div class="col-md-6">
+        <label class="form-label fw-semibold">Entry Type</label>
+        <select id="damageType" class="form-select">
+            <option value="MISSING">Missing</option>
+            <option value="DAMAGED">Damaged</option>
+            <option value="SCRAP">Scrap</option>
+        </select>
+    </div>
+
+    <div class="col-md-6">
+        <label class="form-label fw-semibold">Photo</label>
+        <input type="file" id="damagePhoto" class="form-control">
+    </div>
+
+    <div class="col-md-12">
+        <label class="form-label fw-semibold">Remarks</label>
+        <textarea id="remarks" class="form-control" rows="2"></textarea>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function collectPayload() {
+    return {
+        movement_type: document.getElementById("damageType").value,
+        damage_type: document.getElementById("damageType").value,
+        remarks: document.getElementById("remarks").value
+    };
+}
+</script>
+{% endblock %}

@@ -160,14 +160,54 @@ urlpatterns = [
         views.get_split_jobs,
         name="get_split_jobs"
     ),
-path(
-    'get-equipment-details/<int:equipment_id>/',
-    views.get_equipment_details,
-    name='get_equipment_details'
-),
-path(
-    'delete-connect/<int:id>/',
-    views.delete_connect,
-    name='delete_connect'
-),
+    path(
+        'get-equipment-details/<int:equipment_id>/',
+        views.get_equipment_details,
+        name='get_equipment_details'
+    ),
+    path(
+        'delete-connect/<int:id>/',
+        views.delete_connect,
+        name='delete_connect'
+    ),
+
+    path("inactive-job/", views.inactive_job, name="inactive_job"),
+
+    path("scanning/", views.scanning_page, name="scanning_page"),
+
+    path("api/delivery-challan-jobs/", views.delivery_challan_jobs_api, name="delivery_challan_jobs_api"),
+    path("api/delivery-challan-equipment/<int:job_id>/", views.delivery_challan_equipment_api,
+         name="delivery_challan_equipment_api"),
+    path("api/scan-barcode/", views.scan_barcode_api, name="scan_barcode_api"),
+
+    path('dispatch-loading/', views.dispatch_loading, name='dispatch_loading'),
+
+    path("dispatch-loading/", views.dispatch_loading, name="dispatch_loading"),
+    path("api/dispatch-jobs/", views.dispatch_jobs_api, name="dispatch_jobs_api"),
+    path("api/dispatch-job-equipment/<int:job_id>/", views.dispatch_job_equipment, name="dispatch_job_equipment_api"),
+    path("api/dispatch-scanned-list/<int:job_id>/", views.dispatch_scanned_list_api, name="dispatch_scanned_list_api"),
+    path("api/dispatch-scan/", views.dispatch_scan_api, name="dispatch_scan_api"),
+    path('job-return/', views.job_return, name='job_return'),
+    path('quick-return/', views.quick_return, name='quick_return'),
+    path("api/job-sections/<int:job_id>/", views.job_sections, name="job_sections"),
+
+    path('warehouse-transfer/', views.warehouse_transfer, name='warehouse_transfer'),
+
+    path('maintenance-out/', views.maintenance_out, name='maintenance_out'),
+    path('maintenance-return/', views.maintenance_return, name='maintenance_return'),
+
+    path('damage-missing/', views.damage_missing, name='damage_missing'),
+
+    path("api/return-jobs/", views.return_jobs_api, name="return_jobs_api"),
+    path("api/return-scanned-items/<str:job_no>/", views.return_scanned_items_api, name="return_scanned_items_api"),
+
+    path("api/scan-job-return/", views.scan_job_return_api, name="scan_job_return_api"),
+
+    path("api/quick-return-scan/", views.quick_return_scan_api, name="quick_return_scan_api"),
+
+    path(
+        "module-list/",
+        views.module_list,
+        name="module_list"
+    ),
 ]

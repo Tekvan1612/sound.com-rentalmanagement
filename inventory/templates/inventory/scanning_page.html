@@ -1,0 +1,340 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'inventory/includes/head.html' %}
+</head>
+
+<body class="main-bg main-bg-opac main-bg-blur roundedui adminuiux-header-standard adminuiux-sidebar-standard adminuiux-mobile-footer-fill-theme adminuiux-header-transparent theme-pista bg-r-gradient adminuiux-sidebar-fill-none scrollup">
+
+{% include 'inventory/includes/header.html' %}
+
+<div class="adminuiux-wrap">
+    {% include 'inventory/includes/sidebar.html' %}
+
+    <main class="adminuiux-content has-sidebar" onclick="contentClick()">
+
+        <div class="container mt-3">
+            <h4 class="mb-0">Barcode Scanning</h4>
+            <small class="text-muted">Delivery Challan Scan Out / Job Scan In / Global Scan In</small>
+        </div>
+
+        <div class="container mt-3">
+
+            <div class="card asset-master-card mb-3">
+                <div class="card-body">
+
+                    <div class="row g-3">
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Scan Type</label>
+                            <select id="scanType" class="form-select" onchange="changeScanType()">
+                                <option value="scan_out">Scan Out - Delivery Challan</option>
+                                <option value="scan_in_job">Scan In - Job No</option>
+                                <option value="global_scan_in">Global Scan In</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-8" id="deliveryJobBox">
+                            <label class="form-label fw-semibold">Delivery Challan Job</label>
+                            <select id="deliveryJobId" class="form-select" onchange="loadJobEquipment()">
+                                <option value="">Loading Delivery Challan jobs...</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-8 d-none" id="jobNoBox">
+                            <label class="form-label fw-semibold">Job No</label>
+                            <input type="text" id="jobNo" class="form-control" placeholder="Enter Job No">
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">Scan Barcode</label>
+                            <input type="text"
+                                   id="barcodeInput"
+                                   class="form-control form-control-lg"
+                                   placeholder="Scan barcode here"
+                                   autocomplete="off"
+                                   autofocus>
+                            <small class="text-muted">
+                                Zebra DS2208 should be configured with Enter suffix.
+                            </small>
+                        </div>
+
+                    </div>
+
+                    <div id="messageBox" class="alert mt-3 d-none"></div>
+
+                </div>
+            </div>
+
+            <div class="card asset-master-card mb-3" id="equipmentSummaryCard">
+                <div class="card-body">
+                    <h6 class="mb-3">Delivery Challan Equipment Summary</h6>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <thead>
+                            <tr>
+                                <th>Equipment</th>
+                                <th>Required Qty</th>
+                                <th>Scanned Qty</th>
+                                <th>Pending Qty</th>
+                            </tr>
+                            </thead>
+                            <tbody id="equipmentSummaryBody">
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">Select Delivery Challan job</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card asset-master-card">
+                <div class="card-body">
+                    <h6 class="mb-3">Latest Scan</h6>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Job No</th>
+                                <th>Barcode</th>
+                                <th>Equipment</th>
+                                <th>Status</th>
+                                <th>Time</th>
+                            </tr>
+                            </thead>
+                            <tbody id="scanTableBody">
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">No scan yet</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+{% include 'inventory/includes/footer.html' %}
+
+<script>
+let scanCount = 0;
+
+document.addEventListener("DOMContentLoaded", function () {
+    loadDeliveryJobs();
+
+    const barcodeInput = document.getElementById("barcodeInput");
+    barcodeInput.focus();
+
+    barcodeInput.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            submitScan();
+        }
+    });
+});
+
+function changeScanType() {
+    const scanType = document.getElementById("scanType").value;
+
+    document.getElementById("deliveryJobBox").classList.add("d-none");
+    document.getElementById("jobNoBox").classList.add("d-none");
+    document.getElementById("equipmentSummaryCard").classList.add("d-none");
+
+    if (scanType === "scan_out") {
+        document.getElementById("deliveryJobBox").classList.remove("d-none");
+        document.getElementById("equipmentSummaryCard").classList.remove("d-none");
+        loadDeliveryJobs();
+    }
+
+    if (scanType === "scan_in_job") {
+        document.getElementById("jobNoBox").classList.remove("d-none");
+    }
+
+    document.getElementById("barcodeInput").value = "";
+    document.getElementById("barcodeInput").focus();
+}
+
+function loadDeliveryJobs() {
+    fetch("/api/delivery-challan-jobs/")
+        .then(res => res.json())
+        .then(data => {
+            const ddl = document.getElementById("deliveryJobId");
+            ddl.innerHTML = `<option value="">Select Delivery Challan Job</option>`;
+
+            data.forEach(job => {
+                ddl.innerHTML += `
+                    <option value="${job.job_id}">
+                        ${escapeHtml(job.job_no)} - ${escapeHtml(job.title)}
+                        | Pending: ${job.pending_qty}
+                    </option>
+                `;
+            });
+
+            loadJobEquipment();
+        })
+        .catch(() => {
+            showMessage("Failed to load Delivery Challan jobs", "danger");
+        });
+}
+
+function loadJobEquipment() {
+    const jobId = document.getElementById("deliveryJobId").value;
+    const tbody = document.getElementById("equipmentSummaryBody");
+
+    if (!jobId) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center text-muted">Select Delivery Challan job</td>
+            </tr>
+        `;
+        return;
+    }
+
+    fetch(`/api/delivery-challan-equipment/${jobId}/`)
+        .then(res => res.json())
+        .then(data => {
+            tbody.innerHTML = "";
+
+            if (!data.length) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">No equipment found</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            data.forEach(item => {
+                const pendingClass = item.pending_qty <= 0 ? "text-success fw-bold" : "text-danger fw-bold";
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${escapeHtml(item.equipment_name)}</td>
+                        <td>${item.required_qty}</td>
+                        <td>${item.scanned_qty}</td>
+                        <td class="${pendingClass}">${item.pending_qty}</td>
+                    </tr>
+                `;
+            });
+        });
+}
+
+function submitScan() {
+    const scanType = document.getElementById("scanType").value;
+    const barcodeInput = document.getElementById("barcodeInput");
+    const barcode = barcodeInput.value.trim();
+
+    if (!barcode) {
+        showMessage("Please scan barcode", "warning");
+        barcodeInput.focus();
+        return;
+    }
+
+    const payload = {
+        scan_type: scanType,
+        barcode: barcode,
+        job_id: document.getElementById("deliveryJobId").value,
+        job_no: document.getElementById("jobNo").value
+    };
+
+    fetch("/api/scan-barcode/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 1) {
+            showMessage(data.message, "success");
+            addScanRow(data, "success");
+            loadJobEquipment();
+            loadDeliveryJobs();
+        } else {
+            showMessage(data.message, "danger");
+            addScanRow({
+                job_no: data.job_no || "-",
+                barcode: barcode,
+                equipment_name: "-",
+                message: data.message
+            }, "danger");
+        }
+
+        barcodeInput.value = "";
+        barcodeInput.focus();
+    })
+    .catch(() => {
+        showMessage("Scan failed", "danger");
+        barcodeInput.value = "";
+        barcodeInput.focus();
+    });
+}
+
+function addScanRow(data, type) {
+    scanCount++;
+
+    const tbody = document.getElementById("scanTableBody");
+
+    if (scanCount === 1) {
+        tbody.innerHTML = "";
+    }
+
+    const badge = type === "success" ? "bg-success" : "bg-danger";
+
+    tbody.insertAdjacentHTML("afterbegin", `
+        <tr>
+            <td>${scanCount}</td>
+            <td>${escapeHtml(data.job_no || "-")}</td>
+            <td>${escapeHtml(data.barcode || "-")}</td>
+            <td>${escapeHtml(data.equipment_name || "-")}</td>
+            <td><span class="badge ${badge}">${escapeHtml(data.message || "-")}</span></td>
+            <td>${new Date().toLocaleString()}</td>
+        </tr>
+    `);
+}
+
+function showMessage(message, type) {
+    const box = document.getElementById("messageBox");
+    box.className = `alert alert-${type} mt-3`;
+    box.textContent = message;
+    box.classList.remove("d-none");
+}
+
+function escapeHtml(value) {
+    const div = document.createElement("div");
+    div.textContent = value || "";
+    return div.innerHTML;
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+
+    if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+
+            if (cookie.substring(0, name.length + 1) === name + "=") {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+
+    return cookieValue;
+}
+</script>
+
+</body>
+</html>

@@ -98,84 +98,6 @@
                                                 </tr>
                                                 </thead>
                                                 <tbody id="modulePermissionTable">
-                                                <tr>
-                                                    <td class="text-start">Dashboard</td>
-                                                    <td><input type="checkbox" class="perm-read"
-                                                               data-module="dashboard"></td>
-                                                    <td><input type="checkbox" class="perm-write"
-                                                               data-module="dashboard"></td>
-                                                    <td><input type="checkbox" class="perm-all" data-module="dashboard">
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="text-start">HR Management</td>
-                                                    <td><input type="checkbox" class="perm-read"
-                                                               data-module="hr_management"></td>
-                                                    <td><input type="checkbox" class="perm-write"
-                                                               data-module="hr_management"></td>
-                                                    <td><input type="checkbox" class="perm-all"
-                                                               data-module="hr_management"></td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="text-start">Connects</td>
-                                                    <td><input type="checkbox" class="perm-read" data-module="connects">
-                                                    </td>
-                                                    <td><input type="checkbox" class="perm-write"
-                                                               data-module="connects"></td>
-                                                    <td><input type="checkbox" class="perm-all" data-module="connects">
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="text-start">Asset Masters</td>
-                                                    <td><input type="checkbox" class="perm-read"
-                                                               data-module="asset_masters"></td>
-                                                    <td><input type="checkbox" class="perm-write"
-                                                               data-module="asset_masters"></td>
-                                                    <td><input type="checkbox" class="perm-all"
-                                                               data-module="asset_masters"></td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="text-start">Inventory</td>
-                                                    <td><input type="checkbox" class="perm-read"
-                                                               data-module="inventory"></td>
-                                                    <td><input type="checkbox" class="perm-write"
-                                                               data-module="inventory"></td>
-                                                    <td><input type="checkbox" class="perm-all" data-module="inventory">
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="text-start">Calendar</td>
-                                                    <td><input type="checkbox" class="perm-read" data-module="calendar">
-                                                    </td>
-                                                    <td><input type="checkbox" class="perm-write"
-                                                               data-module="calendar"></td>
-                                                    <td><input type="checkbox" class="perm-all" data-module="calendar">
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="text-start">Reports</td>
-                                                    <td><input type="checkbox" class="perm-read" data-module="reports">
-                                                    </td>
-                                                    <td><input type="checkbox" class="perm-write" data-module="reports">
-                                                    </td>
-                                                    <td><input type="checkbox" class="perm-all" data-module="reports">
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="text-start">Accounts</td>
-                                                    <td><input type="checkbox" class="perm-read" data-module="accounts">
-                                                    </td>
-                                                    <td><input type="checkbox" class="perm-write"
-                                                               data-module="accounts"></td>
-                                                    <td><input type="checkbox" class="perm-all" data-module="accounts">
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="text-start">HR</td>
-                                                    <td><input type="checkbox" class="perm-read" data-module="hr"></td>
-                                                    <td><input type="checkbox" class="perm-write" data-module="hr"></td>
-                                                    <td><input type="checkbox" class="perm-all" data-module="hr"></td>
-                                                </tr>
                                                 </tbody>
                                             </table>
                                         </div>
@@ -229,6 +151,7 @@
 
     document.addEventListener("DOMContentLoaded", function () {
         loadUsers();
+        loadModules();
 
         document.getElementById("userSearch").addEventListener("input", function () {
             renderUsers(this.value.trim().toLowerCase());
@@ -285,49 +208,204 @@
         });
     }
 
-    function submitUserForm() {
-        const userId = document.getElementById("edit_user_id").value;
-        const formData = new FormData();
+    function loadModules() {
 
-        formData.append("username", document.getElementById("username").value.trim());
-        formData.append("password", document.getElementById("password").value.trim());
-        formData.append("emp_id", document.getElementById("emp_id").value);
-        formData.append("status", document.getElementById("status").value);
+        fetch("{% url 'inventory:module_list' %}")
+            .then(res => res.json())
+            .then(data => {
 
-        document.querySelectorAll(".module-checkbox:checked").forEach(cb => {
-            if (userId) {
-                formData.append("modules[]", cb.value);
-            } else {
-                formData.append("modules", cb.value);
+                let tbody =
+                    document.getElementById(
+                        "modulePermissionTable"
+                    );
+
+                tbody.innerHTML = "";
+
+                data.data.forEach(module => {
+
+                    tbody.innerHTML += `
+                    <tr>
+                        <td class="text-start">
+                            ${module.module_name}
+                        </td>
+
+                        <td>
+                            <input type="checkbox"
+                                   class="perm-read"
+                                   data-module="${module.module_name}">
+                        </td>
+
+                        <td>
+                            <input type="checkbox"
+                                   class="perm-write"
+                                   data-module="${module.module_name}">
+                        </td>
+
+                        <td>
+                            <input type="checkbox"
+                                   class="perm-all"
+                                   data-module="${module.module_name}">
+                        </td>
+                    </tr>
+                `;
+                });
+
+                bindAllCheckboxes();
+            });
+    }
+
+    function bindAllCheckboxes() {
+
+        document.querySelectorAll(".perm-all")
+            .forEach(cb => {
+
+                cb.addEventListener("change", function () {
+
+                    let module =
+                        this.dataset.module;
+
+                    document.querySelector(
+                        `.perm-read[data-module="${module}"]`
+                    ).checked = this.checked;
+
+                    document.querySelector(
+                        `.perm-write[data-module="${module}"]`
+                    ).checked = this.checked;
+                });
+            });
+    }
+
+    function getPermissions() {
+
+        let permissions = [];
+
+        document.querySelectorAll(
+            "#modulePermissionTable tr"
+        ).forEach(row => {
+
+            let readCb =
+                row.querySelector(".perm-read");
+
+            let writeCb =
+                row.querySelector(".perm-write");
+
+            let allCb =
+                row.querySelector(".perm-all");
+
+            if (!readCb) return;
+
+            if (
+                readCb.checked ||
+                writeCb.checked ||
+                allCb.checked
+            ) {
+
+                permissions.push({
+                    module: readCb.dataset.module,
+                    read: readCb.checked,
+                    write: writeCb.checked,
+                    all: allCb.checked
+                });
             }
         });
 
+        console.log("PERMISSIONS:", permissions);
+
+        return permissions;
+    }
+
+    document.querySelectorAll(".perm-all").forEach(cb => {
+        cb.addEventListener("change", function () {
+            const moduleName = this.dataset.module;
+
+            const readCb = document.querySelector(`.perm-read[data-module="${moduleName}"]`);
+            const writeCb = document.querySelector(`.perm-write[data-module="${moduleName}"]`);
+
+            if (readCb) readCb.checked = this.checked;
+            if (writeCb) writeCb.checked = this.checked;
+        });
+    });
+
+    function submitUserForm() {
+        const userId = document.getElementById("edit_user_id").value;
+        const employeeSelect = document.getElementById("username");
+
+        const empId = employeeSelect.value;
+        const username = employeeSelect.options[employeeSelect.selectedIndex]?.text || "";
+        const password = document.getElementById("password").value.trim();
+        const status = document.getElementById("status").value;
+
+        const permissions = getPermissions();
+
+        console.log("========== USER FORM DATA ==========");
+        console.log("userId:", userId);
+        console.log("empId:", empId);
+        console.log("username:", username);
+        console.log("password:", password);
+        console.log("status:", status);
+        console.log("permissions:", permissions);
+
+        if (!empId) {
+            showToast("Please select username", "danger");
+            return;
+        }
+
+        if (!password) {
+            showToast("Please enter password", "danger");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("username", username);
+        formData.append("emp_id", empId);
+        formData.append("password", password);
+        formData.append("status", status);
+        formData.append("permissions", JSON.stringify(permissions));
+
         let url = "{% url 'inventory:add_user' %}";
+
         if (userId) {
             formData.append("userId", userId);
-            formData.append("statusText", document.getElementById("status").value);
             url = `/update_user/${userId}/`;
         }
 
         fetch(url, {
             method: "POST",
             body: formData,
-            headers: {"X-CSRFToken": getCookie("csrftoken")}
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken")
+            }
         })
-            .then(res => res.json())
+            .then(async response => {
+                const data = await response.json();
+
+                console.log("========== USER SAVE RESPONSE ==========");
+                console.log("HTTP STATUS:", response.status);
+                console.log("RESPONSE DATA:", data);
+
+                if (!response.ok) {
+                    throw new Error(data.message || data.error || "Server Error");
+                }
+
+                return data;
+            })
             .then(data => {
                 if (data.success || data.message) {
                     showToast(data.message || "Saved successfully", "success");
                     resetUserForm();
-                    bootstrap.Collapse.getOrCreateInstance(document.getElementById("addUserCollapse")).hide();
+                    bootstrap.Collapse.getOrCreateInstance(
+                        document.getElementById("addUserCollapse")
+                    ).hide();
                     loadUsers();
                 } else {
-                    showToast(data.error || data.message || "Failed", "danger");
+                    console.error("VALIDATION ERROR:", data);
+                    showToast(data.message || data.error || "Failed", "danger");
                 }
             })
-            .catch(err => {
-                console.error(err);
-                showToast("Error saving user", "danger");
+            .catch(error => {
+                console.error("========== USER SAVE ERROR ==========");
+                console.error(error);
+                showToast(error.message, "danger");
             });
     }
 
@@ -336,53 +414,52 @@
         if (!user) return;
 
         document.getElementById("edit_user_id").value = user.user_id;
-        document.getElementById("username").value = user.user_name || "";
         document.getElementById("password").value = user.password || "";
         document.getElementById("status").value = user.status ? "1" : "0";
 
-        document.querySelectorAll(".module-checkbox").forEach(cb => cb.checked = false);
+        const usernameSelect = document.getElementById("username");
+
+        Array.from(usernameSelect.options).forEach(opt => {
+            if (opt.text.trim() === String(user.user_name || "").trim()) {
+                usernameSelect.value = opt.value;
+            }
+        });
+
+        document.querySelectorAll(".perm-read, .perm-write, .perm-all").forEach(cb => {
+            cb.checked = false;
+        });
+
         if (Array.isArray(user.modules)) {
             user.modules.forEach(mod => {
-                const checkbox = document.querySelector(`.module-checkbox[value="${mod}"]`);
-                if (checkbox) checkbox.checked = true;
+                const moduleName = String(mod).toLowerCase();
+
+                const readCb = document.querySelector(`.perm-read[data-module="${moduleName}"]`);
+                const writeCb = document.querySelector(`.perm-write[data-module="${moduleName}"]`);
+                const allCb = document.querySelector(`.perm-all[data-module="${moduleName}"]`);
+
+                if (readCb) readCb.checked = true;
+                if (writeCb) writeCb.checked = true;
+                if (allCb) allCb.checked = true;
             });
         }
 
         document.getElementById("userFormTitle").textContent = "Edit User Details";
         document.getElementById("userBtnText").textContent = "Update User";
 
-        bootstrap.Collapse.getOrCreateInstance(document.getElementById("addUserCollapse")).show();
-    }
-
-    function deleteUser(id) {
-        if (!confirm("Are you sure you want to delete this user?")) return;
-
-        fetch(`/delete_user/${id}/`, {
-            method: "POST",
-            headers: {"X-CSRFToken": getCookie("csrftoken")}
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.message) {
-                    showToast(data.message, "success");
-                    loadUsers();
-                } else {
-                    showToast(data.error || "Delete failed", "danger");
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                showToast("Error deleting user", "danger");
-            });
+        bootstrap.Collapse.getOrCreateInstance(
+            document.getElementById("addUserCollapse")
+        ).show();
     }
 
     function resetUserForm() {
         document.getElementById("edit_user_id").value = "";
         document.getElementById("username").value = "";
         document.getElementById("password").value = "";
-        document.getElementById("emp_id").value = "";
         document.getElementById("status").value = "1";
-        document.querySelectorAll(".module-checkbox").forEach(cb => cb.checked = false);
+
+        document.querySelectorAll(".perm-read, .perm-write, .perm-all").forEach(cb => {
+            cb.checked = false;
+        });
 
         document.getElementById("userFormTitle").textContent = "New User Details";
         document.getElementById("userBtnText").textContent = "Save User";
