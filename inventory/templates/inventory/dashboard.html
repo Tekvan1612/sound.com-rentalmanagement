@@ -1,435 +1,78 @@
-
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<!-- dir="rtl"-->
 <head>
     {% include 'inventory/includes/head.html' %}
 </head>
 
-
 <body class="main-bg main-bg-opac main-bg-blur roundedui adminuiux-header-standard adminuiux-sidebar-standard adminuiux-mobile-footer-fill-theme adminuiux-header-transparent theme-pista bg-r-gradient adminuiux-sidebar-fill-none scrollup"
-      data-theme="theme-pista" data-sidebarfill="adminuiux-sidebar-fill-none" data-bs-spy="scroll"
-      data-bs-target="#list-example" data-bs-smooth-scroll="true" tabindex="0"
+      data-theme="theme-pista"
+      data-sidebarfill="adminuiux-sidebar-fill-none"
       data-sidebarlayout="adminuiux-sidebar-standard"
-      data-headerlayout="adminuiux-header-standard" data-headerfill="adminuiux-header-transparent"
-      data-bggradient="bg-r-gradient" style="">
-<!-- Pageloader -->
+      data-headerlayout="adminuiux-header-standard"
+      data-headerfill="adminuiux-header-transparent"
+      data-bggradient="bg-r-gradient">
+
 <div class="pageloader">
     <div class="container h-100">
         <div class="row justify-content-center align-items-center text-center h-100 pb-ios">
-            <div class="col-12 mb-auto pt-4"></div>
             <div class="col-auto">
-                <img src="{% static 'inventory/assets/img/tekvan_logo_hd.png'%}" alt="" class="height-80 mb-3">
+                <img src="{% static 'inventory/assets/img/tekvan_logo_hd.png' %}" class="height-80 mb-3">
                 <p class="h2 mb-0 text-theme-accent-1">Rental</p>
                 <p class="display-3 text-theme-1 fw-bold mb-4">Management</p>
                 <div class="loader12 mb-2 mx-auto"></div>
             </div>
-            <div class="col-12 mt-auto pb-4">
-                <p class="small text-secondary">Please wait we are preparing awesome things...</p>
-            </div>
         </div>
     </div>
 </div>
-<!-- standard header -->
+
 {% include 'inventory/includes/header.html' %}
 
-<!-- full-screen search modal -->
-<div class="modal fade" tabindex="-1" id="searchmodalfull" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content bg-none border-0">
-            <div class="modal-body z-index-1">
-                <div class="input-group input-group-md w-100 rounded search-wrap mb-3 mb-lg-4">
-                    <span class="input-group-text border-0 bg-none">
-                        <i data-feather="search"></i>
-                    </span>
-                    <input class="form-control form-control-lg pe-0 border-0 bg-none" type="search"
-                           placeholder="Type something here..." id="searchglobal">
-                    <div class="dropdown input-group-text border-0 px-2">
-                        <button class="dropdown-toggle btn btn-link btn-square no-caret" type="button" id="searchfilter"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                            <i data-feather="sliders"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end dropdown-dontclose width-300"
-                             aria-labelledby="searchfilter">
-                            <ul class="nav adminuiux-nav" id="searchtab" role="tablist">
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link active" id="searchall-tab" data-bs-toggle="tab"
-                                            data-bs-target="#searchall" type="button" role="tab"
-                                            aria-controls="searchall" aria-selected="true">All
-                                    </button>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="searchorders-tab" data-bs-toggle="tab"
-                                            data-bs-target="#searchorders" type="button" role="tab"
-                                            aria-controls="searchorders" aria-selected="false" tabindex="-1">Orders
-                                    </button>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="searchcontacts-tab" data-bs-toggle="tab"
-                                            data-bs-target="#searchcontacts" type="button" role="tab"
-                                            aria-controls="searchcontacts" aria-selected="false" tabindex="-1">Contacts
-                                    </button>
-                                </li>
-                            </ul>
-                            <div class="tab-content py-3" id="searchtabContent">
-                                <div class="tab-pane fade active show" id="searchall" role="tabpanel"
-                                     aria-labelledby="searchall-tab">
-                                    <ul class="list-group adminuiux-list-group list-group-flush bg-none show">
-                                        <li class="list-group-item">
-                                            <div class="row">
-                                                <div class="col">Search apps</div>
-                                                <div class="col-auto">
-                                                    <div class="form-check form-switch"><input class="form-check-input"
-                                                                                               type="checkbox"
-                                                                                               role="switch"
-                                                                                               id="isearchswitch1">
-                                                        <label class="form-check-label" for="isearchswitch1"></label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        <li class="list-group-item">
-                                            <div class="row">
-                                                <div class="col">Include Pages</div>
-                                                <div class="col-auto">
-                                                    <div class="form-check form-switch"><input class="form-check-input"
-                                                                                               type="checkbox"
-                                                                                               role="switch"
-                                                                                               id="isearchswitch2"
-                                                                                               checked=""> <label
-                                                            class="form-check-label" for="isearchswitch2"></label></div>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        <li class="list-group-item">
-                                            <div class="row">
-                                                <div class="col">Internet resource</div>
-                                                <div class="col-auto">
-                                                    <div class="form-check form-switch"><input class="form-check-input"
-                                                                                               type="checkbox"
-                                                                                               role="switch"
-                                                                                               id="isearchswitch3"
-                                                                                               checked=""> <label
-                                                            class="form-check-label" for="isearchswitch3"></label></div>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        <li class="list-group-item">
-                                            <div class="row">
-                                                <div class="col">News and Blogs</div>
-                                                <div class="col-auto">
-                                                    <div class="form-check form-switch"><input class="form-check-input"
-                                                                                               type="checkbox"
-                                                                                               role="switch"
-                                                                                               id="isearchswitch4">
-                                                        <label class="form-check-label" for="isearchswitch4"></label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div class="tab-pane fade" id="searchorders" role="tabpanel"
-                                     aria-labelledby="searchorders-tab">
-                                    <ul class="list-group adminuiux-list-group list-group-flush bg-none show">
-                                        <li class="list-group-item">
-                                            <div class="row">
-                                                <div class="col">Show order ID</div>
-                                                <div class="col-auto">
-                                                    <div class="form-check form-switch"><input class="form-check-input"
-                                                                                               type="checkbox"
-                                                                                               role="switch"
-                                                                                               id="isearchswitch5">
-                                                        <label class="form-check-label" for="isearchswitch5"></label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        <li class="list-group-item">
-                                            <div class="row">
-                                                <div class="col">International Order</div>
-                                                <div class="col-auto">
-                                                    <div class="form-check form-switch"><input class="form-check-input"
-                                                                                               type="checkbox"
-                                                                                               role="switch"
-                                                                                               id="isearchswitch6"
-                                                                                               checked=""> <label
-                                                            class="form-check-label" for="isearchswitch6"></label></div>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        <li class="list-group-item">
-                                            <div class="row">
-                                                <div class="col">Taxable Product</div>
-                                                <div class="col-auto">
-                                                    <div class="form-check form-switch"><input class="form-check-input"
-                                                                                               type="checkbox"
-                                                                                               role="switch"
-                                                                                               id="isearchswitch7"
-                                                                                               checked=""> <label
-                                                            class="form-check-label" for="isearchswitch7"></label></div>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        <li class="list-group-item">
-                                            <div class="row">
-                                                <div class="col">Published Product</div>
-                                                <div class="col-auto">
-                                                    <div class="form-check form-switch"><input class="form-check-input"
-                                                                                               type="checkbox"
-                                                                                               role="switch"
-                                                                                               id="isearchswitch8">
-                                                        <label class="form-check-label" for="isearchswitch8"></label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div class="tab-pane fade" id="searchcontacts" role="tabpanel"
-                                     aria-labelledby="searchcontacts-tab">
-                                    <ul class="list-group adminuiux-list-group list-group-flush bg-none show">
-                                        <li class="list-group-item">
-                                            <div class="row">
-                                                <div class="col">Have email ID</div>
-                                                <div class="col-auto">
-                                                    <div class="form-check form-switch"><input class="form-check-input"
-                                                                                               type="checkbox"
-                                                                                               role="switch"
-                                                                                               id="isearchswitch9">
-                                                        <label class="form-check-label" for="isearchswitch9"></label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        <li class="list-group-item">
-                                            <div class="row">
-                                                <div class="col">Have phone number</div>
-                                                <div class="col-auto">
-                                                    <div class="form-check form-switch"><input class="form-check-input"
-                                                                                               type="checkbox"
-                                                                                               role="switch"
-                                                                                               id="isearchswitch10"
-                                                                                               checked=""> <label
-                                                            class="form-check-label" for="isearchswitch10"></label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        <li class="list-group-item">
-                                            <div class="row">
-                                                <div class="col">Photo available</div>
-                                                <div class="col-auto">
-                                                    <div class="form-check form-switch"><input class="form-check-input"
-                                                                                               type="checkbox"
-                                                                                               role="switch"
-                                                                                               id="isearchswitch11"
-                                                                                               checked=""> <label
-                                                            class="form-check-label" for="isearchswitch11"></label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        <li class="list-group-item">
-                                            <div class="row">
-                                                <div class="col">Referral</div>
-                                                <div class="col-auto">
-                                                    <div class="form-check form-switch"><input class="form-check-input"
-                                                                                               type="checkbox"
-                                                                                               role="switch"
-                                                                                               id="isearchswitch12">
-                                                        <label class="form-check-label" for="isearchswitch12"></label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="">
-                                <div class="row">
-                                    <div class="col">
-                                        <button class="btn btn-link">Reset</button>
-                                    </div>
-                                    <div class="col-auto">
-                                        <button class="btn btn-theme">Apply</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- products -->
-                <div class="row gx-3 align-items-center mb-3">
-                    <div class="col">
-                        <h6 class="text-white">Results in Products (3)</h6>
-                    </div>
-                    <div class="col-auto">
-                        <a href="ecommerce-products.html" class="btn btn-sm btn-link text-white">View All</a>
-                    </div>
-                </div>
-                <div class="row gx-3">
-                    <div class="col-12 col-md-6 col-lg-4">
-                        <div class="card adminuiux-card mb-3 mb-lg-4">
-                            <a href="ecommerce-product-details.html" class="rounded coverimg height-150 mb-2 m-1">
-                                <img src="assets/img/ecommerce/image-5.jpg" alt="">
-                            </a>
-                            <div class="card-body pt-1">
-                                <a href="ecommerce-product-details.html" class="style-none">
-                                    <h6 class="text-theme-1 text-truncated mb-2">Bracelet Woman Platinum</h6>
-                                </a>
-                                <div class="row gx-3 align-items-center mb-3">
-                                    <div class="col">
-                                        <p class="text-warning mb-0"><i class="bi bi-star-fill"></i><i
-                                                class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
-                                                class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></p>
-                                        <p class="small text-secondary">4.8 (15 reviews)</p>
-                                    </div>
-                                    <div class="col-auto">
-                                        <h6 class="mb-0">$65.00</h6>
-                                        <p class="small text-secondary">10% OFF</p>
-                                    </div>
-                                </div>
-
-                                <div class="row gx-3 align-items-center">
-                                    <div class="col">
-                                        <p class="mb-0">6 Item in stock</p>
-                                        <p class="small text-secondary">In 36 wishlist</p>
-                                    </div>
-                                    <div class="col-auto">
-                                        <a href="ecommerce-product-details.html" class="btn btn-square btn-link"><i
-                                                class="bi bi-arrow-right"></i></a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-4">
-                        <div class="card adminuiux-card mb-3 mb-lg-4">
-                            <a href="ecommerce-product-details.html" class="rounded coverimg height-150 mb-2 m-1">
-                                <img src="assets/img/ecommerce/image-6.jpg" alt="">
-                            </a>
-                            <div class="card-body pt-1">
-                                <a href="ecommerce-product-details.html" class="style-none">
-                                    <h6 class="text-theme-1 text-truncated mb-2">Sofa single coco color</h6>
-                                </a>
-                                <div class="row gx-3 align-items-center mb-3">
-                                    <div class="col">
-                                        <p class="text-warning mb-0"><i class="bi bi-star-fill"></i><i
-                                                class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
-                                                class="bi bi-star-fill"></i><i class="bi bi-star-half"></i></p>
-                                        <p class="small text-secondary">4.5 (10 reviews)</p>
-                                    </div>
-                                    <div class="col-auto text-end">
-                                        <h6 class="mb-0">$152.00</h6>
-                                        <p class="small text-secondary">Bank Offer</p>
-                                    </div>
-                                </div>
-
-                                <div class="row gx-3 align-items-center">
-                                    <div class="col">
-                                        <p class="mb-0">3 Item in stock</p>
-                                        <p class="small text-secondary">In 2 wishlist</p>
-                                    </div>
-                                    <div class="col-auto">
-                                        <a href="ecommerce-product-details.html" class="btn btn-square btn-link"><i
-                                                class="bi bi-arrow-right"></i></a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-4">
-                        <div class="card adminuiux-card mb-3 mb-lg-4">
-                            <a href="ecommerce-product-details.html" class="rounded coverimg height-150 mb-2 m-1">
-                                <img src="assets/img/ecommerce/image-7.jpg" alt="">
-                            </a>
-                            <div class="card-body pt-1">
-                                <a href="ecommerce-product-details.html" class="style-none">
-                                    <h6 class="text-theme-1 text-truncated mb-2">Shine Nails Hiclon</h6>
-                                </a>
-                                <div class="row gx-3 align-items-center mb-3">
-                                    <div class="col">
-                                        <p class="text-warning mb-0"><i class="bi bi-star-fill"></i><i
-                                                class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
-                                                class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></p>
-                                        <p class="small text-secondary">4.3 (12 reviews)</p>
-                                    </div>
-                                    <div class="col-auto">
-                                        <h6 class="mb-0">$8.00</h6>
-                                        <p class="small text-secondary">10% OFF</p>
-                                    </div>
-                                </div>
-
-                                <div class="row gx-3 align-items-center">
-                                    <div class="col">
-                                        <p class="mb-0">25 Item in stock</p>
-                                        <p class="small text-secondary">In 21 wishlist</p>
-                                    </div>
-                                    <div class="col-auto">
-                                        <a href="ecommerce-product-details.html" class="btn btn-square btn-link"><i
-                                                class="bi bi-arrow-right"></i></a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="text-center">
-                    <button type="button" class="btn btn-link text-white" data-bs-dismiss="modal">Cancel Search</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 <div class="adminuiux-wrap">
-    <!-- Standard sidebar -->
-    <!-- Standard sidebar -->
     {% include 'inventory/includes/sidebar.html' %}
+
     <main class="adminuiux-content has-sidebar" onclick="contentClick()">
-        <!-- breadcrumb -->
+
         <div class="container mt-3">
             <div class="row gx-1 align-items-center">
-                <div class="col col-sm mb-3 mb-md-0">
+                <div class="col">
                     <nav aria-label="breadcrumb" class="mb-1">
                         <ol class="breadcrumb mb-0">
-                            <li class="breadcrumb-item active bi" aria-current="page"><i class="bi bi-house-door"></i>
-                                Home
+                            <li class="breadcrumb-item active">
+                                <i class="bi bi-house-door"></i> Home
                             </li>
                         </ol>
                     </nav>
-                    <h4>Dashboard</h4>
+                    <h4>Rental Inventory Dashboard</h4>
                 </div>
-                <div class="col-auto mb-3 mb-md-0">
+
+                <div class="col-auto">
                     <div class="input-group width-250">
                         <input type="text" class="form-control bg-none text-center" id="daterangepickerranges">
-                        <span class="input-group-text bg-none" id="calendarpickerrange"
-                              onclick="jQuery(this).prev().click()">
-                                                <i class="bi bi-calendar"></i>
-                                            </span>
+                        <span class="input-group-text bg-none">
+                            <i class="bi bi-calendar"></i>
+                        </span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- content -->
         <div class="container mt-3 mt-lg-4 mt-xl-5" id="main-content">
-            <!-- welcome -->
+
             <div class="row align-items-center mb-xl-3">
-                <!-- userphoto  -->
                 <div class="col-auto mb-3 mb-lg-4">
                     <figure class="avatar avatar-80 rounded coverimg align-middle">
-                        <img src="{% static 'inventory/assets/img/modern-ai-image/user-1.jpg'%}" alt="">
+                        <img src="{% static 'inventory/assets/img/modern-ai-image/user-1.jpg' %}" alt="">
                     </figure>
                 </div>
-                <!-- welcome section -->
+
                 <div class="col mb-3 mb-lg-4">
                     <h3 class="text-theme-1 fw-normal mb-0">Welcome,</h3>
-                    <h1 class="fw-bold text-theme-accent-1 mb-0">Adminuiuxer</h1>
+                    <h1 class="fw-bold text-theme-accent-1 mb-0">
+                        {{ request.session.full_name|default:"Admin" }}
+                    </h1>
                 </div>
-                <!-- summary-->
+
                 <div class="col-auto mb-3 mb-lg-4">
                     <div class="row gx-3 align-items-center">
                         <div class="col-auto">
@@ -438,12 +81,13 @@
                             </div>
                         </div>
                         <div class="col">
-                            <p class="text-secondary small mb-0">Orders </p>
-                            <h4 class="mb-0">162</h4>
-                            <span class="badge badge-sm badge-light text-bg-success"><i class="bi bi-caret-up-fill"></i> 8.01%</span>
+                            <p class="text-secondary small mb-0">Active Jobs</p>
+                            <h4 class="mb-0" id="dashActiveJobs">0</h4>
+                            <span class="badge badge-sm badge-light text-bg-success">Live</span>
                         </div>
                     </div>
                 </div>
+
                 <div class="col-auto mb-3 mb-lg-4">
                     <div class="row gx-3 align-items-center">
                         <div class="col-auto">
@@ -452,1551 +96,390 @@
                             </div>
                         </div>
                         <div class="col">
-                            <p class="text-secondary small mb-0">Return </p>
-                            <h4 class="mb-0">6</h4>
-                            <span class="badge badge-sm badge-light text-bg-danger"><i class="bi bi-caret-up-fill"></i> 1.50%</span>
+                            <p class="text-secondary small mb-0">Returns Today</p>
+                            <h4 class="mb-0" id="dashTodayReturns">0</h4>
+                            <span class="badge badge-sm badge-light text-bg-warning">Due</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="row gx-3 gx-lg-4">
-                <!-- summary and que balance -->
+            <div class="row gx-3 gx-lg-4 mb-4">
+
                 <div class="col-12 col-md-6 col-xl-4">
                     <div class="card border-0 position-relative overflow-hidden bg-theme-1 p-1 mb-3 mb-lg-4">
-                        <div class="coverimg top-0 start-0 h-100 w-100 position-absolute z-index-0 opacity-75">
-                            <img src="assets/img/ecommerce/image-4.jpg" alt="">
-                        </div>
                         <div class="height-200 p-3 text-black z-index-1">
-                            <h1 class="mb-0">$2501.00</h1>
-                            <h6 class="mb-2">Open order amount</h6>
-                            <p class="small opacity-50">$1500.50 received - 65% prepaid orders</p>
+                            <h1 class="mb-0" id="dashRevenue">₹0</h1>
+                            <h6 class="mb-2">Total Rental Revenue</h6>
+                            <p class="small opacity-50">Based on job booking amount</p>
                         </div>
-                        <div class="card adminuiux-card bg-none blur-overlay overflow-hidden position-relative"
-                             style="--bs-border-radius: 1.15rem;">
+
+                        <div class="card adminuiux-card bg-none blur-overlay overflow-hidden position-relative">
                             <div class="card-body z-index-1">
                                 <div class="row gx-3 align-items-center mb-3">
                                     <div class="col-auto">
-                                        <div class="avatar avatar-50 rounded border border-theme-1"><i
-                                                class="bi bi-bar-chart"></i></div>
+                                        <div class="avatar avatar-50 rounded border border-theme-1">
+                                            <i class="bi bi-bar-chart"></i>
+                                        </div>
                                     </div>
                                     <div class="col">
-                                        <h6 class="mb-0">Summary</h6>
-                                        <p class="small opacity-50">Product Sales Growth <span
-                                                class="badge badge-sm text-bg-success"><i
-                                                class="bi bi-caret-up-fill"></i> 2.11%</span></p>
+                                        <h6 class="mb-0">Inventory Status</h6>
+                                        <p class="small opacity-50">Available / Rented / Maintenance</p>
                                     </div>
                                 </div>
                                 <div class="height-200">
-                                    <canvas id="summarychart"></canvas>
+                                    <canvas id="inventoryStatusChart"></canvas>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
                 <div class="col-12 col-md-6 col-xl-8">
                     <div class="row gx-3 gx-lg-4">
-                        <!-- total sales -->
-                        <div class="col-12 col-md-12 col-xl-6">
-                            <div class="card bg-none mb-3 mb-lg-4">
-                                <div class="card-body">
-                                    <div class="row gx-3 align-items-center mb-3">
-                                        <div class="col-auto">
-                                            <div class="avatar avatar-50 rounded card"><i class="bi bi-bag-check"></i>
-                                            </div>
-                                        </div>
-                                        <div class="col">
-                                            <h6 class="mb-0">Order Summary</h6>
-                                            <p class="small text-secondary">Order Received <span class="text-success"><i
-                                                    class="bi bi-caret-up-fill"></i> 1.11%</span></p>
-                                        </div>
-                                        <div class="col-auto">
-                                            <div class="dropdown">
-                                                <button class="btn btn-link btn-square dropdown-toggle no-caret"
-                                                        type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="bi bi-three-dots-vertical"></i>
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                    <li><a class="dropdown-item" href="#">Option 1</a></li>
-                                                    <li><a class="dropdown-item" href="#">Option 2</a></li>
-                                                    <li><a class="dropdown-item" href="#">Option 3</a></li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <h3 class="mb-0">2501.00</h3>
-                                    <p class="small text-secondary">Total Order Completed</p>
 
-                                </div>
-                                <div class="height-160 mb-3">
-                                    <canvas id="saleschart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- sales revenue -->
-                        <div class="col-12 col-md-12 col-xl-6">
-                            <div class="card bg-none mb-3 mb-lg-4">
+                        <div class="col-12 col-md-6 col-xl-4">
+                            <div class="card adminuiux-card mb-3 mb-lg-4">
                                 <div class="card-body">
-                                    <div class="row gx-3 align-items-center mb-3">
-                                        <div class="col-auto">
-                                            <div class="avatar avatar-50 rounded card"><i class="bi bi-cash-stack"></i>
-                                            </div>
-                                        </div>
-                                        <div class="col">
-                                            <h6 class="mb-0">Revenue Generated</h6>
-                                            <p class="small text-secondary">Total decreased from previous <span
-                                                    class="text-danger"><i
-                                                    class="bi bi-caret-down-fill"></i> 0.86%</span></p>
-                                        </div>
+                                    <div class="avatar avatar-50 rounded card mb-3">
+                                        <i class="bi bi-box-seam"></i>
                                     </div>
-                                    <h3 class="mb-0">$12,501.00</h3>
-                                    <p class="small text-secondary">Total Order Completed</p>
-                                </div>
-                                <div class="height-160 mb-3">
-                                    <canvas id="revenuchart"></canvas>
+                                    <p class="small text-secondary mb-1">Total Inventory</p>
+                                    <h3 id="dashTotalStock">0</h3>
                                 </div>
                             </div>
                         </div>
-                        <!-- Session -->
-                        <div class="col-12 col-md-6 col-xl-3">
-                            <div class="card bg-none mb-3 mb-lg-4">
-                                <div class="card-body z-index-1">
-                                    <div class="mb-3">
-                                        <h6 class="mb-0">All Session</h6>
-                                        <p class="small text-secondary">No Shop - 56.15%</p>
+
+                        <div class="col-12 col-md-6 col-xl-4">
+                            <div class="card adminuiux-card mb-3 mb-lg-4">
+                                <div class="card-body">
+                                    <div class="avatar avatar-50 rounded card mb-3">
+                                        <i class="bi bi-check-circle"></i>
                                     </div>
-                                    <h3 class="mb-1">245.15k</h3>
-                                    <p class="small text-success"><i class="bi bi-caret-up-fill"></i> 7.11%</p>
+                                    <p class="small text-secondary mb-1">Available</p>
+                                    <h3 class="text-success" id="dashAvailableStock">0</h3>
                                 </div>
                             </div>
                         </div>
-                        <!-- Views -->
-                        <div class="col-12 col-md-6 col-xl-3">
-                            <div class="card bg-none mb-3 mb-lg-4">
-                                <div class="card-body z-index-1">
-                                    <div class="mb-3">
-                                        <h6 class="mb-0">Product Views</h6>
-                                        <p class="small text-secondary">No Shop - 26.22%</p>
+
+                        <div class="col-12 col-md-6 col-xl-4">
+                            <div class="card adminuiux-card mb-3 mb-lg-4">
+                                <div class="card-body">
+                                    <div class="avatar avatar-50 rounded card mb-3">
+                                        <i class="bi bi-truck"></i>
                                     </div>
-                                    <h3 class="mb-1">154.12k</h3>
-                                    <p class="small text-success"><i class="bi bi-caret-up-fill"></i> 2.11%</p>
+                                    <p class="small text-secondary mb-1">On Rent</p>
+                                    <h3 class="text-warning" id="dashRentedStock">0</h3>
                                 </div>
                             </div>
                         </div>
-                        <!-- cart -->
-                        <div class="col-12 col-md-6 col-xl-3">
-                            <div class="card bg-none mb-3 mb-lg-4">
-                                <div class="card-body z-index-1">
-                                    <div class="mb-3">
-                                        <h6 class="mb-0">In the Cart</h6>
-                                        <p class="small text-secondary">Wishlist - 50.15%</p>
+
+                        <div class="col-12 col-md-6 col-xl-4">
+                            <div class="card adminuiux-card mb-3 mb-lg-4">
+                                <div class="card-body">
+                                    <div class="avatar avatar-50 rounded card mb-3">
+                                        <i class="bi bi-tools"></i>
                                     </div>
-                                    <h3 class="mb-1">101.05k</h3>
-                                    <p class="small text-success"><i class="bi bi-caret-up-fill"></i> 1.11%</p>
+                                    <p class="small text-secondary mb-1">Maintenance</p>
+                                    <h3 class="text-danger" id="dashMaintenanceStock">0</h3>
                                 </div>
                             </div>
                         </div>
-                        <!-- ordered -->
-                        <div class="col-12 col-md-6 col-xl-3">
-                            <div class="card bg-theme-1-subtle mb-3 mb-lg-4 theme-blue">
-                                <div class="card-body z-index-1">
-                                    <div class="mb-3">
-                                        <h6 class="mb-0">Ordered</h6>
-                                        <p class="small text-secondary">Cancelled - 15.05%</p>
+
+                        <div class="col-12 col-md-6 col-xl-4">
+                            <div class="card adminuiux-card mb-3 mb-lg-4">
+                                <div class="card-body">
+                                    <div class="avatar avatar-50 rounded card mb-3">
+                                        <i class="bi bi-briefcase"></i>
                                     </div>
-                                    <h3 class="mb-1">95.34k</h3>
-                                    <p class="small text-danger"><i class="bi bi-caret-down-fill"></i> -0.11%</p>
+                                    <p class="small text-secondary mb-1">Total Jobs</p>
+                                    <h3 id="dashTotalJobs">0</h3>
                                 </div>
                             </div>
                         </div>
+
+                        <div class="col-12 col-md-6 col-xl-4">
+                            <div class="card adminuiux-card mb-3 mb-lg-4">
+                                <div class="card-body">
+                                    <div class="avatar avatar-50 rounded card mb-3">
+                                        <i class="bi bi-calendar-check"></i>
+                                    </div>
+                                    <p class="small text-secondary mb-1">Loading Today</p>
+                                    <h3 id="dashTodayPickup">0</h3>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
+                </div>
+            </div>
+
+            <div class="row gx-3 gx-lg-4 mb-4" id="categoryCards">
+                <div class="col-12 text-center py-4">
+                    <div class="spinner-border text-theme-1"></div>
+                    <p class="small text-secondary mt-2">Loading category summary...</p>
                 </div>
             </div>
 
             <div class="row gx-3 gx-lg-4">
-                <!-- top product sales -->
-                <div class="col-12 col-md-12 col-xl-4">
-                    <div class="card bg-none mb-3 mb-lg-4">
-                        <div class="card-body z-index-1">
-                            <div class="row gx-3 align-items-center mb-3">
-                                <div class="col-auto">
-                                    <div class="avatar avatar-50 rounded card"><i class="bi bi-box-seam"></i></div>
-                                </div>
-                                <div class="col">
-                                    <h6 class="mb-0">Top selling products</h6>
-                                    <p class="small text-secondary">New product in top 5 list <span class="fw-bold">2 items</span>
-                                    </p>
-                                </div>
-                            </div>
-                            <ul class="list-group adminuiux-list-group mb-3 mb-lg-4">
-                                <li class="list-group-item px-2">
-                                    <div class="row gx-3 align-items-center">
-                                        <div class="col-auto">
-                                            <figure class="avatar avatar-50 coverimg rounded">
-                                                <img src="assets/img/ecommerce/image-5.jpg" alt="">
-                                            </figure>
-                                        </div>
-                                        <div class="col-6">
-                                            <p class="mb-0 text-truncated">Bracelet Platinum plated</p>
-                                            <p class="small text-secondary">ID: RT15246630</p>
-                                        </div>
-                                        <div class="col text-end">
-                                            <h6 class="mb-0">$ 65.00</h6>
-                                            <p class="small text-secondary">6 Orders</p>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="list-group-item px-2">
-                                    <div class="row gx-3 align-items-center">
-                                        <div class="col-auto">
-                                            <figure class="avatar avatar-50 coverimg rounded">
-                                                <img src="assets/img/ecommerce/image-6.jpg" alt="">
-                                            </figure>
-                                        </div>
-                                        <div class="col-6">
-                                            <p class="mb-0 text-truncated">Sofa Single light coco creamy</p>
-                                            <p class="small text-secondary">ID: RT152466680</p>
-                                        </div>
-                                        <div class="col text-end">
-                                            <h6 class="mb-0">$ 50.00</h6>
-                                            <p class="small text-secondary">4 Orders</p>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="list-group-item px-2">
-                                    <div class="row gx-3 align-items-center">
-                                        <div class="col-auto">
-                                            <figure class="avatar avatar-50 coverimg rounded">
-                                                <img src="assets/img/ecommerce/image-10.jpg" alt="">
-                                            </figure>
-                                        </div>
-                                        <div class="col-6">
-                                            <p class="mb-0 text-truncated">Sandals women low heel</p>
-                                            <p class="small text-secondary">ID: RT152461850</p>
-                                        </div>
-                                        <div class="col text-end">
-                                            <h6 class="mb-0">$ 55.00</h6>
-                                            <p class="small text-secondary">4 Orders</p>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="list-group-item px-2">
-                                    <div class="row gx-3 align-items-center">
-                                        <div class="col-auto">
-                                            <figure class="avatar avatar-50 coverimg rounded">
-                                                <img src="assets/img/ecommerce/image-8.jpg" alt="">
-                                            </figure>
-                                        </div>
-                                        <div class="col-6">
-                                            <p class="mb-0 text-truncated">Light Bulb WiFi BT connect</p>
-                                            <p class="small text-secondary">ID: RT15249630</p>
-                                        </div>
-                                        <div class="col text-end">
-                                            <h6 class="mb-0">$ 48.00</h6>
-                                            <p class="small text-secondary">3 Orders</p>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="list-group-item px-2">
-                                    <div class="row gx-3 align-items-center">
-                                        <div class="col-auto">
-                                            <figure class="avatar avatar-50 coverimg rounded">
-                                                <img src="assets/img/ecommerce/image-9.jpg" alt="">
-                                            </figure>
-                                        </div>
-                                        <div class="col-6">
-                                            <p class="mb-0 text-truncated">Sandals women High heel</p>
-                                            <p class="small text-secondary">ID: RT15246745</p>
-                                        </div>
-                                        <div class="col text-end">
-                                            <h6 class="mb-0">$ 63.00</h6>
-                                            <p class="small text-secondary">3 Orders</p>
-                                        </div>
-                                    </div>
-                                </li>
-                            </ul>
-                            <div class="row gx-3 align-items-center">
-                                <div class="col-auto">
-                                    <div class="avatar avatar-60 rounded">
-                                        <div id="circleprogressblue"></div>
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <h3 class="mb-0">$3,201.00</h3>
-                                    <p class="small text-secondary">From total revenue made</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- product sales by categories -->
-                <div class="col-12 col-md-12 col-xl-4">
-                    <div class="card bg-none mb-3 mb-lg-4">
-                        <div class="card-body z-index-1">
-                            <div class="row gx-3 align-items-center mb-3">
-                                <div class="col-auto">
-                                    <div class="avatar avatar-50 rounded card"><i class="bi bi-tag"></i></div>
-                                </div>
-                                <div class="col">
-                                    <h6 class="mb-0">Most Discounted </h6>
-                                    <p class="small text-secondary">Total decreased from previous <span
-                                            class="text-danger"><i class="bi bi-caret-down-fill"></i> 0.86%</span></p>
-                                </div>
-                            </div>
-                            <ul class="list-group adminuiux-list-group mb-3 mb-lg-4">
-                                <li class="list-group-item px-2">
-                                    <div class="row gx-3 align-items-center">
-                                        <div class="col-auto">
-                                            <figure class="avatar avatar-50 coverimg rounded">
-                                                <img src="assets/img/ecommerce/image-13.jpg" alt="">
-                                            </figure>
-                                        </div>
-                                        <div class="col-6">
-                                            <p class="mb-0 text-truncated">Shoes High Heels Woman</p>
-                                            <p class="small text-secondary">ID: RT15246630</p>
-                                        </div>
-                                        <div class="col text-end">
-                                            <h6 class="mb-0">$ 65.00</h6>
-                                            <p class="small text-secondary">1 Orders</p>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="list-group-item px-2">
-                                    <div class="row gx-3 align-items-center">
-                                        <div class="col-auto">
-                                            <figure class="avatar avatar-50 coverimg rounded">
-                                                <img src="assets/img/ecommerce/image-12.jpg" alt="">
-                                            </figure>
-                                        </div>
-                                        <div class="col-6">
-                                            <p class="mb-0 text-truncated">Chromiums Bagizard</p>
-                                            <p class="small text-secondary">ID: RT152466680</p>
-                                        </div>
-                                        <div class="col text-end">
-                                            <h6 class="mb-0">$ 50.00</h6>
-                                            <p class="small text-secondary">2 Orders</p>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="list-group-item px-2">
-                                    <div class="row gx-3 align-items-center">
-                                        <div class="col-auto">
-                                            <figure class="avatar avatar-50 coverimg rounded">
-                                                <img src="assets/img/ecommerce/image-11.jpg" alt="">
-                                            </figure>
-                                        </div>
-                                        <div class="col-6">
-                                            <p class="mb-0 text-truncated">Rose Gold Ring women</p>
-                                            <p class="small text-secondary">ID: RT152461850</p>
-                                        </div>
-                                        <div class="col text-end">
-                                            <h6 class="mb-0">$ 55.00</h6>
-                                            <p class="small text-secondary">3 Orders</p>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="list-group-item px-2">
-                                    <div class="row gx-3 align-items-center">
-                                        <div class="col-auto">
-                                            <figure class="avatar avatar-50 coverimg rounded">
-                                                <img src="assets/img/ecommerce/image-7.jpg" alt="">
-                                            </figure>
-                                        </div>
-                                        <div class="col-6">
-                                            <p class="mb-0 text-truncated">Lightup Nails Beauty</p>
-                                            <p class="small text-secondary">ID: RT15249630</p>
-                                        </div>
-                                        <div class="col text-end">
-                                            <h6 class="mb-0">$ 48.00</h6>
-                                            <p class="small text-secondary">3 Orders</p>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="list-group-item px-2">
-                                    <div class="row gx-3 align-items-center">
-                                        <div class="col-auto">
-                                            <figure class="avatar avatar-50 coverimg rounded">
-                                                <img src="assets/img/ecommerce/image-14.jpg" alt="">
-                                            </figure>
-                                        </div>
-                                        <div class="col-6">
-                                            <p class="mb-0 text-truncated">Yellow Fruit Bottle</p>
-                                            <p class="small text-secondary">ID: RT15246745</p>
-                                        </div>
-                                        <div class="col text-end">
-                                            <h6 class="mb-0">$ 63.00</h6>
-                                            <p class="small text-secondary">1 Orders</p>
-                                        </div>
-                                    </div>
-                                </li>
-                            </ul>
-                            <div class="row gx-3 align-items-center">
-                                <div class="col-auto">
-                                    <div class="avatar avatar-60 rounded">
-                                        <div id="circleprogressyellow"></div>
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <h3 class="mb-0">$1,256.65 </h3>
-                                    <p class="small text-secondary">From total revenue made</p>
-                                </div>
-                            </div>
-                        </div>
 
-                    </div>
-                </div>
-                <!-- top loser in products -->
-                <div class="col-12 col-md-12 col-xl-4">
-                    <div class="card bg-none mb-3 mb-lg-4">
-                        <div class="card-body z-index-1">
-                            <div class="row gx-3 align-items-center mb-3">
-                                <div class="col-auto">
-                                    <div class="avatar avatar-50 rounded card"><i class="bi bi-collection"></i></div>
-                                </div>
-                                <div class="col">
-                                    <h6 class="mb-0">Top Categories</h6>
-                                    <p class="small text-secondary">Top Categories earning increased <span
-                                            class="text-success"><i class="bi bi-caret-up-fill"></i> 1.15%</span></p>
-                                </div>
-                            </div>
-                            <div class="text-center mb-3 mb-md-4">
-                                <canvas id="doughnutchart" class="avatar avatar-180 mx-auto"></canvas>
-                            </div>
-                            <div class="row gx-3 mb-2">
-                                <div class="col-auto"><span class="avatar avatar-20 rounded"
-                                                            style="background-color:rgba(217, 240, 101, 1);"></span>
-                                </div>
-                                <div class="col">
-                                    <p>Electronics</p>
-                                </div>
-                                <div class="col-auto">
-                                    <h6>$3201.50</h6>
-                                </div>
-                                <div class="col-auto">
-                                    <h6>40%</h6>
-                                </div>
-                            </div>
-                            <div class="row gx-3 mb-2">
-                                <div class="col-auto"><span class="avatar avatar-20 rounded"
-                                                            style="background-color:rgb(197, 214, 184);"></span></div>
-                                <div class="col">
-                                    <p>Fashion</p>
-                                </div>
-                                <div class="col-auto">
-                                    <h6>$1152.00</h6>
-                                </div>
-                                <div class="col-auto">
-                                    <h6>10%</h6>
-                                </div>
-                            </div>
-                            <div class="row gx-3 mb-2">
-                                <div class="col-auto"><span class="avatar avatar-20 rounded"
-                                                            style="background-color:rgb(166, 194, 148);"></span></div>
-                                <div class="col">
-                                    <p>Gaming</p>
-                                </div>
-                                <div class="col-auto">
-                                    <h6>$1460.00</h6>
-                                </div>
-                                <div class="col-auto">
-                                    <h6>15%</h6>
-                                </div>
-                            </div>
-                            <div class="row gx-3 mb-2">
-                                <div class="col-auto"><span class="avatar avatar-20 rounded"
-                                                            style="background-color:rgb(130, 174, 118);"></span></div>
-                                <div class="col">
-                                    <p>Groceries</p>
-                                </div>
-                                <div class="col-auto">
-                                    <h6>$2806.50</h6>
-                                </div>
-                                <div class="col-auto">
-                                    <h6>25%</h6>
-                                </div>
-                            </div>
-                            <div class="row gx-3 mb-4">
-                                <div class="col-auto"><span class="avatar avatar-20 rounded"
-                                                            style="background-color:rgba(100, 150, 86, 1);"></span>
-                                </div>
-                                <div class="col">
-                                    <p>Appliances</p>
-                                </div>
-                                <div class="col-auto">
-                                    <h6>$1150.65</h6>
-                                </div>
-                                <div class="col-auto">
-                                    <h6>10%</h6>
-                                </div>
-                            </div>
-                            <h3 class="mb-0">$9,895.15</h3>
-                            <p class="small text-secondary">Top Categories Earning</p>
+                <div class="col-12 col-xl-8">
+                    <div class="card adminuiux-card mb-3 mb-lg-4">
+                        <div class="card-header">
+                            <h6 class="mb-0">Audio / Video / Visual Inventory</h6>
                         </div>
-
+                        <div class="card-body">
+                            <canvas id="categoryInventoryChart" height="120"></canvas>
+                        </div>
                     </div>
                 </div>
+
+                <div class="col-12 col-xl-4">
+                    <div class="card adminuiux-card mb-3 mb-lg-4">
+                        <div class="card-header">
+                            <h6 class="mb-0">Operations Summary</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row gx-3 mb-3">
+                                <div class="col">
+                                    <p class="small text-secondary mb-1">Loading Today</p>
+                                    <h5 id="opsLoadingToday">0</h5>
+                                </div>
+                                <div class="col">
+                                    <p class="small text-secondary mb-1">Return Today</p>
+                                    <h5 id="opsReturnToday">0</h5>
+                                </div>
+                            </div>
+
+                            <div class="row gx-3">
+                                <div class="col">
+                                    <p class="small text-secondary mb-1">Overdue Jobs</p>
+                                    <h5 class="text-danger" id="dashOverdueJobs">0</h5>
+                                </div>
+                                <div class="col">
+                                    <p class="small text-secondary mb-1">Active Jobs</p>
+                                    <h5 class="text-success" id="opsActiveJobs">0</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- product list -->
-            <div class="card bg-none mb-3 mb-lg-4">
-                <div class="card-body">
-                    <div class="row gx-3 align-items-center mb-3">
-                        <div class="col-auto">
-                            <div class="avatar avatar-50 rounded card"><i class="bi bi-boxes"></i></div>
-                        </div>
-                        <div class="col">
-                            <h6 class="mb-0">Product Inventory</h6>
-                            <p class="small text-secondary">All top performing product <span
-                                    class="fw-bold">65 items</span></p>
-                        </div>
-                        <div class="col-auto">
-                            <div class="input-group">
-                                <span class="input-group-text bg-none"><i class="bi bi-search"></i></span>
-                                <input class="form-control pe-0 bg-none" type="search" placeholder="Search product...">
-                                <div class="input-group-text dropdown bg-none p-1">
-                                    <button class="dropdown-toggle btn btn-sm btn-link btn-square no-caret"
-                                            type="button" id="searchfilter21" data-bs-toggle="dropdown"
-                                            aria-expanded="false"><i data-feather="sliders"></i></button>
-                                    <div class="dropdown-menu dropdown-menu-end dropdown-dontclose width-300"
-                                         aria-labelledby="searchfilter21">
-                                        <ul class="nav nav-pills" id="searchtab1" role="tablist">
-                                            <li class="nav-item" role="presentation">
-                                                <button class="nav-link active" id="searchall-tab11"
-                                                        data-bs-toggle="tab" data-bs-target="#searchall11" type="button"
-                                                        role="tab" aria-controls="searchall11" aria-selected="true">All
-                                                </button>
-                                            </li>
-                                            <li class="nav-item" role="presentation">
-                                                <button class="nav-link" id="searchorders-tab11" data-bs-toggle="tab"
-                                                        data-bs-target="#searchorders11" type="button" role="tab"
-                                                        aria-controls="searchorders11" aria-selected="false"
-                                                        tabindex="-1">Orders
-                                                </button>
-                                            </li>
-                                            <li class="nav-item" role="presentation">
-                                                <button class="nav-link" id="searchcontacts-tab11" data-bs-toggle="tab"
-                                                        data-bs-target="#searchcontacts11" type="button" role="tab"
-                                                        aria-controls="searchcontacts11" aria-selected="false"
-                                                        tabindex="-1">Contacts
-                                                </button>
-                                            </li>
-                                        </ul>
-                                        <div class="tab-content py-2" id="searchtabContent1">
-                                            <div class="tab-pane fade active show" id="searchall11" role="tabpanel"
-                                                 aria-labelledby="searchall-tab11">
-                                                <ul class="list-group adminuiux-list-group list-group-flush bg-none show">
-                                                    <li class="list-group-item">
-                                                        <div class="row">
-                                                            <div class="col">Search apps</div>
-                                                            <div class="col-auto">
-                                                                <div class="form-check form-switch"><input
-                                                                        class="form-check-input" type="checkbox"
-                                                                        role="switch" id="isearchswitch1x"> <label
-                                                                        class="form-check-label"
-                                                                        for="isearchswitch1x"></label></div>
-                                                            </div>
-                                                        </div>
-                                                    </li>
-                                                    <li class="list-group-item">
-                                                        <div class="row">
-                                                            <div class="col">Include Pages</div>
-                                                            <div class="col-auto">
-                                                                <div class="form-check form-switch"><input
-                                                                        class="form-check-input" type="checkbox"
-                                                                        role="switch" id="isearchswitch2x" checked="">
-                                                                    <label class="form-check-label"
-                                                                           for="isearchswitch2x"></label></div>
-                                                            </div>
-                                                        </div>
-                                                    </li>
-                                                    <li class="list-group-item">
-                                                        <div class="row">
-                                                            <div class="col">Internet resource</div>
-                                                            <div class="col-auto">
-                                                                <div class="form-check form-switch"><input
-                                                                        class="form-check-input" type="checkbox"
-                                                                        role="switch" id="isearchswitch3x" checked="">
-                                                                    <label class="form-check-label"
-                                                                           for="isearchswitch3x"></label></div>
-                                                            </div>
-                                                        </div>
-                                                    </li>
-                                                    <li class="list-group-item">
-                                                        <div class="row">
-                                                            <div class="col">News and Blogs</div>
-                                                            <div class="col-auto">
-                                                                <div class="form-check form-switch"><input
-                                                                        class="form-check-input" type="checkbox"
-                                                                        role="switch" id="isearchswitch4x"> <label
-                                                                        class="form-check-label"
-                                                                        for="isearchswitch4x"></label></div>
-                                                            </div>
-                                                        </div>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                            <div class="tab-pane fade" id="searchorders11" role="tabpanel"
-                                                 aria-labelledby="searchorders-tab11">
-                                                <ul class="list-group adminuiux-list-group list-group-flush bg-none show">
-                                                    <li class="list-group-item">
-                                                        <div class="row">
-                                                            <div class="col">Show order ID</div>
-                                                            <div class="col-auto">
-                                                                <div class="form-check form-switch"><input
-                                                                        class="form-check-input" type="checkbox"
-                                                                        role="switch" id="isearchswitch5x"> <label
-                                                                        class="form-check-label"
-                                                                        for="isearchswitch5x"></label></div>
-                                                            </div>
-                                                        </div>
-                                                    </li>
-                                                    <li class="list-group-item">
-                                                        <div class="row">
-                                                            <div class="col">International Order</div>
-                                                            <div class="col-auto">
-                                                                <div class="form-check form-switch"><input
-                                                                        class="form-check-input" type="checkbox"
-                                                                        role="switch" id="isearchswitch6x" checked="">
-                                                                    <label class="form-check-label"
-                                                                           for="isearchswitch6x"></label></div>
-                                                            </div>
-                                                        </div>
-                                                    </li>
-                                                    <li class="list-group-item">
-                                                        <div class="row">
-                                                            <div class="col">Taxable Product</div>
-                                                            <div class="col-auto">
-                                                                <div class="form-check form-switch"><input
-                                                                        class="form-check-input" type="checkbox"
-                                                                        role="switch" id="isearchswitch7x" checked="">
-                                                                    <label class="form-check-label"
-                                                                           for="isearchswitch7x"></label></div>
-                                                            </div>
-                                                        </div>
-                                                    </li>
-                                                    <li class="list-group-item">
-                                                        <div class="row">
-                                                            <div class="col">Published Product</div>
-                                                            <div class="col-auto">
-                                                                <div class="form-check form-switch"><input
-                                                                        class="form-check-input" type="checkbox"
-                                                                        role="switch" id="isearchswitch8x"> <label
-                                                                        class="form-check-label"
-                                                                        for="isearchswitch8x"></label></div>
-                                                            </div>
-                                                        </div>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                            <div class="tab-pane fade" id="searchcontacts11" role="tabpanel"
-                                                 aria-labelledby="searchcontacts-tab11">
-                                                <ul class="list-group adminuiux-list-group list-group-flush bg-none show">
-                                                    <li class="list-group-item">
-                                                        <div class="row">
-                                                            <div class="col">Have email ID</div>
-                                                            <div class="col-auto">
-                                                                <div class="form-check form-switch"><input
-                                                                        class="form-check-input" type="checkbox"
-                                                                        role="switch" id="isearchswitch9x"> <label
-                                                                        class="form-check-label"
-                                                                        for="isearchswitch9x"></label></div>
-                                                            </div>
-                                                        </div>
-                                                    </li>
-                                                    <li class="list-group-item">
-                                                        <div class="row">
-                                                            <div class="col">Have phone number</div>
-                                                            <div class="col-auto">
-                                                                <div class="form-check form-switch"><input
-                                                                        class="form-check-input" type="checkbox"
-                                                                        role="switch" id="isearchswitch10x" checked="">
-                                                                    <label class="form-check-label"
-                                                                           for="isearchswitch10x"></label></div>
-                                                            </div>
-                                                        </div>
-                                                    </li>
-                                                    <li class="list-group-item">
-                                                        <div class="row">
-                                                            <div class="col">Photo available</div>
-                                                            <div class="col-auto">
-                                                                <div class="form-check form-switch"><input
-                                                                        class="form-check-input" type="checkbox"
-                                                                        role="switch" id="isearchswitch11x" checked="">
-                                                                    <label class="form-check-label"
-                                                                           for="isearchswitch11x"></label></div>
-                                                            </div>
-                                                        </div>
-                                                    </li>
-                                                    <li class="list-group-item">
-                                                        <div class="row">
-                                                            <div class="col">Referral</div>
-                                                            <div class="col-auto">
-                                                                <div class="form-check form-switch"><input
-                                                                        class="form-check-input" type="checkbox"
-                                                                        role="switch" id="isearchswitch12x"> <label
-                                                                        class="form-check-label"
-                                                                        for="isearchswitch12x"></label></div>
-                                                            </div>
-                                                        </div>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                        <div class="mb-2">
-                                            <div class="row">
-                                                <div class="col">
-                                                    <button class="btn btn-link">Reset</button>
-                                                </div>
-                                                <div class="col-auto">
-                                                    <button class="btn btn-theme">Apply</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <table class="table" id="dataTable">
-                        <thead>
-                        <tr>
-                            <th>Product</th>
-                            <th>Category</th>
-                            <th>Order/Stock</th>
-                            <th>Price/Discount</th>
-                            <th>Sales</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr>
-                            <td>
-                                <div class="row gx-3 align-items-center flex-nowrap">
-                                    <div class="col-auto">
-                                        <figure class="avatar avatar-50 coverimg rounded">
-                                            <img src="assets/img/ecommerce/image-5.jpg" alt="">
-                                        </figure>
-                                    </div>
-                                    <div class="col maxwidth-200">
-                                        <p class="mb-0 text-truncated">Bracelet Platinum plated</p>
-                                        <p class="small text-secondary">ID: RT15246630</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">Fashion</p>
-                                <p class="small text-secondary">Woman</p>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">16</p>
-                                <p class="small text-secondary">35</p>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">$ 65.00</p>
-                                <p class="small text-secondary text-truncated">$ 10.00, <i class="bi bi-tag"></i> 8%</p>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">6410</p>
-                                <p class="small text-secondary text-truncated">1 yr 2 mo</p>
-                            </td>
-                            <td>
-                                <span class="badge badge-light text-bg-success">Active</span>
-                            </td>
-                            <td>
-                                <button class="btn btn-square btn-link" type="button" data-bs-toggle="offcanvas"
-                                        data-bs-target="#view-product" aria-controls="view-product"><i
-                                        class="bi bi-eye"></i></button>
-                                <button class="btn btn-square btn-link theme-blue"><i class="bi bi-pencil"></i></button>
-                                <button class="btn btn-square btn-link theme-red"><i class="bi bi-trash"></i></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="row gx-3 align-items-center flex-nowrap">
-                                    <div class="col-auto">
-                                        <figure class="avatar avatar-50 coverimg rounded">
-                                            <img src="assets/img/ecommerce/image-6.jpg" alt="">
-                                        </figure>
-                                    </div>
-                                    <div class="col maxwidth-200">
-                                        <p class="mb-0 text-truncated">Sofa coco single one</p>
-                                        <p class="small text-secondary">ID: RT152466582</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">Household</p>
-                                <p class="small text-secondary">-NA-</p>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">5</p>
-                                <p class="small text-secondary">11</p>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">$ 49.00</p>
-                                <p class="small text-secondary text-truncated">$ 15.00, <i class="bi bi-tag"></i> 15%
-                                </p>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">125</p>
-                                <p class="small text-secondary text-truncated">1 yr 2 mo</p>
-                            </td>
-                            <td>
-                                <span class="badge badge-light text-bg-success">Active</span>
-                            </td>
-                            <td>
-                                <button class="btn btn-square btn-link" type="button" data-bs-toggle="offcanvas"
-                                        data-bs-target="#view-product" aria-controls="view-product"><i
-                                        class="bi bi-eye"></i></button>
-                                <button class="btn btn-square btn-link theme-blue"><i class="bi bi-pencil"></i></button>
-                                <button class="btn btn-square btn-link theme-red"><i class="bi bi-trash"></i></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="row gx-3 align-items-center flex-nowrap">
-                                    <div class="col-auto">
-                                        <figure class="avatar avatar-50 coverimg rounded">
-                                            <img src="assets/img/ecommerce/image-7.jpg" alt="">
-                                        </figure>
-                                    </div>
-                                    <div class="col maxwidth-200">
-                                        <p class="mb-0 text-truncated">Lightup Nails Beauty</p>
-                                        <p class="small text-secondary">ID: RT1526598</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">Electronics</p>
-                                <p class="small text-secondary">-NA-</p>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">266</p>
-                                <p class="small text-secondary">670</p>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">$ 25.00</p>
-                                <p class="small text-secondary text-truncated">$ 8.00, <i class="bi bi-tag"></i> 10%</p>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">2525</p>
-                                <p class="small text-secondary text-truncated">0 yr 8 mo</p>
-                            </td>
-                            <td>
-                                <span class="badge badge-light text-bg-success">Active</span>
-                            </td>
-                            <td>
-                                <button class="btn btn-square btn-link" type="button" data-bs-toggle="offcanvas"
-                                        data-bs-target="#view-product" aria-controls="view-product"><i
-                                        class="bi bi-eye"></i></button>
-                                <button class="btn btn-square btn-link theme-blue"><i class="bi bi-pencil"></i></button>
-                                <button class="btn btn-square btn-link theme-red"><i class="bi bi-trash"></i></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="row gx-3 align-items-center flex-nowrap">
-                                    <div class="col-auto">
-                                        <figure class="avatar avatar-50 coverimg rounded">
-                                            <img src="assets/img/ecommerce/image-8.jpg" alt="">
-                                        </figure>
-                                    </div>
-                                    <div class="col maxwidth-200">
-                                        <p class="mb-0 text-truncated">Light Bulb WiFi BT connect</p>
-                                        <p class="small text-secondary">ID: RT1526259</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">Electronics</p>
-                                <p class="small text-secondary">-NA-</p>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">250</p>
-                                <p class="small text-secondary">524</p>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">$ 12.00</p>
-                                <p class="small text-secondary text-truncated">$ 3.00, <i class="bi bi-tag"></i> 20%</p>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">1453.01k</p>
-                                <p class="small text-secondary text-truncated">3 yr 4 mo</p>
-                            </td>
-                            <td>
-                                <span class="badge badge-light text-bg-danger">Inactive</span>
-                            </td>
-                            <td>
-                                <button class="btn btn-square btn-link" type="button" data-bs-toggle="offcanvas"
-                                        data-bs-target="#view-product" aria-controls="view-product"><i
-                                        class="bi bi-eye"></i></button>
-                                <button class="btn btn-square btn-link theme-blue"><i class="bi bi-pencil"></i></button>
-                                <button class="btn btn-square btn-link theme-red"><i class="bi bi-trash"></i></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="row gx-3 align-items-center flex-nowrap">
-                                    <div class="col-auto">
-                                        <figure class="avatar avatar-50 coverimg rounded">
-                                            <img src="assets/img/ecommerce/image-9.jpg" alt="">
-                                        </figure>
-                                    </div>
-                                    <div class="col maxwidth-200">
-                                        <p class="mb-0 text-truncated">Sandals women High heel</p>
-                                        <p class="small text-secondary">ID: RT15246745</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">Fashion</p>
-                                <p class="small text-secondary">Woman</p>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">15</p>
-                                <p class="small text-secondary">30</p>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">$ 75.00</p>
-                                <p class="small text-secondary text-truncated">$ 10.00, <i class="bi bi-tag"></i> 20%
-                                </p>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">6586</p>
-                                <p class="small text-secondary text-truncated">1 yr 8 mo</p>
-                            </td>
-                            <td>
-                                <span class="badge badge-light text-bg-success">Active</span>
-                            </td>
-                            <td>
-                                <button class="btn btn-square btn-link" type="button" data-bs-toggle="offcanvas"
-                                        data-bs-target="#view-product" aria-controls="view-product"><i
-                                        class="bi bi-eye"></i></button>
-                                <button class="btn btn-square btn-link theme-blue"><i class="bi bi-pencil"></i></button>
-                                <button class="btn btn-square btn-link theme-red"><i class="bi bi-trash"></i></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="row gx-3 align-items-center flex-nowrap">
-                                    <div class="col-auto">
-                                        <figure class="avatar avatar-50 coverimg rounded">
-                                            <img src="assets/img/ecommerce/image-10.jpg" alt="">
-                                        </figure>
-                                    </div>
-                                    <div class="col maxwidth-200">
-                                        <p class="mb-0 text-truncated">Sandals women low heels</p>
-                                        <p class="small text-secondary">ID: RT15246630</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">Fashion</p>
-                                <p class="small text-secondary">Woman</p>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">11</p>
-                                <p class="small text-secondary">20</p>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">$ 26.00</p>
-                                <p class="small text-secondary text-truncated">$ 4.00, <i class="bi bi-tag"></i> 4%</p>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">9856</p>
-                                <p class="small text-secondary text-truncated">2 yr 4 mo</p>
-                            </td>
-                            <td>
-                                <span class="badge badge-light text-bg-success">Active</span>
-                            </td>
-                            <td>
-                                <button class="btn btn-square btn-link" type="button" data-bs-toggle="offcanvas"
-                                        data-bs-target="#view-product" aria-controls="view-product"><i
-                                        class="bi bi-eye"></i></button>
-                                <button class="btn btn-square btn-link theme-blue"><i class="bi bi-pencil"></i></button>
-                                <button class="btn btn-square btn-link theme-red"><i class="bi bi-trash"></i></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="row gx-3 align-items-center flex-nowrap">
-                                    <div class="col-auto">
-                                        <figure class="avatar avatar-50 coverimg rounded">
-                                            <img src="assets/img/ecommerce/image-11.jpg" alt="">
-                                        </figure>
-                                    </div>
-                                    <div class="col maxwidth-200">
-                                        <p class="mb-0 text-truncated">Rose Gold Ring women</p>
-                                        <p class="small text-secondary">ID: RT15246630</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">Fashion</p>
-                                <p class="small text-secondary">Woman</p>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">16</p>
-                                <p class="small text-danger">0 - empty</p>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">$ 65.00</p>
-                                <p class="small text-secondary text-truncated">$ 10.00, <i class="bi bi-tag"></i> 15%
-                                </p>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">6410</p>
-                                <p class="small text-secondary text-truncated">1 yr 2 mo</p>
-                            </td>
-                            <td>
-                                <span class="badge badge-light text-bg-danger">Inactive</span>
-                            </td>
-                            <td>
-                                <button class="btn btn-square btn-link" type="button" data-bs-toggle="offcanvas"
-                                        data-bs-target="#view-product" aria-controls="view-product"><i
-                                        class="bi bi-eye"></i></button>
-                                <button class="btn btn-square btn-link theme-blue"><i class="bi bi-pencil"></i></button>
-                                <button class="btn btn-square btn-link theme-red"><i class="bi bi-trash"></i></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="row gx-3 align-items-center flex-nowrap">
-                                    <div class="col-auto">
-                                        <figure class="avatar avatar-50 coverimg rounded">
-                                            <img src="assets/img/ecommerce/image-12.jpg" alt="">
-                                        </figure>
-                                    </div>
-                                    <div class="col maxwidth-200">
-                                        <p class="mb-0 text-truncated">Chromiums Bagizard</p>
-                                        <p class="small text-secondary">ID: RT15246246</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">Fashion</p>
-                                <p class="small text-secondary">Woman</p>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">4</p>
-                                <p class="small text-secondary">14</p>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">$ 68.00</p>
-                                <p class="small text-secondary text-truncated">$ 10.00, <i class="bi bi-tag"></i> 8%</p>
-                            </td>
-                            <td>
-                                <p class="mb-0 text-truncated">150</p>
-                                <p class="small text-secondary text-truncated">1 yr 0 mo</p>
-                            </td>
-                            <td>
-                                <span class="badge badge-light text-bg-success">Active</span>
-                            </td>
-                            <td>
-                                <button class="btn btn-square btn-link" type="button" data-bs-toggle="offcanvas"
-                                        data-bs-target="#view-product" aria-controls="view-product"><i
-                                        class="bi bi-eye"></i></button>
-                                <button class="btn btn-square btn-link theme-blue"><i class="bi bi-pencil"></i></button>
-                                <button class="btn btn-square btn-link theme-red"><i class="bi bi-trash"></i></button>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </div>
     </main>
 </div>
-<!-- View Product details -->
-<div class="offcanvas offcanvas-end shadow border-0 maxwidth-dynamic" tabindex="-1" id="view-product"
-     data-bs-scroll="true" data-bs-backdrop="false" aria-labelledby="view-productlabel"
-     style="--mw-dynamic:450px; --bs-offcanvas-width:450px">
-    <div class="offcanvas-header border-bottom">
-        <div>
-            <button class="btn btn-theme"><i class="bi bi-pencil"></i> Edit</button>
-            <button class="btn btn-link mx-1"><i class="bi bi-copy"></i> Duplicate</button>
-            <button class="btn btn-link mx-1"><i class="bi bi-printer"></i> Print</button>
-            <div class="d-inline-block">
-                <div class="dropdown">
-                    <button class="btn btn-link btn-square dropdown-toggle no-caret" type="button"
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-three-dots-vertical"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#">Orders <span class="badge text-bg-theme-1">15</span></a>
-                        </li>
-                        <li><a class="dropdown-item" href="#">Manufacture</a></li>
-                        <li><a class="dropdown-item theme-red" href="#">Delete</a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-    </div>
-    <div class="offcanvas-body">
-        <div class="row gx-3 align-items-center flex-nowrap offcanvas-title mb-3 mb-lg-4" id="view-productlabel">
-            <div class="col-auto">
-                <figure class="avatar avatar-100 coverimg rounded">
-                    <img src="assets/img/ecommerce/image-12.jpg" alt="">
-                </figure>
-            </div>
-            <div class="col">
-                <h5 class="mb-0 text-truncated">Chromiums Bagizard</h5>
-                <p class="text-secondary mb-2">ID: RT15246246</p>
-                <p><span class="badge badge-light text-bg-success">Active</span>
-                    <span class="badge badge-light text-bg-primary">15 Orders</span>
-                </p>
-            </div>
-        </div>
 
-        <h6 class="mb-3">Product Info</h6>
-
-        <dl class="row mb-2">
-            <dt class="col-sm-3 text-secondary fw-normal">Category</dt>
-            <dd class="col-sm-9">Fashion <i class="bi bi-arrow-right text-secondary"></i> Woman</dd>
-        </dl>
-        <dl class="row mb-2">
-            <dt class="col-sm-3 text-secondary fw-normal">ID/SKU</dt>
-            <dd class="col-sm-9">RT15246246 <i class="bi bi-copy"></i></dd>
-        </dl>
-        <dl class="row mb-2">
-            <dt class="col-sm-3 text-secondary fw-normal">Orders</dt>
-            <dd class="col-sm-9">5 / 11 In stock</dd>
-        </dl>
-        <dl class="row mb-2">
-            <dt class="col-sm-3 text-secondary fw-normal">Price</dt>
-            <dd class="col-sm-9">$ 49.00<br><small class="text-secondary">Discount $ 10.00 with Coupon <i
-                    class="bi bi-tag"></i> 15% </small></dd>
-        </dl>
-        <dl class="row mb-2">
-            <dt class="col-sm-3 text-secondary fw-normal">Total Sales</dt>
-            <dd class="col-sm-9">125</dd>
-        </dl>
-        <dl class="row mb-2">
-            <dt class="col-sm-3 text-secondary fw-normal">Status</dt>
-            <dd class="col-sm-9">
-                <div class="form-check form-switch d-inline-block mx-2">
-                    <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckChecked" checked>
-                    <label class="form-check-label" for="flexSwitchCheckChecked">Active</label>
-                </div>
-            </dd>
-
-        </dl>
-
-    </div>
-</div>
-
-
-<!-- notification -->
-<div class="offcanvas offcanvas-end shadow border-0 maxwidth-300" tabindex="-1" id="view-notification"
-     data-bs-scroll="true" data-bs-backdrop="false">
-    <div class="offcanvas-header border-bottom">
-        <div class="flex-grow-1">
-            <h6 class="mb-0">Notifications</h6>
-            <p class="text-secondary">6 new updates</p>
-        </div>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-    </div>
-    <div class="small text-center p-3 bg-theme-1-subtle text-theme-1 theme-blue">
-        <div class="input-group">
-            <input type="text" class="form-control" id="daterangepicker">
-            <span class="input-group-text text-secondary">
-                <i class="bi bi-calendar-week"></i>
-            </span>
-        </div>
-    </div>
-    <div class="offcanvas-body">
-        <div class="card bg-none mb-2">
-            <div class="card-body">
-                <div class="row gx-3">
-                    <div class="col-auto">
-                        <figure class="avatar avatar-30 coverimg rounded-circle">
-                            <img src="assets/img/modern-ai-image/user-2.jpg" alt="">
-                        </figure>
-                    </div>
-                    <div class="col">
-                        <p class="small mb-2"><a href="ecommerce-profile.html">Alex Smith</a>, <a
-                                href="ecommerce-profile.html">John McMillan</a> and <span
-                                class="fw-medium">36 others</span> are also ordered from same website</p>
-
-                        <div class="row gx-3 gx-lg-4 align-items-center">
-                            <div class="col">
-                                <p class="text-secondary small">2:14 pm</p>
-                            </div>
-                            <div class="col-auto">
-                                <a href="javascript:void(0)" class="btn btn-sm btn-square btn-link theme-red"><i
-                                        class="bi bi-trash"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="card bg-none mb-2">
-            <div class="card-body">
-                <div class="row gx-3">
-                    <div class="col-auto">
-                        <figure class="avatar avatar-30 rounded-circle bg-theme-1 border border-theme-1">
-                            <p class="h6 fw-medium">JM</p>
-                        </figure>
-                    </div>
-                    <div class="col">
-                        <p class="small mb-2"><a href="ecommerce-profile.html">Jack Mario</a> commented: "This one is
-                            most usable design with great user experience. w..."</p>
-
-                        <div class="row gx-3 gx-lg-4 align-items-center">
-                            <div class="col">
-                                <p class="text-secondary small">2 days ago</p>
-                            </div>
-                            <div class="col-auto">
-                                <a href="javascript:void(0)" class="btn btn-sm btn-square btn-link theme-red"><i
-                                        class="bi bi-trash"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="alert alert-warning mb-2">
-            <div class="row gx-3">
-                <div class="col-auto">
-                    <figure class="avatar avatar-30 rounded-circle bg-warning text-white">
-                        <i class="bi bi-bell"></i>
-                    </figure>
-                </div>
-                <div class="col">
-                    <p class="small mb-2">Your subscription going to expire soon. Please <a
-                            href="ecommerce-subscription.html">upgrade</a> to get service interrupt free.</p>
-
-                    <div class="row gx-3 gx-lg-4 align-items-center">
-                        <div class="col">
-                            <p class="text-secondary small">4 days ago</p>
-                        </div>
-                        <div class="col-auto">
-                            <a href="javascript:void(0)" class="btn btn-sm btn-square btn-link theme-red"><i
-                                    class="bi bi-trash"></i></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="card bg-none mb-2">
-            <div class="card-body">
-                <div class="row gx-3">
-                    <div class="col-auto">
-                        <figure class="avatar avatar-30 coverimg rounded-circle">
-                            <img src="assets/img/modern-ai-image/user-4.jpg" alt="">
-                        </figure>
-                    </div>
-                    <div class="col ps-0">
-                        <p class="small mb-2"><a href="ecommerce-invoices.html">Roberto Carlos</a> has requested to send
-                            $120.00 money.</p>
-
-                        <div class="row gx-3 gx-lg-4 align-items-center">
-                            <div class="col">
-                                <p class="text-secondary small">6 days ago</p>
-                            </div>
-                            <div class="col-auto">
-                                <a href="javascript:void(0)" class="btn btn-sm btn-square btn-link theme-red"><i
-                                        class="bi bi-trash"></i></a>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="card bg-none mb-2">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-auto">
-                        <figure class="avatar avatar-30 rounded-circle bg-theme-1-subtle text-theme-1 theme-orange">
-                            <i class="bi bi-calendar-event"></i>
-                        </figure>
-                    </div>
-                    <div class="col ps-0">
-                        <h6 class="mb-1">Adminuiux: #1 HTML Templates</h6>
-                        <p class="small mb-2">Learning for better user experience on Universal app. development</p>
-                        <div class="avatar-group mb-2">
-                            <figure class="avatar avatar-20 coverimg rounded-circle" data-bs-toggle="tooltip"
-                                    title="Mickey">
-                                <img src="assets/img/modern-ai-image/user-3.jpg" alt="" style="display: none;">
-                            </figure>
-                            <figure class="avatar avatar-20 coverimg rounded-circle" data-bs-toggle="tooltip"
-                                    title="Jacky">
-                                <img src="assets/img/modern-ai-image/user-4.jpg" alt="">
-                            </figure>
-                            <div class="avatar avatar-20 bg-theme-1 rounded-circle">
-                                <small class="fs-10 vm">9+</small>
-                            </div>
-                            <span class="text-secondary small"> are attending</span>
-                        </div>
-
-                        <div class="row gx-3 gx-lg-4 align-items-center">
-                            <div class="col">
-                                <p class="text-secondary small">7 days ago</p>
-                            </div>
-                            <div class="col-auto">
-                                <a href="javascript:void(0)" class="btn btn-sm btn-square btn-link theme-red"><i
-                                        class="bi bi-trash"></i></a>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="card bg-none mb-2">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-auto">
-                        <figure class="avatar avatar-30 coverimg rounded-circle">
-                            <img src="assets/img/modern-ai-image/user-3.jpg" alt="">
-                        </figure>
-                    </div>
-                    <div class="col ps-0">
-                        <p class="small mb-2"><a href="profile.html">The AdminUIUX</a> commented: "Thank you so much for
-                            this deep view at Adminuiux..."</p>
-
-                        <div class="row gx-3 gx-lg-4 align-items-center">
-                            <div class="col">
-                                <p class="text-secondary small">1 year ago</p>
-                            </div>
-                            <div class="col-auto">
-                                <a href="javascript:void(0)" class="btn btn-sm btn-square btn-link theme-red"><i
-                                        class="bi bi-trash"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- footer -->
-<!-- theming offcanvas-->
-<div class="offcanvas offcanvas-end shadow border-0 maxwidth-300" tabindex="-1" id="theming" data-bs-scroll="true"
-     data-bs-backdrop="false" aria-labelledby="theminglabel">
-    <div class="offcanvas-header border-bottom">
-        <div>
-            <h5 class="offcanvas-title" id="theminglabel">Personalize</h5>
-            <p class="text-secondary small">Make it more like your own</p>
-        </div>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-    </div>
-    <div class="offcanvas-body">
-        <h6 class="offcanvas-title">Colors</h6>
-        <p class="text-secondary small mb-4">Change colors of templates</p>
-        <div class="row gx-3 mb-3 theme-select">
-            <div class="col-auto">
-                <div class="select-box text-center mb-2" data-title="">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-default">
-                        <i class="bi bi-arrow-clockwise"></i>
-                    </span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="select-box text-center mb-2" data-title="theme-blue">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-blue"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="select-box text-center mb-2" data-title="theme-indigo">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-indigo"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="select-box text-center mb-2" data-title="theme-purple">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-purple"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="select-box text-center mb-2" data-title="theme-pink">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-pink"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="select-box text-center mb-2" data-title="theme-red">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-red"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="select-box text-center mb-2" data-title="theme-orange">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-orange"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="select-box text-center mb-2" data-title="theme-yellow">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-yellow"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="select-box text-center mb-2" data-title="theme-green">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-green"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="select-box text-center mb-2" data-title="theme-teal">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-teal"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="select-box text-center mb-2" data-title="theme-pista">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-pista"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="select-box text-center mb-2" data-title="theme-cyan">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-cyan"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="select-box text-center mb-2" data-title="theme-grey">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-grey"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="select-box text-center mb-2" data-title="theme-brown">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-brown"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="select-box text-center mb-2" data-title="theme-chocolate">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-chocolate"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="select-box text-center mb-2" data-title="theme-black">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-dark"></span>
-                </div>
-            </div>
-        </div>
-        <h6 class="offcanvas-title">Backgrounds</h6>
-        <p class="text-secondary small mb-4">Change color for background</p>
-        <div class="row gx-3 mb-3 theme-background">
-            <div class="col-auto">
-                <div class="gradient-box text-center mb-2" data-title="bg-default">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-default"><i class="bi bi-arrow-clockwise"></i></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="gradient-box text-center mb-2" data-title="bg-white">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-white"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="gradient-box text-center mb-2" data-title="bg-r-gradient">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-r-gradient"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="gradient-box text-center mb-2" data-title="bg-gradient-1">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-gradient-1"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="gradient-box text-center mb-2" data-title="bg-gradient-2">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-gradient-2"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="gradient-box text-center mb-2" data-title="bg-gradient-3">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-gradient-3"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="gradient-box text-center mb-2" data-title="bg-gradient-4">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-gradient-4"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="gradient-box text-center mb-2" data-title="bg-gradient-5">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-gradient-5"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="gradient-box text-center mb-2" data-title="bg-gradient-6">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-gradient-6"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="gradient-box text-center mb-2" data-title="bg-gradient-7">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-gradient-7"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="gradient-box text-center mb-2" data-title="bg-gradient-8">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-gradient-8"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="gradient-box text-center mb-2" data-title="bg-gradient-9">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-gradient-9"></span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="gradient-box text-center mb-2" data-title="bg-gradient-10">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-gradient-10"></span>
-                </div>
-            </div>
-        </div>
-        <h6 class="offcanvas-title">Sidebar Layout</h6>
-        <p class="text-secondary small mb-4">Change sidebar layout style</p>
-        <div class="row gx-3 mb-3 sidebar-layout">
-            <div class="col-auto">
-                <div class="select-box text-center mb-2" data-title="adminuiux-sidebar-standard"
-                     data-bs-toggle="tooltip" title="None">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-default">
-                        <i class="bi bi-arrow-clockwise"></i>
-                    </span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="select-box text-center mb-2" data-title="adminuiux-sidebar-iconic" data-bs-toggle="tooltip"
-                     title="Iconic">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-default">
-                        <i class="bi bi-bezier h4"></i>
-                    </span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="select-box text-center mb-2" data-title="adminuiux-sidebar-boxed" data-bs-toggle="tooltip"
-                     title="Boxed">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-default">
-                        <i class="bi bi-box h5"></i>
-                    </span>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="select-box text-center mb-2" data-title="adminuiux-sidebar-boxed adminuiux-sidebar-iconic"
-                     data-bs-toggle="tooltip" title="Iconic+Boxed">
-                    <span class="avatar avatar-40 rounded-circle mb-2 bg-default">
-                        <i class="bi bi-bounding-box h5"></i>
-                    </span>
-                </div>
-            </div>
-        </div>
-        <div class="text-center mb-3">
-            <a href="ecommerce-personalization.html" class="btn btn-sm btn-outline-theme">More options <i
-                    class="bi bi-arrow-right-short"></i></a>
-        </div>
-    </div>
-</div>
-<!-- standard footer -->
 {% include 'inventory/includes/footer.html' %}
-<!-- theming action-->
-<div class="position-fixed bottom-0 end-0 m-3 z-index-5" id="fixedbuttons">
-    <button class="btn btn-square btn-theme shadow rounded-circle" type="button" data-bs-toggle="offcanvas"
-            data-bs-target="#theming" aria-controls="theming"><i class="bi bi-palette"></i></button>
-    <br>
-    <button class="btn btn-theme btn-square shadow mt-2 d-none rounded-circle" id="backtotop"><i
-            class="bi bi-arrow-up"></i></button>
-</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+let inventoryStatusChart = null;
+let categoryInventoryChart = null;
+
+function moneyFormat(value) {
+    return "₹" + Number(value || 0).toLocaleString("en-IN");
+}
+
+function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.innerText = value;
+    }
+}
+
+function loadRentalDashboard() {
+    fetch("/api/rental-dashboard-data/")
+        .then(response => response.json())
+        .then(data => {
+            setText("dashRevenue", moneyFormat(data.revenue));
+            setText("dashTotalJobs", data.total_jobs);
+            setText("dashActiveJobs", data.active_jobs);
+            setText("opsActiveJobs", data.active_jobs);
+            setText("dashOverdueJobs", data.overdue_jobs);
+            setText("dashTodayPickup", data.today_pickup);
+            setText("opsLoadingToday", data.today_pickup);
+            setText("dashTodayReturns", data.today_returns);
+            setText("opsReturnToday", data.today_returns);
+            setText("dashTotalStock", data.total_stock);
+            setText("dashAvailableStock", data.available_stock);
+            setText("dashRentedStock", data.rented_stock);
+            setText("dashMaintenanceStock", data.maintenance_stock);
+
+            renderInventoryStatusChart(data);
+            renderCategoryCards(data.categories || []);
+            renderCategoryInventoryChart(data.categories || []);
+        })
+        .catch(error => {
+            console.log("Dashboard data loading error:", error);
+        });
+}
+
+function renderInventoryStatusChart(data) {
+    const ctx = document.getElementById("inventoryStatusChart");
+    if (!ctx) return;
+
+    if (inventoryStatusChart) {
+        inventoryStatusChart.destroy();
+    }
+
+    inventoryStatusChart = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+            labels: ["Available", "On Rent", "Maintenance"],
+            datasets: [{
+                data: [
+                    data.available_stock || 0,
+                    data.rented_stock || 0,
+                    data.maintenance_stock || 0
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: "bottom"
+                }
+            }
+        }
+    });
+}
+
+function renderCategoryCards(categories) {
+    const container = document.getElementById("categoryCards");
+    if (!container) return;
+
+    if (!categories.length) {
+        container.innerHTML = `
+            <div class="col-12">
+                <div class="card adminuiux-card">
+                    <div class="card-body text-center">
+                        <p class="text-secondary mb-0">No Audio / Video / Visual category data found.</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    let html = "";
+
+    categories.forEach(item => {
+        const total = Number(item.total_stock || 0);
+        const available = Number(item.available_stock || 0);
+        const rented = Number(item.rented_stock || 0);
+        const maintenance = Number(item.maintenance_stock || 0);
+
+        const availablePercent = total > 0 ? Math.round((available / total) * 100) : 0;
+        const rentedPercent = total > 0 ? Math.round((rented / total) * 100) : 0;
+        const maintenancePercent = total > 0 ? Math.round((maintenance / total) * 100) : 0;
+
+        html += `
+            <div class="col-12 col-md-4">
+                <div class="card adminuiux-card mb-3 mb-lg-4">
+                    <div class="card-body">
+                        <div class="row gx-3 align-items-center mb-3">
+                            <div class="col-auto">
+                                <div class="avatar avatar-50 rounded card">
+                                    <i class="bi bi-speaker"></i>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <h5 class="mb-0">${item.category}</h5>
+                                <p class="small text-secondary mb-0">Rental inventory</p>
+                            </div>
+                        </div>
+
+                        <div class="row text-center mb-3">
+                            <div class="col">
+                                <p class="small text-secondary mb-1">Total</p>
+                                <h5>${total}</h5>
+                            </div>
+                            <div class="col">
+                                <p class="small text-secondary mb-1">Jobs</p>
+                                <h5>${item.total_jobs || 0}</h5>
+                            </div>
+                            <div class="col">
+                                <p class="small text-secondary mb-1">Amount</p>
+                                <h5>${moneyFormat(item.booking_amount || 0)}</h5>
+                            </div>
+                        </div>
+
+                        <p class="small mb-1">Available <span class="float-end">${available}</span></p>
+                        <div class="progress mb-2 height-6">
+                            <div class="progress-bar bg-success" style="width:${availablePercent}%"></div>
+                        </div>
+
+                        <p class="small mb-1">On Rent <span class="float-end">${rented}</span></p>
+                        <div class="progress mb-2 height-6">
+                            <div class="progress-bar bg-warning" style="width:${rentedPercent}%"></div>
+                        </div>
+
+                        <p class="small mb-1">Maintenance <span class="float-end">${maintenance}</span></p>
+                        <div class="progress height-6">
+                            <div class="progress-bar bg-danger" style="width:${maintenancePercent}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+function renderCategoryInventoryChart(categories) {
+    const ctx = document.getElementById("categoryInventoryChart");
+    if (!ctx) return;
+
+    if (categoryInventoryChart) {
+        categoryInventoryChart.destroy();
+    }
+
+    categoryInventoryChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: categories.map(x => x.category),
+            datasets: [
+                {
+                    label: "Total",
+                    data: categories.map(x => x.total_stock || 0)
+                },
+                {
+                    label: "Available",
+                    data: categories.map(x => x.available_stock || 0)
+                },
+                {
+                    label: "On Rent",
+                    data: categories.map(x => x.rented_stock || 0)
+                },
+                {
+                    label: "Maintenance",
+                    data: categories.map(x => x.maintenance_stock || 0)
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: "bottom"
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+document.addEventListener("DOMContentLoaded", loadRentalDashboard);
+</script>
 
 </body>
 </html>
-
-<script src="{% static 'inventory/assets/js/ecommerce/ecommerce-dashboard.js' %}"></script>

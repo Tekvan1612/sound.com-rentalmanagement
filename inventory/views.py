@@ -24,57 +24,89 @@ from django.core.files.storage import default_storage
 
 logger = logging.getLogger(__name__)
 
-def dashboard(request):
+def rental_dashboard(request):
+    return render(request, "inventory/dashboard.html")
+
+
+def rental_dashboard_data(request):
     with connection.cursor() as cursor:
-
-        # 🔹 MAIN SUMMARY
-        cursor.execute("SELECT * FROM get_dashboard_summary()")
-        summary = cursor.fetchone()
-
-        # 🔹 CATEGORY OVERVIEW
         cursor.execute("""
-            SELECT mc.category_name, COUNT(sd.id)
-            FROM master_category mc
-            LEFT JOIN sub_category sc ON sc.category_id = mc.category_id
-            LEFT JOIN equipment_list el ON el.sub_category_id = sc.id
-            LEFT JOIN stock_details sd ON sd.equipment_id = el.id
-            GROUP BY mc.category_name
+            WITH latest_txn AS (
+                SELECT DISTINCT ON (barcode)
+                    barcode,
+                    scan_flag_in
+                FROM transaction_details
+                ORDER BY barcode,
+                    GREATEST(
+                        COALESCE(scan_in_date_time, '1900-01-01'),
+                        COALESCE(scan_out_date_time, '1900-01-01')
+                    ) DESC
+            )
+            SELECT
+                COALESCE(SUM(j.total_amount::numeric), 0) AS revenue,
+
+                COUNT(DISTINCT j.id) AS total_jobs,
+
+                COUNT(DISTINCT j.id) FILTER (
+                    WHERE LOWER(COALESCE(j.status, '')) IN ('loading', 'dispatch', 'delivery challan')
+                ) AS active_jobs,
+
+                COUNT(DISTINCT j.id) FILTER (
+                    WHERE j.show_end_date < CURRENT_DATE
+                ) AS overdue_jobs,
+
+                COUNT(DISTINCT j.id) FILTER (
+                    WHERE j.setup_date = CURRENT_DATE
+                ) AS today_pickup,
+
+                COUNT(DISTINCT j.id) FILTER (
+                    WHERE j.show_end_date = CURRENT_DATE
+                ) AS today_returns,
+
+                (SELECT COUNT(*) FROM stock_details) AS total_stock,
+
+                (
+                    SELECT COUNT(*)
+                    FROM stock_details sd
+                    LEFT JOIN latest_txn lt ON lt.barcode = sd.barcode_no
+                    LEFT JOIN equipment_list el ON el.id = sd.equipment_id
+                    WHERE (lt.scan_flag_in IS TRUE OR lt.scan_flag_in IS NULL)
+                    AND (el.status IS TRUE OR el.status IS NULL)
+                ) AS available_stock,
+
+                (
+                    SELECT COUNT(*)
+                    FROM stock_details sd
+                    JOIN latest_txn lt ON lt.barcode = sd.barcode_no
+                    WHERE lt.scan_flag_in IS FALSE
+                ) AS rented_stock,
+
+                (
+                    SELECT COUNT(*)
+                    FROM stock_details sd
+                    JOIN equipment_list el ON el.id = sd.equipment_id
+                    WHERE el.status IS FALSE
+                ) AS maintenance_stock
+
+            FROM jobs j;
         """)
-        raw_categories = cursor.fetchall()
 
-        categories = [
-            {"name": row[0], "count": row[1]}
-            for row in raw_categories
-        ]
+        row = cursor.fetchone()
 
-        total_assets = sum(c["count"] for c in categories)
-
-        cursor.execute("""
-        SELECT id, title, client_name, show_start_date, show_end_date, status
-        FROM jobs
-        ORDER BY created_date DESC
-        LIMIT 5
-        """)
-
-        recent_jobs = cursor.fetchall()
-
-        # 🔹 EVENTS (FIXED)
-
-    # ✅ MUST BE OUTSIDE cursor block
-    context = {
-        "revenue": summary[0],
-        "active_rentals": summary[1],
-        "total_items": summary[2],
-        "available": summary[3],
-        "rented": summary[4],
-        "maintenance": summary[5],
-        "pickups": summary[6],
-        "returns": summary[7],
-        "dispatch": summary[8],
-        "queue": summary[9],
+    data = {
+        "revenue": float(row[0] or 0),
+        "total_jobs": int(row[1] or 0),
+        "active_jobs": int(row[2] or 0),
+        "overdue_jobs": int(row[3] or 0),
+        "today_pickup": int(row[4] or 0),
+        "today_returns": int(row[5] or 0),
+        "total_stock": int(row[6] or 0),
+        "available_stock": int(row[7] or 0),
+        "rented_stock": int(row[8] or 0),
+        "maintenance_stock": int(row[9] or 0),
     }
 
-    return render(request, "inventory/dashboard.html", context)
+    return JsonResponse(data)
 
 
 def custom_login(request):
@@ -333,95 +365,42 @@ def user_list(request):
     return JsonResponse(response)
 
 def update_user(request, user_id):
-    if request.method != "POST":
-        return JsonResponse({"error": "Invalid request method"}, status=405)
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
 
-    form_user_id = request.POST.get("userId") or user_id
-    user_name = request.POST.get("username", "").strip()
-    password = request.POST.get("password", "").strip()
-    status = request.POST.get("status") == "1"
-    emp_id = request.POST.get("emp_id", "").strip()
-    permissions_raw = request.POST.get("permissions", "[]")
-
-    try:
-        form_user_id = int(form_user_id)
-        emp_id = int(emp_id)
-    except Exception:
-        return JsonResponse({
-            "success": False,
-            "message": "Invalid user or employee ID."
-        }, status=400)
+    user_id = request.POST.get('userId')
+    user_name = request.POST.get('username')
+    password = request.POST.get('password')
+    status = request.POST.get('status') == '1'
+    emp_id = request.POST.get('emp_id')
+    permissions = request.POST.get('permissions')
 
     try:
-        permissions = json.loads(permissions_raw) if permissions_raw else []
+        permissions = json.loads(permissions) if permissions else []
     except json.JSONDecodeError:
-        return JsonResponse({
-            "success": False,
-            "message": "Invalid permissions JSON."
-        }, status=400)
+        return JsonResponse({'error': 'Invalid permissions data'}, status=400)
 
     try:
         with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT manage_user(%s, %s, %s, %s, %s, %s::jsonb, %s, %s)
+                """,
+                [
+                    'update',
+                    int(user_id),
+                    user_name,
+                    password,
+                    status,
+                    json.dumps(permissions),
+                    None,
+                    int(emp_id)
+                ]
+            )
 
-            cursor.execute("""
-                SELECT user_id
-                FROM public.user_master
-                WHERE LOWER(TRIM(user_name)) = LOWER(TRIM(%s))
-                  AND user_id <> %s
-                LIMIT 1
-            """, [user_name, form_user_id])
-
-            existing_username = cursor.fetchone()
-
-            if existing_username:
-                return JsonResponse({
-                    "success": False,
-                    "message": f"User '{user_name}' already exists."
-                }, status=400)
-
-            cursor.execute("""
-                SELECT user_id, user_name
-                FROM public.user_master
-                WHERE emp_id = %s
-                  AND user_id <> %s
-                LIMIT 1
-            """, [emp_id, form_user_id])
-
-            existing_emp = cursor.fetchone()
-
-            if existing_emp:
-                return JsonResponse({
-                    "success": False,
-                    "message": f"This employee is already assigned to user '{existing_emp[1]}'."
-                }, status=400)
-
-            cursor.execute("""
-                SELECT manage_user(
-                    %s, %s, %s, %s, %s, %s::jsonb, %s, %s
-                )
-            """, [
-                "update",
-                form_user_id,
-                user_name,
-                password,
-                status,
-                json.dumps(permissions),
-                None,
-                emp_id
-            ])
-
-        return JsonResponse({
-            "success": True,
-            "message": "User details updated successfully",
-            "user_id": form_user_id
-        })
-
+        return JsonResponse({'message': 'User details updated successfully', 'user_id': user_id})
     except Exception as e:
-        print("UPDATE USER ERROR:", str(e))
-        return JsonResponse({
-            "success": False,
-            "message": str(e)
-        }, status=500)
+        return JsonResponse({'error': str(e)}, status=400)
 
 
 def delete_user(request, id):

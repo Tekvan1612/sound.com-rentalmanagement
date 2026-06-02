@@ -5,7 +5,8 @@ app_name = 'inventory'
 
 urlpatterns = [
     path('', views.custom_login, name='login'),
-    path('dashboard/', views.dashboard, name='dashboard'),
+    path("dashboard/", views.rental_dashboard, name="dashboard"),
+    path("api/rental-dashboard-data/", views.rental_dashboard_data, name="rental_dashboard_data"),
 
     path('user-master/', views.add_user, name='add_user'),
     path('user-list/', views.user_list, name='user_list'),
