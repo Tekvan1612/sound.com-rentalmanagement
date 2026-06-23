@@ -7975,3 +7975,221 @@ def delivery_challan_download(request, job_id):
         "Delivery Challan",
         "total"
     )
+
+
+def job_summary(request):
+    return render(request, "inventory/job_summary.html")
+
+
+def safe_decimal_sql(field_name):
+    return f"""
+        COALESCE(
+            NULLIF(
+                regexp_replace(COALESCE({field_name}::text, '0'), '[^0-9.-]', '', 'g'),
+                ''
+            )::numeric,
+            0
+        )
+    """
+
+def job_summary_data(request):
+    try:
+        from_date = request.GET.get("from_date", "").strip()
+        to_date = request.GET.get("to_date", "").strip()
+        status = request.GET.get("status", "").strip()
+        client = request.GET.get("client", "").strip()
+        job_no = request.GET.get("job_no", "").strip()
+
+        where = []
+        params = []
+
+        if from_date:
+            where.append("setup_date >= %s")
+            params.append(from_date)
+
+        if to_date:
+            where.append("setup_date <= %s")
+            params.append(to_date)
+
+        if status:
+            where.append("LOWER(status) = LOWER(%s)")
+            params.append(status)
+
+        if client:
+            where.append("client_name ILIKE %s")
+            params.append(f"%{client}%")
+
+        if job_no:
+            where.append("job_no ILIKE %s")
+            params.append(f"%{job_no}%")
+
+        where_sql = "WHERE " + " AND ".join(where) if where else ""
+
+        query = f"""
+            WITH all_jobs AS (
+
+                SELECT
+                    t.id,
+                    'temp' AS source_type,
+                    COALESCE(t.job_reference_no, t.quotation_no, '') AS job_no,
+                    COALESCE(t.title, '') AS job_title,
+                    COALESCE(t.client_name, '') AS client_name,
+                    COALESCE(t.venue_name, '') AS venue_name,
+                    COALESCE(t.status, 'Quotation') AS status,
+                    t.setup_date,
+                    t.event_date,
+                    t.dismantle_date,
+                    0::numeric AS total_qty,
+                    0::numeric AS scanned_out_qty,
+                    0::numeric AS returned_in_qty,
+                    COALESCE(NULLIF(regexp_replace(COALESCE(t.total_amount::text, '0'), '[^0-9.-]', '', 'g'), '')::numeric, 0) AS total_amount
+
+                FROM public.temp t
+
+                UNION ALL
+
+                SELECT
+                    j.id,
+                    'job' AS source_type,
+                    COALESCE(j.job_order_no, j.main_job_no, j.job_reference_no, '') AS job_no,
+                    COALESCE(j.title, '') AS job_title,
+                    COALESCE(j.client_name, '') AS client_name,
+                    COALESCE(j.venue_name, '') AS venue_name,
+                    COALESCE(j.status, '') AS status,
+                    j.setup_date,
+                    j.show_start_date AS event_date,
+                    j.show_end_date AS dismantle_date,
+
+                    COALESCE((
+                        SELECT SUM(
+                            COALESCE(NULLIF(regexp_replace(COALESCE(jed.quantity::text, '0'), '[^0-9.-]', '', 'g'), '')::numeric, 0)
+                        )
+                        FROM public.job_equipment_details jed
+                        WHERE jed.job_id = j.id
+                    ), 0) AS total_qty,
+
+                    COALESCE((
+                        SELECT COUNT(*)
+                        FROM public.transaction_details td
+                        WHERE td.job_id = j.id
+                          AND td.scan_out_date_time IS NOT NULL
+                    ), 0)::numeric AS scanned_out_qty,
+
+                    COALESCE((
+                        SELECT COUNT(*)
+                        FROM public.transaction_details td
+                        WHERE td.job_id = j.id
+                          AND td.scan_in_date_time IS NOT NULL
+                    ), 0)::numeric AS returned_in_qty,
+
+                    COALESCE(NULLIF(regexp_replace(COALESCE(j.total_amount::text, '0'), '[^0-9.-]', '', 'g'), '')::numeric, 0) AS total_amount
+
+                FROM public.jobs j
+            )
+
+            SELECT
+                id,
+                source_type,
+                job_no,
+                job_title,
+                client_name,
+                venue_name,
+                status,
+                setup_date,
+                event_date,
+                dismantle_date,
+                total_qty,
+                scanned_out_qty,
+                returned_in_qty,
+                GREATEST(total_qty - scanned_out_qty, 0) AS pending_out_qty,
+                GREATEST(scanned_out_qty - returned_in_qty, 0) AS pending_return_qty,
+                total_amount
+            FROM all_jobs
+            {where_sql}
+            ORDER BY setup_date DESC NULLS LAST, id DESC
+        """
+
+        with connection.cursor() as cursor:
+            cursor.execute(query, params)
+            rows = cursor.fetchall()
+
+        jobs = []
+
+        for row in rows:
+            total_qty = float(row[10] or 0)
+            scanned_out_qty = float(row[11] or 0)
+            returned_in_qty = float(row[12] or 0)
+            pending_out_qty = float(row[13] or 0)
+            pending_return_qty = float(row[14] or 0)
+
+            status_text = str(row[6] or "").lower()
+
+            delivery_challan_generated = "Generated" if "delivery" in status_text else "Not Generated"
+
+            if total_qty <= 0 or scanned_out_qty <= 0:
+                dispatch_status = "Not Started"
+            elif scanned_out_qty < total_qty:
+                dispatch_status = "Partially Dispatched"
+            else:
+                dispatch_status = "Fully Dispatched"
+
+            if scanned_out_qty <= 0:
+                return_status = "Not Returned"
+            elif returned_in_qty <= 0:
+                return_status = "Not Returned"
+            elif returned_in_qty < scanned_out_qty:
+                return_status = "Partially Returned"
+            else:
+                return_status = "Fully Returned"
+
+            jobs.append({
+                "id": row[0],
+                "source_type": row[1],
+                "job_no": row[2],
+                "job_title": row[3],
+                "client_name": row[4],
+                "venue_name": row[5],
+                "status": row[6],
+                "setup_date": row[7].strftime("%Y-%m-%d") if row[7] else "",
+                "event_date": row[8].strftime("%Y-%m-%d") if row[8] else "",
+                "dismantle_date": row[9].strftime("%Y-%m-%d") if row[9] else "",
+                "delivery_challan_generated": delivery_challan_generated,
+                "total_qty": total_qty,
+                "scanned_out_qty": scanned_out_qty,
+                "pending_out_qty": pending_out_qty,
+                "returned_in_qty": returned_in_qty,
+                "pending_return_qty": pending_return_qty,
+                "dispatch_status": dispatch_status,
+                "return_status": return_status,
+                "total_amount": float(row[15] or 0),
+            })
+
+        summary = {
+            "total_jobs": len(jobs),
+            "quotation_count": sum(1 for j in jobs if "quotation" in str(j["status"]).lower()),
+            "proforma_count": sum(1 for j in jobs if "proforma" in str(j["status"]).lower() or "porforma" in str(j["status"]).lower()),
+            "prepsheet_count": sum(1 for j in jobs if "prepsheet" in str(j["status"]).lower()),
+            "delivery_challan_count": sum(1 for j in jobs if "delivery" in str(j["status"]).lower()),
+            "total_revenue": sum(j["total_amount"] for j in jobs),
+            "total_qty": sum(j["total_qty"] for j in jobs),
+            "scanned_out_qty": sum(j["scanned_out_qty"] for j in jobs),
+            "returned_in_qty": sum(j["returned_in_qty"] for j in jobs),
+            "pending_out_qty": sum(j["pending_out_qty"] for j in jobs),
+            "pending_return_qty": sum(j["pending_return_qty"] for j in jobs),
+        }
+
+        return JsonResponse({
+            "success": True,
+            "summary": summary,
+            "jobs": jobs,
+            "upcoming_events": jobs[:10],
+            "alerts": {
+                "quotation_pending": summary["quotation_count"],
+                "dispatch_pending": summary["pending_out_qty"],
+                "return_pending": summary["pending_return_qty"],
+            }
+        })
+
+    except Exception as e:
+        print("JOB SUMMARY API ERROR:", str(e))
+        return JsonResponse({"success": False, "error": str(e)}, status=500)

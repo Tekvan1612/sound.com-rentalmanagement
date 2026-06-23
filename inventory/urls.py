@@ -234,4 +234,6 @@ urlpatterns = [
         views.delivery_challan_download,
         name="delivery_challan_download"
     ),
+    path("job-summary/", views.job_summary, name="job_summary"),
+    path("api/job-summary-data/", views.job_summary_data, name="job_summary_data"),
 ]
