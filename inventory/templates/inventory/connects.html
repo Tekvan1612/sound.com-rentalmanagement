@@ -38,12 +38,35 @@
     <main class="adminuiux-content has-sidebar">
         <div class="container mt-3">
 
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="mb-0">Connects</h4>
-                <button class="btn btn-theme" data-bs-toggle="collapse" data-bs-target="#connectForm">
-                    + New Connect
-                </button>
-            </div>
+           <div class="row gx-3 align-items-center mb-3">
+    <div class="col">
+        <nav aria-label="breadcrumb" class="mb-1 asset-breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'inventory:dashboard' %}">
+                        <i class="bi bi-house-door me-1"></i>
+                        Dashboard
+                    </a>
+                </li>
+
+                <li class="breadcrumb-item active" aria-current="page">
+                    Connects
+                </li>
+            </ol>
+        </nav>
+
+        <h4 class="asset-page-title mb-0">Connects</h4>
+    </div>
+
+    <div class="col-auto">
+        <button class="btn btn-theme"
+                data-bs-toggle="collapse"
+                data-bs-target="#connectForm">
+            <i class="bi bi-plus-circle me-1"></i>
+            New Connect
+        </button>
+    </div>
+</div>
 
             <div class="collapse" id="connectForm">
                 <div class="card shadow-sm border-0 mb-3">

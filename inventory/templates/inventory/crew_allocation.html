@@ -19,12 +19,33 @@
 
         <!-- Header -->
         <div class="container mt-3">
-            <div class="row align-items-center">
-                <div class="col">
-                    <h4>Crew Allocation</h4>
-                </div>
-            </div>
+    <div class="row gx-3 align-items-center">
+
+        <div class="col">
+
+            <nav aria-label="breadcrumb" class="mb-1 asset-breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'inventory:dashboard' %}">
+                            <i class="bi bi-house-door me-1"></i>
+                            Dashboard
+                        </a>
+                    </li>
+
+                    <li class="breadcrumb-item active" aria-current="page">
+                        Crew Allocation
+                    </li>
+                </ol>
+            </nav>
+
+            <h4 class="asset-page-title mb-0">
+                Crew Allocation
+            </h4>
+
         </div>
+
+    </div>
+</div>
 
         <!-- FORM -->
         <div class="container mt-3">

@@ -17,15 +17,24 @@
         <div class="container mt-3">
             <div class="row gx-3 align-items-center">
                 <div class="col">
-                    <nav aria-label="breadcrumb" class="mb-1">
+                    <nav aria-label="breadcrumb" class="mb-1 asset-breadcrumb">
                         <ol class="breadcrumb mb-0">
                             <li class="breadcrumb-item">
-                                <a href="#"><i class="bi bi-house-door"></i> Dashboard</a>
+                                <a href="{% url 'inventory:dashboard' %}">
+                                    <i class="bi bi-house-door me-1"></i>
+                                    Dashboard
+                                </a>
                             </li>
-                            <li class="breadcrumb-item active">Company & Warehouse Master</li>
+
+                            <li class="breadcrumb-item active" aria-current="page">
+                                Company &amp; Warehouse Master
+                            </li>
                         </ol>
                     </nav>
-                    <h4 class="mb-0">Company & Warehouse Master</h4>
+
+                    <h4 class="asset-page-title mb-0">
+                        Company &amp; Warehouse Master
+                    </h4>
                 </div>
             </div>
         </div>
@@ -63,7 +72,8 @@
                         <div class="tab-pane fade show active" id="company-pane" role="tabpanel">
                             <div class="asset-toolbar asset-toolbar-inline mb-3 d-flex gap-2">
                                 <div class="asset-search-wrap flex-grow-1">
-                                    <input type="text" class="form-control asset-search" id="companySearch" placeholder="Search company...">
+                                    <input type="text" class="form-control asset-search" id="companySearch"
+                                           placeholder="Search company...">
                                 </div>
 
                                 <button class="btn btn-theme collapsed asset-add-btn"
@@ -84,33 +94,39 @@
                                             <div class="row">
                                                 <div class="col-lg-4">
                                                     <div class="form-floating mb-3">
-                                                        <input type="text" class="form-control" id="company_name" name="name" placeholder="Company Name">
+                                                        <input type="text" class="form-control" id="company_name"
+                                                               name="name" placeholder="Company Name">
                                                         <label>Company Name</label>
                                                     </div>
                                                 </div>
 
                                                 <div class="col-lg-4">
                                                     <div class="form-floating mb-3">
-                                                        <input type="text" class="form-control" id="gst_no" name="gst_no" placeholder="GST No">
+                                                        <input type="text" class="form-control" id="gst_no"
+                                                               name="gst_no" placeholder="GST No">
                                                         <label>GST No</label>
                                                     </div>
                                                 </div>
 
                                                 <div class="col-lg-4">
                                                     <div class="form-floating mb-3">
-                                                        <input type="email" class="form-control" id="company_email" name="email" placeholder="Email">
+                                                        <input type="email" class="form-control" id="company_email"
+                                                               name="email" placeholder="Email">
                                                         <label>Email</label>
                                                     </div>
                                                 </div>
 
                                                 <div class="col-lg-4">
                                                     <label class="form-label fw-semibold">Company Logo</label>
-                                                    <input type="file" class="form-control mb-3" id="company_logo" name="company_logo">
+                                                    <input type="file" class="form-control mb-3" id="company_logo"
+                                                           name="company_logo">
                                                 </div>
 
                                                 <div class="col-lg-8">
                                                     <div class="form-floating mb-3">
-                                                        <textarea class="form-control" id="company_address" name="address" placeholder="Address" style="height: 90px;"></textarea>
+                                                        <textarea class="form-control" id="company_address"
+                                                                  name="address" placeholder="Address"
+                                                                  style="height: 90px;"></textarea>
                                                         <label>Address</label>
                                                     </div>
                                                 </div>
@@ -119,7 +135,9 @@
                                             <button type="button" class="btn btn-theme" onclick="submitCompanyForm()">
                                                 <span id="companyBtnText">Save Company</span>
                                             </button>
-                                            <button type="button" class="btn btn-outline-theme ms-2" onclick="cancelCompanyForm()">Cancel</button>
+                                            <button type="button" class="btn btn-outline-theme ms-2"
+                                                    onclick="cancelCompanyForm()">Cancel
+                                            </button>
                                         </form>
                                     </div>
                                 </div>
@@ -128,19 +146,19 @@
                             <div class="table-responsive">
                                 <table class="table asset-table align-middle w-100">
                                     <thead>
-                                        <tr>
-                                            <th style="width:140px;">Action</th>
-                                            <th>Name</th>
-                                            <th>GST No</th>
-                                            <th>Email</th>
-                                            <th>Logo</th>
-                                            <th>Address</th>
-                                        </tr>
+                                    <tr>
+                                        <th style="width:140px;">Action</th>
+                                        <th>Name</th>
+                                        <th>GST No</th>
+                                        <th>Email</th>
+                                        <th>Logo</th>
+                                        <th>Address</th>
+                                    </tr>
                                     </thead>
                                     <tbody id="companyTableBody">
-                                        <tr>
-                                            <td colspan="6" class="text-center">Loading companies...</td>
-                                        </tr>
+                                    <tr>
+                                        <td colspan="6" class="text-center">Loading companies...</td>
+                                    </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -150,7 +168,8 @@
                         <div class="tab-pane fade" id="warehouse-pane" role="tabpanel">
                             <div class="asset-toolbar asset-toolbar-inline mb-3 d-flex gap-2">
                                 <div class="asset-search-wrap flex-grow-1">
-                                    <input type="text" class="form-control asset-search" id="warehouseSearch" placeholder="Search warehouse...">
+                                    <input type="text" class="form-control asset-search" id="warehouseSearch"
+                                           placeholder="Search warehouse...">
                                 </div>
 
                                 <button class="btn btn-theme collapsed asset-add-btn"
@@ -171,7 +190,8 @@
                                             <div class="row">
                                                 <div class="col-lg-4">
                                                     <div class="form-floating mb-3">
-                                                        <select class="form-select" id="warehouse_company_id" name="company_id">
+                                                        <select class="form-select" id="warehouse_company_id"
+                                                                name="company_id">
                                                             <option value="">Select Company</option>
                                                         </select>
                                                         <label>Company</label>
@@ -180,63 +200,74 @@
 
                                                 <div class="col-lg-4">
                                                     <div class="form-floating mb-3">
-                                                        <input type="text" class="form-control" id="warehouse_code" name="warehouse_code" placeholder="Warehouse Code">
+                                                        <input type="text" class="form-control" id="warehouse_code"
+                                                               name="warehouse_code" placeholder="Warehouse Code">
                                                         <label>Warehouse Code</label>
                                                     </div>
                                                 </div>
 
                                                 <div class="col-lg-4">
                                                     <div class="form-floating mb-3">
-                                                        <input type="text" class="form-control" id="warehouse_name" name="warehouse_name" placeholder="Warehouse Name">
+                                                        <input type="text" class="form-control" id="warehouse_name"
+                                                               name="warehouse_name" placeholder="Warehouse Name">
                                                         <label>Warehouse Name</label>
                                                     </div>
                                                 </div>
 
                                                 <div class="col-lg-4">
                                                     <div class="form-floating mb-3">
-                                                        <input type="text" class="form-control" id="contact_person" name="contact_person" placeholder="Contact Person">
+                                                        <input type="text" class="form-control" id="contact_person"
+                                                               name="contact_person" placeholder="Contact Person">
                                                         <label>Contact Person</label>
                                                     </div>
                                                 </div>
 
                                                 <div class="col-lg-4">
                                                     <div class="form-floating mb-3">
-                                                        <input type="text" class="form-control" id="warehouse_phone_no" name="phone_no" placeholder="Phone No">
+                                                        <input type="text" class="form-control" id="warehouse_phone_no"
+                                                               name="phone_no" placeholder="Phone No">
                                                         <label>Phone No</label>
                                                     </div>
                                                 </div>
 
                                                 <div class="col-lg-4">
                                                     <div class="form-floating mb-3">
-                                                        <input type="email" class="form-control" id="warehouse_email" name="email" placeholder="Email">
+                                                        <input type="email" class="form-control" id="warehouse_email"
+                                                               name="email" placeholder="Email">
                                                         <label>Email</label>
                                                     </div>
                                                 </div>
 
                                                 <div class="col-lg-4">
                                                     <div class="form-floating mb-3">
-                                                        <input type="text" class="form-control" id="warehouse_city" name="city" placeholder="City">
+                                                        <input type="text" class="form-control" id="warehouse_city"
+                                                               name="city" placeholder="City">
                                                         <label>City</label>
                                                     </div>
                                                 </div>
 
                                                 <div class="col-lg-4">
                                                     <div class="form-floating mb-3">
-                                                        <input type="text" class="form-control" id="warehouse_state" name="state" placeholder="State">
+                                                        <input type="text" class="form-control" id="warehouse_state"
+                                                               name="state" placeholder="State">
                                                         <label>State</label>
                                                     </div>
                                                 </div>
 
                                                 <div class="col-lg-4">
                                                     <div class="form-floating mb-3">
-                                                        <input type="text" class="form-control" id="warehouse_pincode" name="pincode" placeholder="Pincode">
+                                                        <input type="text" class="form-control" id="warehouse_pincode"
+                                                               name="pincode" placeholder="Pincode">
                                                         <label>Pincode</label>
                                                     </div>
                                                 </div>
 
                                                 <div class="col-lg-12">
                                                     <div class="form-floating mb-3">
-                                                        <textarea class="form-control" id="warehouse_address" name="warehouse_address" placeholder="Warehouse Address" style="height: 90px;"></textarea>
+                                                        <textarea class="form-control" id="warehouse_address"
+                                                                  name="warehouse_address"
+                                                                  placeholder="Warehouse Address"
+                                                                  style="height: 90px;"></textarea>
                                                         <label>Warehouse Address</label>
                                                     </div>
                                                 </div>
@@ -245,7 +276,9 @@
                                             <button type="button" class="btn btn-theme" onclick="submitWarehouseForm()">
                                                 <span id="warehouseBtnText">Save Warehouse</span>
                                             </button>
-                                            <button type="button" class="btn btn-outline-theme ms-2" onclick="cancelWarehouseForm()">Cancel</button>
+                                            <button type="button" class="btn btn-outline-theme ms-2"
+                                                    onclick="cancelWarehouseForm()">Cancel
+                                            </button>
                                         </form>
                                     </div>
                                 </div>
@@ -254,22 +287,22 @@
                             <div class="table-responsive">
                                 <table class="table asset-table align-middle w-100">
                                     <thead>
-                                        <tr>
-                                            <th style="width:140px;">Action</th>
-                                            <th>Company</th>
-                                            <th>Code</th>
-                                            <th>Name</th>
-                                            <th>Phone</th>
-                                            <th>Email</th>
-                                            <th>City</th>
-                                            <th>State</th>
-                                            <th>Address</th>
-                                        </tr>
+                                    <tr>
+                                        <th style="width:140px;">Action</th>
+                                        <th>Company</th>
+                                        <th>Code</th>
+                                        <th>Name</th>
+                                        <th>Phone</th>
+                                        <th>Email</th>
+                                        <th>City</th>
+                                        <th>State</th>
+                                        <th>Address</th>
+                                    </tr>
                                     </thead>
                                     <tbody id="warehouseTableBody">
-                                        <tr>
-                                            <td colspan="9" class="text-center">Loading warehouses...</td>
-                                        </tr>
+                                    <tr>
+                                        <td colspan="9" class="text-center">Loading warehouses...</td>
+                                    </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -288,58 +321,58 @@
 <script src="{% static 'inventory/assets/js/app5724.js' %}"></script>
 
 <script>
-let companyData = [];
-let warehouseData = [];
+    let companyData = [];
+    let warehouseData = [];
 
-document.addEventListener("DOMContentLoaded", function () {
-    loadCompanies();
-    loadWarehouses();
+    document.addEventListener("DOMContentLoaded", function () {
+        loadCompanies();
+        loadWarehouses();
 
-    document.getElementById("companySearch").addEventListener("input", function () {
-        renderCompanies(this.value.trim().toLowerCase());
-    });
-
-    document.getElementById("warehouseSearch").addEventListener("input", function () {
-        renderWarehouses(this.value.trim().toLowerCase());
-    });
-});
-
-/* -------------------- COMPANY -------------------- */
-
-function loadCompanies() {
-    fetch("{% url 'inventory:company_list' %}")
-        .then(res => res.json())
-        .then(data => {
-            companyData = data.data || data.companies || [];
-            renderCompanies();
-            populateCompanyDropdown();
-        })
-        .catch(err => {
-            console.error(err);
-            document.getElementById("companyTableBody").innerHTML =
-                `<tr><td colspan="6" class="text-center text-danger">Failed to load companies</td></tr>`;
+        document.getElementById("companySearch").addEventListener("input", function () {
+            renderCompanies(this.value.trim().toLowerCase());
         });
-}
 
-function renderCompanies(searchText = "") {
-    const tbody = document.getElementById("companyTableBody");
-    tbody.innerHTML = "";
+        document.getElementById("warehouseSearch").addEventListener("input", function () {
+            renderWarehouses(this.value.trim().toLowerCase());
+        });
+    });
 
-    let filtered = companyData.filter(item =>
-        JSON.stringify(item).toLowerCase().includes(searchText)
-    );
+    /* -------------------- COMPANY -------------------- */
 
-    if (!filtered.length) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center">No companies found</td></tr>`;
-        return;
+    function loadCompanies() {
+        fetch("{% url 'inventory:company_list' %}")
+            .then(res => res.json())
+            .then(data => {
+                companyData = data.data || data.companies || [];
+                renderCompanies();
+                populateCompanyDropdown();
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById("companyTableBody").innerHTML =
+                    `<tr><td colspan="6" class="text-center text-danger">Failed to load companies</td></tr>`;
+            });
     }
 
-    filtered.forEach(company => {
-        const logoHtml = company.company_logo
-            ? `<img src="${company.company_logo}" alt="logo" style="height:40px; width:40px; object-fit:cover; border-radius:6px;">`
-            : `-`;
+    function renderCompanies(searchText = "") {
+        const tbody = document.getElementById("companyTableBody");
+        tbody.innerHTML = "";
 
-        tbody.innerHTML += `
+        let filtered = companyData.filter(item =>
+            JSON.stringify(item).toLowerCase().includes(searchText)
+        );
+
+        if (!filtered.length) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center">No companies found</td></tr>`;
+            return;
+        }
+
+        filtered.forEach(company => {
+            const logoHtml = company.company_logo
+                ? `<img src="${company.company_logo}" alt="logo" style="height:40px; width:40px; object-fit:cover; border-radius:6px;">`
+                : `-`;
+
+            tbody.innerHTML += `
             <tr>
                 <td>
                     <button class="btn btn-primary btn-sm me-2" onclick="editCompany(${company.id})">
@@ -356,134 +389,134 @@ function renderCompanies(searchText = "") {
                 <td>${company.address || ""}</td>
             </tr>
         `;
-    });
-}
-
-function submitCompanyForm() {
-    const editId = document.getElementById("company_edit_id").value;
-    const form = document.getElementById("companyForm");
-    const formData = new FormData(form);
-
-    let url = "{% url 'inventory:add_company' %}";
-    if (editId) {
-        url = "{% url 'inventory:update_company' 0 %}".replace("/0/", `/${editId}/`);
-    }
-
-    fetch(url, {
-        method: "POST",
-        body: formData,
-        headers: { "X-CSRFToken": getCookie("csrftoken") }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success || data.message) {
-            showToast(data.success || data.message, "success");
-            resetCompanyForm();
-            bootstrap.Collapse.getOrCreateInstance(document.getElementById("addCompanyCollapse")).hide();
-            loadCompanies();
-        } else {
-            showToast(data.error || "Failed to save company", "danger");
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        showToast("Error saving company", "danger");
-    });
-}
-
-function editCompany(id) {
-    const company = companyData.find(c => Number(c.id) === Number(id));
-    if (!company) return;
-
-    document.getElementById("company_edit_id").value = company.id;
-    document.getElementById("company_name").value = company.name || "";
-    document.getElementById("gst_no").value = company.gst_no || "";
-    document.getElementById("company_email").value = company.email || "";
-    document.getElementById("company_address").value = company.address || "";
-
-    document.getElementById("companyFormTitle").textContent = "Edit Company Details";
-    document.getElementById("companyBtnText").textContent = "Update Company";
-
-    bootstrap.Collapse.getOrCreateInstance(document.getElementById("addCompanyCollapse")).show();
-}
-
-function deleteCompany(id) {
-    if (!confirm("Are you sure you want to delete this company?")) return;
-
-    fetch("{% url 'inventory:delete_company' 0 %}".replace("/0/", `/${id}/`), {
-        method: "POST",
-        headers: { "X-CSRFToken": getCookie("csrftoken") }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success || data.message) {
-            showToast(data.success || data.message, "success");
-            loadCompanies();
-        } else {
-            showToast(data.error || "Delete failed", "danger");
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        showToast("Error deleting company", "danger");
-    });
-}
-
-function resetCompanyForm() {
-    document.getElementById("companyForm").reset();
-    document.getElementById("company_edit_id").value = "";
-    document.getElementById("companyFormTitle").textContent = "New Company Details";
-    document.getElementById("companyBtnText").textContent = "Save Company";
-}
-
-function cancelCompanyForm() {
-    resetCompanyForm();
-    bootstrap.Collapse.getOrCreateInstance(document.getElementById("addCompanyCollapse")).hide();
-}
-
-function populateCompanyDropdown() {
-    const dropdown = document.getElementById("warehouse_company_id");
-    const currentValue = dropdown.value;
-
-    dropdown.innerHTML = `<option value="">Select Company</option>`;
-    companyData.forEach(company => {
-        dropdown.innerHTML += `<option value="${company.id}">${company.name}</option>`;
-    });
-
-    dropdown.value = currentValue;
-}
-
-/* -------------------- WAREHOUSE -------------------- */
-
-function loadWarehouses() {
-    fetch("{% url 'inventory:warehouse_list' %}")
-        .then(res => res.json())
-        .then(data => {
-            warehouseData = data.data || data.warehouses || [];
-            renderWarehouses();
-        })
-        .catch(err => {
-            console.error(err);
-            document.getElementById("warehouseTableBody").innerHTML =
-                `<tr><td colspan="9" class="text-center text-danger">Failed to load warehouses</td></tr>`;
         });
-}
-
-function renderWarehouses(searchText = "") {
-    const tbody = document.getElementById("warehouseTableBody");
-    tbody.innerHTML = "";
-
-    let filtered = warehouseData.filter(item =>
-        JSON.stringify(item).toLowerCase().includes(searchText)
-    );
-
-    if (!filtered.length) {
-        tbody.innerHTML = `<tr><td colspan="9" class="text-center">No warehouses found</td></tr>`;
-        return;
     }
 
-    filtered.forEach(warehouse => {
-        tbody.innerHTML += `
+    function submitCompanyForm() {
+        const editId = document.getElementById("company_edit_id").value;
+        const form = document.getElementById("companyForm");
+        const formData = new FormData(form);
+
+        let url = "{% url 'inventory:add_company' %}";
+        if (editId) {
+            url = "{% url 'inventory:update_company' 0 %}".replace("/0/", `/${editId}/`);
+        }
+
+        fetch(url, {
+            method: "POST",
+            body: formData,
+            headers: {"X-CSRFToken": getCookie("csrftoken")}
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success || data.message) {
+                    showToast(data.success || data.message, "success");
+                    resetCompanyForm();
+                    bootstrap.Collapse.getOrCreateInstance(document.getElementById("addCompanyCollapse")).hide();
+                    loadCompanies();
+                } else {
+                    showToast(data.error || "Failed to save company", "danger");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast("Error saving company", "danger");
+            });
+    }
+
+    function editCompany(id) {
+        const company = companyData.find(c => Number(c.id) === Number(id));
+        if (!company) return;
+
+        document.getElementById("company_edit_id").value = company.id;
+        document.getElementById("company_name").value = company.name || "";
+        document.getElementById("gst_no").value = company.gst_no || "";
+        document.getElementById("company_email").value = company.email || "";
+        document.getElementById("company_address").value = company.address || "";
+
+        document.getElementById("companyFormTitle").textContent = "Edit Company Details";
+        document.getElementById("companyBtnText").textContent = "Update Company";
+
+        bootstrap.Collapse.getOrCreateInstance(document.getElementById("addCompanyCollapse")).show();
+    }
+
+    function deleteCompany(id) {
+        if (!confirm("Are you sure you want to delete this company?")) return;
+
+        fetch("{% url 'inventory:delete_company' 0 %}".replace("/0/", `/${id}/`), {
+            method: "POST",
+            headers: {"X-CSRFToken": getCookie("csrftoken")}
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success || data.message) {
+                    showToast(data.success || data.message, "success");
+                    loadCompanies();
+                } else {
+                    showToast(data.error || "Delete failed", "danger");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast("Error deleting company", "danger");
+            });
+    }
+
+    function resetCompanyForm() {
+        document.getElementById("companyForm").reset();
+        document.getElementById("company_edit_id").value = "";
+        document.getElementById("companyFormTitle").textContent = "New Company Details";
+        document.getElementById("companyBtnText").textContent = "Save Company";
+    }
+
+    function cancelCompanyForm() {
+        resetCompanyForm();
+        bootstrap.Collapse.getOrCreateInstance(document.getElementById("addCompanyCollapse")).hide();
+    }
+
+    function populateCompanyDropdown() {
+        const dropdown = document.getElementById("warehouse_company_id");
+        const currentValue = dropdown.value;
+
+        dropdown.innerHTML = `<option value="">Select Company</option>`;
+        companyData.forEach(company => {
+            dropdown.innerHTML += `<option value="${company.id}">${company.name}</option>`;
+        });
+
+        dropdown.value = currentValue;
+    }
+
+    /* -------------------- WAREHOUSE -------------------- */
+
+    function loadWarehouses() {
+        fetch("{% url 'inventory:warehouse_list' %}")
+            .then(res => res.json())
+            .then(data => {
+                warehouseData = data.data || data.warehouses || [];
+                renderWarehouses();
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById("warehouseTableBody").innerHTML =
+                    `<tr><td colspan="9" class="text-center text-danger">Failed to load warehouses</td></tr>`;
+            });
+    }
+
+    function renderWarehouses(searchText = "") {
+        const tbody = document.getElementById("warehouseTableBody");
+        tbody.innerHTML = "";
+
+        let filtered = warehouseData.filter(item =>
+            JSON.stringify(item).toLowerCase().includes(searchText)
+        );
+
+        if (!filtered.length) {
+            tbody.innerHTML = `<tr><td colspan="9" class="text-center">No warehouses found</td></tr>`;
+            return;
+        }
+
+        filtered.forEach(warehouse => {
+            tbody.innerHTML += `
             <tr>
                 <td>
                     <button class="btn btn-primary btn-sm me-2" onclick="editWarehouse(${warehouse.id})">
@@ -503,130 +536,130 @@ function renderWarehouses(searchText = "") {
                 <td>${warehouse.warehouse_address || ""}</td>
             </tr>
         `;
-    });
-}
-
-function submitWarehouseForm() {
-    const editId = document.getElementById("warehouse_edit_id").value;
-    const form = document.getElementById("warehouseForm");
-    const formData = new FormData(form);
-
-    let url = "{% url 'inventory:add_warehouse' %}";
-    if (editId) {
-        url = "{% url 'inventory:update_warehouse' 0 %}".replace("/0/", `/${editId}/`);
+        });
     }
 
-    fetch(url, {
-        method: "POST",
-        body: formData,
-        headers: { "X-CSRFToken": getCookie("csrftoken") }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success || data.message) {
-            showToast(data.success || data.message, "success");
-            resetWarehouseForm();
-            bootstrap.Collapse.getOrCreateInstance(document.getElementById("addWarehouseCollapse")).hide();
-            loadWarehouses();
-        } else {
-            showToast(data.error || "Failed to save warehouse", "danger");
+    function submitWarehouseForm() {
+        const editId = document.getElementById("warehouse_edit_id").value;
+        const form = document.getElementById("warehouseForm");
+        const formData = new FormData(form);
+
+        let url = "{% url 'inventory:add_warehouse' %}";
+        if (editId) {
+            url = "{% url 'inventory:update_warehouse' 0 %}".replace("/0/", `/${editId}/`);
         }
-    })
-    .catch(err => {
-        console.error(err);
-        showToast("Error saving warehouse", "danger");
-    });
-}
 
-function editWarehouse(id) {
-    const warehouse = warehouseData.find(w => Number(w.id) === Number(id));
-    if (!warehouse) return;
+        fetch(url, {
+            method: "POST",
+            body: formData,
+            headers: {"X-CSRFToken": getCookie("csrftoken")}
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success || data.message) {
+                    showToast(data.success || data.message, "success");
+                    resetWarehouseForm();
+                    bootstrap.Collapse.getOrCreateInstance(document.getElementById("addWarehouseCollapse")).hide();
+                    loadWarehouses();
+                } else {
+                    showToast(data.error || "Failed to save warehouse", "danger");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast("Error saving warehouse", "danger");
+            });
+    }
 
-    document.getElementById("warehouse_edit_id").value = warehouse.id;
-    document.getElementById("warehouse_company_id").value = warehouse.company_id || "";
-    document.getElementById("warehouse_code").value = warehouse.warehouse_code || "";
-    document.getElementById("warehouse_name").value = warehouse.warehouse_name || "";
-    document.getElementById("contact_person").value = warehouse.contact_person || "";
-    document.getElementById("warehouse_phone_no").value = warehouse.phone_no || "";
-    document.getElementById("warehouse_email").value = warehouse.email || "";
-    document.getElementById("warehouse_city").value = warehouse.city || "";
-    document.getElementById("warehouse_state").value = warehouse.state || "";
-    document.getElementById("warehouse_pincode").value = warehouse.pincode || "";
-    document.getElementById("warehouse_address").value = warehouse.warehouse_address || "";
+    function editWarehouse(id) {
+        const warehouse = warehouseData.find(w => Number(w.id) === Number(id));
+        if (!warehouse) return;
 
-    document.getElementById("warehouseFormTitle").textContent = "Edit Warehouse Details";
-    document.getElementById("warehouseBtnText").textContent = "Update Warehouse";
+        document.getElementById("warehouse_edit_id").value = warehouse.id;
+        document.getElementById("warehouse_company_id").value = warehouse.company_id || "";
+        document.getElementById("warehouse_code").value = warehouse.warehouse_code || "";
+        document.getElementById("warehouse_name").value = warehouse.warehouse_name || "";
+        document.getElementById("contact_person").value = warehouse.contact_person || "";
+        document.getElementById("warehouse_phone_no").value = warehouse.phone_no || "";
+        document.getElementById("warehouse_email").value = warehouse.email || "";
+        document.getElementById("warehouse_city").value = warehouse.city || "";
+        document.getElementById("warehouse_state").value = warehouse.state || "";
+        document.getElementById("warehouse_pincode").value = warehouse.pincode || "";
+        document.getElementById("warehouse_address").value = warehouse.warehouse_address || "";
 
-    bootstrap.Collapse.getOrCreateInstance(document.getElementById("addWarehouseCollapse")).show();
-}
+        document.getElementById("warehouseFormTitle").textContent = "Edit Warehouse Details";
+        document.getElementById("warehouseBtnText").textContent = "Update Warehouse";
 
-function deleteWarehouse(id) {
-    if (!confirm("Are you sure you want to delete this warehouse?")) return;
+        bootstrap.Collapse.getOrCreateInstance(document.getElementById("addWarehouseCollapse")).show();
+    }
 
-    fetch("{% url 'inventory:delete_warehouse' 0 %}".replace("/0/", `/${id}/`), {
-        method: "POST",
-        headers: { "X-CSRFToken": getCookie("csrftoken") }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success || data.message) {
-            showToast(data.success || data.message, "success");
-            loadWarehouses();
-        } else {
-            showToast(data.error || "Delete failed", "danger");
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        showToast("Error deleting warehouse", "danger");
-    });
-}
+    function deleteWarehouse(id) {
+        if (!confirm("Are you sure you want to delete this warehouse?")) return;
 
-function resetWarehouseForm() {
-    document.getElementById("warehouseForm").reset();
-    document.getElementById("warehouse_edit_id").value = "";
-    document.getElementById("warehouseFormTitle").textContent = "New Warehouse Details";
-    document.getElementById("warehouseBtnText").textContent = "Save Warehouse";
-}
+        fetch("{% url 'inventory:delete_warehouse' 0 %}".replace("/0/", `/${id}/`), {
+            method: "POST",
+            headers: {"X-CSRFToken": getCookie("csrftoken")}
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success || data.message) {
+                    showToast(data.success || data.message, "success");
+                    loadWarehouses();
+                } else {
+                    showToast(data.error || "Delete failed", "danger");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast("Error deleting warehouse", "danger");
+            });
+    }
 
-function cancelWarehouseForm() {
-    resetWarehouseForm();
-    bootstrap.Collapse.getOrCreateInstance(document.getElementById("addWarehouseCollapse")).hide();
-}
+    function resetWarehouseForm() {
+        document.getElementById("warehouseForm").reset();
+        document.getElementById("warehouse_edit_id").value = "";
+        document.getElementById("warehouseFormTitle").textContent = "New Warehouse Details";
+        document.getElementById("warehouseBtnText").textContent = "Save Warehouse";
+    }
 
-/* -------------------- COMMON -------------------- */
+    function cancelWarehouseForm() {
+        resetWarehouseForm();
+        bootstrap.Collapse.getOrCreateInstance(document.getElementById("addWarehouseCollapse")).hide();
+    }
 
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== "") {
-        const cookies = document.cookie.split(";");
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + "=")) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
+    /* -------------------- COMMON -------------------- */
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + "=")) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
             }
         }
+        return cookieValue;
     }
-    return cookieValue;
-}
 
-function showToast(message, type = "success") {
-    const toastContainer = document.getElementById("toastContainer");
-    const toastHTML = `
+    function showToast(message, type = "success") {
+        const toastContainer = document.getElementById("toastContainer");
+        const toastHTML = `
         <div class="toast align-items-center text-bg-${type} border-0 show mb-2" role="alert">
             <div class="d-flex">
                 <div class="toast-body">${message}</div>
                 <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.closest('.toast').remove()"></button>
             </div>
         </div>`;
-    toastContainer.insertAdjacentHTML("beforeend", toastHTML);
+        toastContainer.insertAdjacentHTML("beforeend", toastHTML);
 
-    setTimeout(() => {
-        const toast = toastContainer.querySelector(".toast");
-        if (toast) toast.remove();
-    }, 2500);
-}
+        setTimeout(() => {
+            const toast = toastContainer.querySelector(".toast");
+            if (toast) toast.remove();
+        }, 2500);
+    }
 </script>
 </body>
 </html>

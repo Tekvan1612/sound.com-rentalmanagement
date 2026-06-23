@@ -42,11 +42,14 @@
                     <nav aria-label="breadcrumb" class="mb-1 asset-breadcrumb">
                         <ol class="breadcrumb mb-0">
                             <li class="breadcrumb-item">
-                                <a href="#">
-                                    <i class="bi bi-house-door"></i> Dashboard
+                                <a href="{% url 'inventory:dashboard' %}">
+                                    <i class="bi bi-house-door me-1"></i> Dashboard
                                 </a>
                             </li>
-                            <li class="breadcrumb-item active" aria-current="page">Asset Masters</li>
+
+                            <li class="breadcrumb-item active" aria-current="page">
+                                Asset Masters
+                            </li>
                         </ol>
                     </nav>
                     <h4 class="asset-page-title mb-0">Asset Masters</h4>
@@ -941,6 +944,22 @@
         color: #888;
         margin-right: 20px;
     }
+
+    .asset-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+        content: ">" !important;
+        color: #6c757d !important;
+        padding: 0 10px 0 8px !important;
+        font-family: Arial, sans-serif !important;
+    }
+
+    .asset-breadcrumb .breadcrumb-item a {
+        text-decoration: none;
+        color: #7da86d;
+    }
+
+    .asset-breadcrumb .breadcrumb-item.active {
+        color: #607895;
+    }
 </style>
 <script>
 
@@ -1383,232 +1402,232 @@
             }
         });
     });
-function openEquipmentEditForm(id) {
 
-    console.log("Opening equipment edit:", id);
+    function openEquipmentEditForm(id) {
 
-    fetch(`/get-equipment-details/${id}/`)
-        .then(response => response.json())
-        .then(response => {
+        console.log("Opening equipment edit:", id);
 
-            console.log("Equipment Response:", response);
+        fetch(`/get-equipment-details/${id}/`)
+            .then(response => response.json())
+            .then(response => {
 
-            if (!response.success) {
-                showToast(
-                    response.message ||
-                    "Failed to fetch equipment details",
-                    "danger"
-                );
-                return;
-            }
+                console.log("Equipment Response:", response);
 
-            // ==================================
-            // OPEN COLLAPSE FORM
-            // ==================================
-            const formCollapse =
-                document.getElementById("addEquipmentCollapse");
+                if (!response.success) {
+                    showToast(
+                        response.message ||
+                        "Failed to fetch equipment details",
+                        "danger"
+                    );
+                    return;
+                }
 
-            if (formCollapse) {
-                bootstrap.Collapse
-                    .getOrCreateInstance(formCollapse, {
-                        toggle: false
-                    })
-                    .show();
-            }
+                // ==================================
+                // OPEN COLLAPSE FORM
+                // ==================================
+                const formCollapse =
+                    document.getElementById("addEquipmentCollapse");
 
-            // ==================================
-            // FORM TITLE
-            // ==================================
-            const formTitle =
-                document.getElementById("equipmentFormTitle");
+                if (formCollapse) {
+                    bootstrap.Collapse
+                        .getOrCreateInstance(formCollapse, {
+                            toggle: false
+                        })
+                        .show();
+                }
 
-            if (formTitle) {
-                formTitle.innerText =
-                    "Edit Equipment Details";
-            }
+                // ==================================
+                // FORM TITLE
+                // ==================================
+                const formTitle =
+                    document.getElementById("equipmentFormTitle");
 
-            // ==================================
-            // EQUIPMENT ID
-            // ==================================
-            const editId =
-                document.getElementById("edit_equipment_id");
+                if (formTitle) {
+                    formTitle.innerText =
+                        "Edit Equipment Details";
+                }
 
-            if (editId) {
-                editId.value = response.id || "";
-            }
+                // ==================================
+                // EQUIPMENT ID
+                // ==================================
+                const editId =
+                    document.getElementById("edit_equipment_id");
 
-            // ==================================
-            // BASIC DETAILS
-            // ==================================
-            document.getElementById("equipment_name").value =
-                response.equipment_name || "";
+                if (editId) {
+                    editId.value = response.id || "";
+                }
 
-            document.getElementById("type").value =
-                response.type || "";
+                // ==================================
+                // BASIC DETAILS
+                // ==================================
+                document.getElementById("equipment_name").value =
+                    response.equipment_name || "";
 
-            document.getElementById("dimension_h").value =
-                response.dimension_h || "";
+                document.getElementById("type").value =
+                    response.type || "";
 
-            document.getElementById("dimension_w").value =
-                response.dimension_w || "";
+                document.getElementById("dimension_h").value =
+                    response.dimension_h || "";
 
-            document.getElementById("dimension_l").value =
-                response.dimension_l || "";
+                document.getElementById("dimension_w").value =
+                    response.dimension_w || "";
 
-            document.getElementById("weight").value =
-                response.weight || "";
+                document.getElementById("dimension_l").value =
+                    response.dimension_l || "";
 
-            document.getElementById("volume").value =
-                response.volume || "";
+                document.getElementById("weight").value =
+                    response.weight || "";
 
-            document.getElementById("hsn_no").value =
-                response.hsn_no || "";
+                document.getElementById("volume").value =
+                    response.volume || "";
 
-            document.getElementById("country_origin").value =
-                response.country_origin || "";
+                document.getElementById("hsn_no").value =
+                    response.hsn_no || "";
 
-            document.getElementById("category_name").value =
-                response.category_name || "";
+                document.getElementById("country_origin").value =
+                    response.country_origin || "";
 
-            document.getElementById("status").value =
-                response.status || "Active";
+                document.getElementById("category_name").value =
+                    response.category_name || "";
 
-            // ==================================
-            // SUBCATEGORY FIX
-            // ==================================
-            const subId =
-                String(response.subcategory_id || "");
+                document.getElementById("status").value =
+                    response.status || "Active";
 
-            const subName =
-                response.subcategory_name || "";
+                // ==================================
+                // SUBCATEGORY FIX
+                // ==================================
+                const subId =
+                    String(response.subcategory_id || "");
 
-            console.log("Subcategory ID:", subId);
-            console.log("Subcategory Name:", subName);
+                const subName =
+                    response.subcategory_name || "";
 
-            setTimeout(() => {
+                console.log("Subcategory ID:", subId);
+                console.log("Subcategory Name:", subName);
 
-                const selectElement =
-                    document.querySelector("#subcategory_id");
+                setTimeout(() => {
 
-                if (
-                    selectElement &&
-                    selectElement.tomselect
-                ) {
+                    const selectElement =
+                        document.querySelector("#subcategory_id");
 
-                    const tomSelect =
-                        selectElement.tomselect;
+                    if (
+                        selectElement &&
+                        selectElement.tomselect
+                    ) {
 
-                    // Add option if missing
-                    if (!tomSelect.options[subId]) {
+                        const tomSelect =
+                            selectElement.tomselect;
 
-                        tomSelect.addOption({
-                            value: subId,
-                            text: subName
-                        });
+                        // Add option if missing
+                        if (!tomSelect.options[subId]) {
+
+                            tomSelect.addOption({
+                                value: subId,
+                                text: subName
+                            });
+                        }
+
+                        // Select value
+                        tomSelect.setValue(
+                            subId,
+                            true
+                        );
+
+                        tomSelect.refreshOptions(false);
+
+                        console.log(
+                            "Selected Subcategory:",
+                            tomSelect.getValue()
+                        );
+                    } else {
+
+                        // Normal select fallback
+                        document.getElementById(
+                            "subcategory_id"
+                        ).value = subId;
                     }
 
-                    // Select value
-                    tomSelect.setValue(
-                        subId,
-                        true
-                    );
+                }, 300);
 
-                    tomSelect.refreshOptions(false);
+                // ==================================
+                // IMAGE PREVIEW
+                // ==================================
 
-                    console.log(
-                        "Selected Subcategory:",
-                        tomSelect.getValue()
-                    );
-                }
-                else {
-
-                    // Normal select fallback
+                const preview1 =
                     document.getElementById(
-                        "subcategory_id"
-                    ).value = subId;
+                        "preview_attachment_1"
+                    );
+
+                const preview2 =
+                    document.getElementById(
+                        "preview_attachment_2"
+                    );
+
+                const preview3 =
+                    document.getElementById(
+                        "preview_attachment_3"
+                    );
+
+                if (preview1) {
+                    if (response.image_1) {
+                        preview1.src =
+                            response.image_1;
+                        preview1.style.display =
+                            "block";
+                    } else {
+                        preview1.style.display =
+                            "none";
+                    }
                 }
 
-            }, 300);
+                if (preview2) {
+                    if (response.image_2) {
+                        preview2.src =
+                            response.image_2;
+                        preview2.style.display =
+                            "block";
+                    } else {
+                        preview2.style.display =
+                            "none";
+                    }
+                }
 
-            // ==================================
-            // IMAGE PREVIEW
-            // ==================================
+                if (preview3) {
+                    if (response.image_3) {
+                        preview3.src =
+                            response.image_3;
+                        preview3.style.display =
+                            "block";
+                    } else {
+                        preview3.style.display =
+                            "none";
+                    }
+                }
 
-            const preview1 =
-                document.getElementById(
-                    "preview_attachment_1"
+                // ==================================
+                // SCROLL TO FORM
+                // ==================================
+                if (formCollapse) {
+                    formCollapse.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start"
+                    });
+                }
+            })
+
+            .catch(error => {
+
+                console.error(
+                    "Edit fetch error:",
+                    error
                 );
 
-            const preview2 =
-                document.getElementById(
-                    "preview_attachment_2"
+                showToast(
+                    "Failed to open edit form",
+                    "danger"
                 );
-
-            const preview3 =
-                document.getElementById(
-                    "preview_attachment_3"
-                );
-
-            if (preview1) {
-                if (response.image_1) {
-                    preview1.src =
-                        response.image_1;
-                    preview1.style.display =
-                        "block";
-                } else {
-                    preview1.style.display =
-                        "none";
-                }
-            }
-
-            if (preview2) {
-                if (response.image_2) {
-                    preview2.src =
-                        response.image_2;
-                    preview2.style.display =
-                        "block";
-                } else {
-                    preview2.style.display =
-                        "none";
-                }
-            }
-
-            if (preview3) {
-                if (response.image_3) {
-                    preview3.src =
-                        response.image_3;
-                    preview3.style.display =
-                        "block";
-                } else {
-                    preview3.style.display =
-                        "none";
-                }
-            }
-
-            // ==================================
-            // SCROLL TO FORM
-            // ==================================
-            if (formCollapse) {
-                formCollapse.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start"
-                });
-            }
-        })
-
-        .catch(error => {
-
-            console.error(
-                "Edit fetch error:",
-                error
-            );
-
-            showToast(
-                "Failed to open edit form",
-                "danger"
-            );
-        });
-}
+            });
+    }
 
     function setImagePreview(previewId, imageUrl) {
         const preview = document.getElementById(previewId);

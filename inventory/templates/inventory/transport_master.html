@@ -17,17 +17,40 @@
         <!-- Header -->
         <div class="container mt-3">
             <div class="row gx-3 align-items-center">
+
                 <div class="col">
-                    <h4 class="mb-0">Transport Master</h4>
+
+                    <nav aria-label="breadcrumb" class="mb-1 asset-breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item">
+                                <a href="{% url 'inventory:dashboard' %}">
+                                    <i class="bi bi-house-door me-1"></i>
+                                    Dashboard
+                                </a>
+                            </li>
+
+                            <li class="breadcrumb-item active" aria-current="page">
+                                Transport Master
+                            </li>
+                        </ol>
+                    </nav>
+
+                    <h4 class="asset-page-title mb-0">
+                        Transport Master
+                    </h4>
+
                 </div>
+
                 <div class="col-auto">
                     <button class="btn btn-theme collapsed"
                             type="button"
                             data-bs-toggle="collapse"
                             data-bs-target="#addTransportCollapse">
-                        + Add Transport
+                        <i class="bi bi-plus-circle me-1"></i>
+                        Add Transport
                     </button>
                 </div>
+
             </div>
         </div>
 
@@ -43,14 +66,16 @@
                         <div class="row">
                             <div class="col-lg-4">
                                 <div class="form-floating mb-3">
-                                    <input type="text" id="vehicle_name" class="form-control" placeholder="Vehicle Name">
+                                    <input type="text" id="vehicle_name" class="form-control"
+                                           placeholder="Vehicle Name">
                                     <label>Vehicle Name</label>
                                 </div>
                             </div>
 
                             <div class="col-lg-4">
                                 <div class="form-floating mb-3">
-                                    <input type="text" id="vehicle_number" class="form-control" placeholder="Vehicle Number">
+                                    <input type="text" id="vehicle_number" class="form-control"
+                                           placeholder="Vehicle Number">
                                     <label>Vehicle Number</label>
                                 </div>
                             </div>
@@ -81,7 +106,8 @@
 
                         <button class="btn btn-theme" onclick="saveTransport()">Submit</button>
                         <button class="btn btn-outline-theme ms-2"
-                                onclick="cancelTransportForm()">Cancel</button>
+                                onclick="cancelTransportForm()">Cancel
+                        </button>
 
                     </div>
                 </div>
@@ -95,21 +121,21 @@
                     <div class="table-responsive">
                         <table class="table table-bordered align-middle text-center">
                             <thead>
-                                <tr>
-                                    <th>Sr No.</th>
-                                    <th>Vehicle Name</th>
-                                    <th>Vehicle Number</th>
-                                    <th>Load Capacity</th>
-                                    <th>Documents</th>
-                                    <th>Created By</th>
-                                    <th>Created Date</th>
-                                    <th>Action</th>
-                                </tr>
+                            <tr>
+                                <th>Sr No.</th>
+                                <th>Vehicle Name</th>
+                                <th>Vehicle Number</th>
+                                <th>Load Capacity</th>
+                                <th>Documents</th>
+                                <th>Created By</th>
+                                <th>Created Date</th>
+                                <th>Action</th>
+                            </tr>
                             </thead>
                             <tbody id="transportTableBody">
-                                <tr>
-                                    <td colspan="8">Loading...</td>
-                                </tr>
+                            <tr>
+                                <td colspan="8">Loading...</td>
+                            </tr>
                             </tbody>
                         </table>
                     </div>
@@ -121,88 +147,88 @@
 </div>
 
 
-
 {% include 'inventory/includes/footer.html' %}
 <script src="{% static 'inventory/assets/js/app5724.js' %}"></script>
 
 <!-- JS -->
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    loadTransport();
-});
+    document.addEventListener("DOMContentLoaded", function () {
+        loadTransport();
+    });
 
-function cancelTransportForm() {
-    resetForm();
+    function cancelTransportForm() {
+        resetForm();
 
-    document.querySelector("#addTransportCollapse h5").innerText = "Add Transport";
+        document.querySelector("#addTransportCollapse h5").innerText = "Add Transport";
 
-    bootstrap.Collapse
-        .getOrCreateInstance(document.getElementById("addTransportCollapse"))
-        .hide();
-}
-function saveTransport() {
-
-    const formData = new FormData();
-
-    const transportId = document.getElementById("transport_id").value;
-
-    if (transportId) {
-        formData.append("id", transportId);  // ✅ edit mode
-    }
-
-    formData.append("vehicle_name", document.getElementById("vehicle_name").value);
-    formData.append("vehicle_number", document.getElementById("vehicle_number").value);
-    formData.append("load_capacity", document.getElementById("load_capacity").value);
-
-    const files = document.getElementById("documents").files;
-
-    for (let i = 0; i < files.length; i++) {
-        formData.append("documents", files[i]);
-    }
-
-    fetch("{% url 'inventory:add_transport' %}", {
-        method: "POST",
-        body: formData,
-        headers: {"X-CSRFToken": getCookie("csrftoken")}
-    })
-    .then(res => res.json())
-    .then(data => {
-
-        alert(data.message);
-
-        // ✅ CLOSE COLLAPSE
         bootstrap.Collapse
             .getOrCreateInstance(document.getElementById("addTransportCollapse"))
             .hide();
+    }
 
-        resetForm();   // ✅ clear after save
-        loadTransport();
-    });
-}
+    function saveTransport() {
 
-function loadTransport() {
-    fetch("{% url 'inventory:transport_list' %}")
-    .then(res => res.json())
-    .then(data => {
-        console.log("Transport Data:", data);  // 👈 ADD THIS
+        const formData = new FormData();
 
-        const tbody = document.getElementById("transportTableBody");
-        tbody.innerHTML = "";
+        const transportId = document.getElementById("transport_id").value;
 
-        if (!data.data || !data.data.length) {
-            tbody.innerHTML = `<tr><td colspan="8">No data found</td></tr>`;
-            return;
+        if (transportId) {
+            formData.append("id", transportId);  // ✅ edit mode
         }
 
-        data.data.forEach((item, index) => {
+        formData.append("vehicle_name", document.getElementById("vehicle_name").value);
+        formData.append("vehicle_number", document.getElementById("vehicle_number").value);
+        formData.append("load_capacity", document.getElementById("load_capacity").value);
 
-            let docsHTML = "";
+        const files = document.getElementById("documents").files;
 
-            if (item.documents && item.documents.length) {
-                item.documents.forEach(doc => {
-                    const fileName = doc.split('/').pop();
+        for (let i = 0; i < files.length; i++) {
+            formData.append("documents", files[i]);
+        }
 
-                    docsHTML += `
+        fetch("{% url 'inventory:add_transport' %}", {
+            method: "POST",
+            body: formData,
+            headers: {"X-CSRFToken": getCookie("csrftoken")}
+        })
+            .then(res => res.json())
+            .then(data => {
+
+                alert(data.message);
+
+                // ✅ CLOSE COLLAPSE
+                bootstrap.Collapse
+                    .getOrCreateInstance(document.getElementById("addTransportCollapse"))
+                    .hide();
+
+                resetForm();   // ✅ clear after save
+                loadTransport();
+            });
+    }
+
+    function loadTransport() {
+        fetch("{% url 'inventory:transport_list' %}")
+            .then(res => res.json())
+            .then(data => {
+                console.log("Transport Data:", data);  // 👈 ADD THIS
+
+                const tbody = document.getElementById("transportTableBody");
+                tbody.innerHTML = "";
+
+                if (!data.data || !data.data.length) {
+                    tbody.innerHTML = `<tr><td colspan="8">No data found</td></tr>`;
+                    return;
+                }
+
+                data.data.forEach((item, index) => {
+
+                    let docsHTML = "";
+
+                    if (item.documents && item.documents.length) {
+                        item.documents.forEach(doc => {
+                            const fileName = doc.split('/').pop();
+
+                            docsHTML += `
                         <div class="d-flex align-items-center justify-content-center gap-2">
                             <i class="bi bi-file-earmark"></i>
                             <span class="text-truncate" style="max-width:120px;">${fileName}</span>
@@ -212,12 +238,12 @@ function loadTransport() {
                             </button>
                         </div>
                     `;
-                });
-            } else {
-                docsHTML = "No Docs";
-            }
+                        });
+                    } else {
+                        docsHTML = "No Docs";
+                    }
 
-            tbody.innerHTML += `
+                    tbody.innerHTML += `
                 <tr>
                     <td>${index + 1}</td>
                     <td>${item.vehicle_name}</td>
@@ -243,29 +269,29 @@ function loadTransport() {
                     </td>
                 </tr>
             `;
-        });
-    })
-    .catch(err => {
-        console.error("Error loading transport:", err);
-    });
-}
+                });
+            })
+            .catch(err => {
+                console.error("Error loading transport:", err);
+            });
+    }
 
-function editTransport(id, name, number, capacity, documents) {
+    function editTransport(id, name, number, capacity, documents) {
 
-    // ✅ Set values
-    document.getElementById("transport_id").value = id;
-    document.getElementById("vehicle_name").value = name;
-    document.getElementById("vehicle_number").value = number;
-    document.getElementById("load_capacity").value = capacity;
+        // ✅ Set values
+        document.getElementById("transport_id").value = id;
+        document.getElementById("vehicle_name").value = name;
+        document.getElementById("vehicle_number").value = number;
+        document.getElementById("load_capacity").value = capacity;
 
-    // ✅ Show existing documents
-    let html = "<label class='fw-semibold'>Existing Documents:</label><br>";
+        // ✅ Show existing documents
+        let html = "<label class='fw-semibold'>Existing Documents:</label><br>";
 
-    if (documents && documents.length) {
-        documents.forEach(doc => {
-            const fileName = doc.split('/').pop();
+        if (documents && documents.length) {
+            documents.forEach(doc => {
+                const fileName = doc.split('/').pop();
 
-            html += `
+                html += `
                 <div class="mb-1 d-flex align-items-center gap-2">
                     ${fileName}
 
@@ -280,88 +306,87 @@ function editTransport(id, name, number, capacity, documents) {
                     </button>
                 </div>
             `;
-        });
-    } else {
-        html += "<span class='text-muted'>No Documents</span>";
-    }
-
-    document.getElementById("existingDocs").innerHTML = html;
-
-    // ✅ CHANGE TITLE (optional but recommended)
-    document.querySelector("#addTransportCollapse h5").innerText = "Edit Transport";
-
-    // ✅ OPEN COLLAPSE (IMPORTANT)
-    bootstrap.Collapse
-        .getOrCreateInstance(document.getElementById("addTransportCollapse"))
-        .show();
-}
-
-function deleteTransport(id) {
-    if (!confirm("Are you sure you want to delete?")) return;
-
-    fetch(`/delete-transport/${id}/`, {
-        method: "POST",
-        headers: {
-            "X-CSRFToken": getCookie("csrftoken"),
-            "Content-Type": "application/json"
+            });
+        } else {
+            html += "<span class='text-muted'>No Documents</span>";
         }
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.message);
-        loadTransport();
-    });
-}
 
+        document.getElementById("existingDocs").innerHTML = html;
 
+        // ✅ CHANGE TITLE (optional but recommended)
+        document.querySelector("#addTransportCollapse h5").innerText = "Edit Transport";
 
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie) {
-        document.cookie.split(';').forEach(cookie => {
-            cookie = cookie.trim();
-            if (cookie.startsWith(name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-            }
-        });
+        // ✅ OPEN COLLAPSE (IMPORTANT)
+        bootstrap.Collapse
+            .getOrCreateInstance(document.getElementById("addTransportCollapse"))
+            .show();
     }
-    return cookieValue;
-}
 
-function resetForm() {
-    document.getElementById("transport_id").value = "";
-    document.getElementById("vehicle_name").value = "";
-    document.getElementById("vehicle_number").value = "";
-    document.getElementById("load_capacity").value = "";
-    document.getElementById("documents").value = "";
-    document.getElementById("existingDocs").innerHTML = "";
-}
+    function deleteTransport(id) {
+        if (!confirm("Are you sure you want to delete?")) return;
 
-function deleteDocument(transportId, filePath) {
-    if (!confirm("Delete this document?")) return;
-
-    fetch("/delete-transport-document/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": getCookie("csrftoken")
-        },
-        body: JSON.stringify({
-            transport_id: transportId,
-            file_path: filePath
+        fetch(`/delete-transport/${id}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+                "Content-Type": "application/json"
+            }
         })
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.message);
-        loadTransport();  // refresh
-    });
-}
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                loadTransport();
+            });
+    }
 
 
-function previewDoc(url) {
-    window.open(url, '_blank');
-}
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie) {
+            document.cookie.split(';').forEach(cookie => {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                }
+            });
+        }
+        return cookieValue;
+    }
+
+    function resetForm() {
+        document.getElementById("transport_id").value = "";
+        document.getElementById("vehicle_name").value = "";
+        document.getElementById("vehicle_number").value = "";
+        document.getElementById("load_capacity").value = "";
+        document.getElementById("documents").value = "";
+        document.getElementById("existingDocs").innerHTML = "";
+    }
+
+    function deleteDocument(transportId, filePath) {
+        if (!confirm("Delete this document?")) return;
+
+        fetch("/delete-transport-document/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken")
+            },
+            body: JSON.stringify({
+                transport_id: transportId,
+                file_path: filePath
+            })
+        })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                loadTransport();  // refresh
+            });
+    }
+
+
+    function previewDoc(url) {
+        window.open(url, '_blank');
+    }
 
 </script>
 

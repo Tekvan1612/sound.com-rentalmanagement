@@ -211,4 +211,27 @@ urlpatterns = [
         views.module_list,
         name="module_list"
     ),
+    path(
+        "quotation-download/<int:job_id>/<str:download_type>/",
+        views.quotation_download,
+        name="quotation_download"
+    ),
+
+    path(
+        "proforma-download/<int:job_id>/<str:download_type>/",
+        views.proforma_download,
+        name="proforma_download"
+    ),
+
+    path(
+        "prepsheet-download/<int:job_id>/",
+        views.prepsheet_download,
+        name="prepsheet_download"
+    ),
+
+    path(
+        "delivery-challan-download/<int:job_id>/",
+        views.delivery_challan_download,
+        name="delivery_challan_download"
+    ),
 ]

@@ -48,10 +48,14 @@
 
                 <div class="col-auto">
                     <div class="input-group width-250">
-                        <input type="text" class="form-control bg-none text-center" id="daterangepickerranges">
+                        <input type="text"
+                               class="form-control bg-none text-center"
+                               id="daterangepickerranges"
+                               readonly>
+
                         <span class="input-group-text bg-none">
-                            <i class="bi bi-calendar"></i>
-                        </span>
+        <i class="bi bi-calendar"></i>
+    </span>
                     </div>
                 </div>
             </div>
@@ -276,84 +280,84 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-let inventoryStatusChart = null;
-let categoryInventoryChart = null;
+    let inventoryStatusChart = null;
+    let categoryInventoryChart = null;
 
-function moneyFormat(value) {
-    return "₹" + Number(value || 0).toLocaleString("en-IN");
-}
-
-function setText(id, value) {
-    const el = document.getElementById(id);
-    if (el) {
-        el.innerText = value;
-    }
-}
-
-function loadRentalDashboard() {
-    fetch("/api/rental-dashboard-data/")
-        .then(response => response.json())
-        .then(data => {
-            setText("dashRevenue", moneyFormat(data.revenue));
-            setText("dashTotalJobs", data.total_jobs);
-            setText("dashActiveJobs", data.active_jobs);
-            setText("opsActiveJobs", data.active_jobs);
-            setText("dashOverdueJobs", data.overdue_jobs);
-            setText("dashTodayPickup", data.today_pickup);
-            setText("opsLoadingToday", data.today_pickup);
-            setText("dashTodayReturns", data.today_returns);
-            setText("opsReturnToday", data.today_returns);
-            setText("dashTotalStock", data.total_stock);
-            setText("dashAvailableStock", data.available_stock);
-            setText("dashRentedStock", data.rented_stock);
-            setText("dashMaintenanceStock", data.maintenance_stock);
-
-            renderInventoryStatusChart(data);
-            renderCategoryCards(data.categories || []);
-            renderCategoryInventoryChart(data.categories || []);
-        })
-        .catch(error => {
-            console.log("Dashboard data loading error:", error);
-        });
-}
-
-function renderInventoryStatusChart(data) {
-    const ctx = document.getElementById("inventoryStatusChart");
-    if (!ctx) return;
-
-    if (inventoryStatusChart) {
-        inventoryStatusChart.destroy();
+    function moneyFormat(value) {
+        return "₹" + Number(value || 0).toLocaleString("en-IN");
     }
 
-    inventoryStatusChart = new Chart(ctx, {
-        type: "doughnut",
-        data: {
-            labels: ["Available", "On Rent", "Maintenance"],
-            datasets: [{
-                data: [
-                    data.available_stock || 0,
-                    data.rented_stock || 0,
-                    data.maintenance_stock || 0
-                ]
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: "bottom"
+    function setText(id, value) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.innerText = value;
+        }
+    }
+
+    function loadRentalDashboard() {
+        fetch("/api/rental-dashboard-data/")
+            .then(response => response.json())
+            .then(data => {
+                setText("dashRevenue", moneyFormat(data.revenue));
+                setText("dashTotalJobs", data.total_jobs);
+                setText("dashActiveJobs", data.active_jobs);
+                setText("opsActiveJobs", data.active_jobs);
+                setText("dashOverdueJobs", data.overdue_jobs);
+                setText("dashTodayPickup", data.today_pickup);
+                setText("opsLoadingToday", data.today_pickup);
+                setText("dashTodayReturns", data.today_returns);
+                setText("opsReturnToday", data.today_returns);
+                setText("dashTotalStock", data.total_stock);
+                setText("dashAvailableStock", data.available_stock);
+                setText("dashRentedStock", data.rented_stock);
+                setText("dashMaintenanceStock", data.maintenance_stock);
+
+                renderInventoryStatusChart(data);
+                renderCategoryCards(data.categories || []);
+                renderCategoryInventoryChart(data.categories || []);
+            })
+            .catch(error => {
+                console.log("Dashboard data loading error:", error);
+            });
+    }
+
+    function renderInventoryStatusChart(data) {
+        const ctx = document.getElementById("inventoryStatusChart");
+        if (!ctx) return;
+
+        if (inventoryStatusChart) {
+            inventoryStatusChart.destroy();
+        }
+
+        inventoryStatusChart = new Chart(ctx, {
+            type: "doughnut",
+            data: {
+                labels: ["Available", "On Rent", "Maintenance"],
+                datasets: [{
+                    data: [
+                        data.available_stock || 0,
+                        data.rented_stock || 0,
+                        data.maintenance_stock || 0
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: "bottom"
+                    }
                 }
             }
-        }
-    });
-}
+        });
+    }
 
-function renderCategoryCards(categories) {
-    const container = document.getElementById("categoryCards");
-    if (!container) return;
+    function renderCategoryCards(categories) {
+        const container = document.getElementById("categoryCards");
+        if (!container) return;
 
-    if (!categories.length) {
-        container.innerHTML = `
+        if (!categories.length) {
+            container.innerHTML = `
             <div class="col-12">
                 <div class="card adminuiux-card">
                     <div class="card-body text-center">
@@ -362,22 +366,22 @@ function renderCategoryCards(categories) {
                 </div>
             </div>
         `;
-        return;
-    }
+            return;
+        }
 
-    let html = "";
+        let html = "";
 
-    categories.forEach(item => {
-        const total = Number(item.total_stock || 0);
-        const available = Number(item.available_stock || 0);
-        const rented = Number(item.rented_stock || 0);
-        const maintenance = Number(item.maintenance_stock || 0);
+        categories.forEach(item => {
+            const total = Number(item.total_stock || 0);
+            const available = Number(item.available_stock || 0);
+            const rented = Number(item.rented_stock || 0);
+            const maintenance = Number(item.maintenance_stock || 0);
 
-        const availablePercent = total > 0 ? Math.round((available / total) * 100) : 0;
-        const rentedPercent = total > 0 ? Math.round((rented / total) * 100) : 0;
-        const maintenancePercent = total > 0 ? Math.round((maintenance / total) * 100) : 0;
+            const availablePercent = total > 0 ? Math.round((available / total) * 100) : 0;
+            const rentedPercent = total > 0 ? Math.round((rented / total) * 100) : 0;
+            const maintenancePercent = total > 0 ? Math.round((maintenance / total) * 100) : 0;
 
-        html += `
+            html += `
             <div class="col-12 col-md-4">
                 <div class="card adminuiux-card mb-3 mb-lg-4">
                     <div class="card-body">
@@ -426,59 +430,82 @@ function renderCategoryCards(categories) {
                 </div>
             </div>
         `;
-    });
+        });
 
-    container.innerHTML = html;
-}
-
-function renderCategoryInventoryChart(categories) {
-    const ctx = document.getElementById("categoryInventoryChart");
-    if (!ctx) return;
-
-    if (categoryInventoryChart) {
-        categoryInventoryChart.destroy();
+        container.innerHTML = html;
     }
 
-    categoryInventoryChart = new Chart(ctx, {
-        type: "bar",
-        data: {
-            labels: categories.map(x => x.category),
-            datasets: [
-                {
-                    label: "Total",
-                    data: categories.map(x => x.total_stock || 0)
-                },
-                {
-                    label: "Available",
-                    data: categories.map(x => x.available_stock || 0)
-                },
-                {
-                    label: "On Rent",
-                    data: categories.map(x => x.rented_stock || 0)
-                },
-                {
-                    label: "Maintenance",
-                    data: categories.map(x => x.maintenance_stock || 0)
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: "bottom"
-                }
+    function renderCategoryInventoryChart(categories) {
+        const ctx = document.getElementById("categoryInventoryChart");
+        if (!ctx) return;
+
+        if (categoryInventoryChart) {
+            categoryInventoryChart.destroy();
+        }
+
+        categoryInventoryChart = new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: categories.map(x => x.category),
+                datasets: [
+                    {
+                        label: "Total",
+                        data: categories.map(x => x.total_stock || 0)
+                    },
+                    {
+                        label: "Available",
+                        data: categories.map(x => x.available_stock || 0)
+                    },
+                    {
+                        label: "On Rent",
+                        data: categories.map(x => x.rented_stock || 0)
+                    },
+                    {
+                        label: "Maintenance",
+                        data: categories.map(x => x.maintenance_stock || 0)
+                    }
+                ]
             },
-            scales: {
-                y: {
-                    beginAtZero: true
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: "bottom"
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
                 }
             }
-        }
-    });
-}
+        });
+    }
 
-document.addEventListener("DOMContentLoaded", loadRentalDashboard);
+    document.addEventListener("DOMContentLoaded", loadRentalDashboard);
+    $(document).ready(function () {
+
+    const today = moment();
+
+    $('#daterangepickerranges').daterangepicker({
+        singleDatePicker: true,
+        autoApply: true,
+        showDropdowns: true,
+        locale: {
+            format: 'DD/MM/YYYY'
+        },
+        startDate: today
+    });
+
+    $('#daterangepickerranges').val(today.format('DD/MM/YYYY'));
+
+    // Disable typing
+    $('#daterangepickerranges').on('keydown paste', function(e) {
+        e.preventDefault();
+        return false;
+    });
+
+});
 </script>
 
 </body>

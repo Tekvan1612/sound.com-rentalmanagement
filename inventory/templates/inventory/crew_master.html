@@ -16,17 +16,40 @@
 
         <div class="container mt-3">
             <div class="row gx-3 align-items-center">
+
                 <div class="col">
-                    <h4 class="mb-0">Crew Master</h4>
+
+                    <nav aria-label="breadcrumb" class="mb-1 asset-breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item">
+                                <a href="{% url 'inventory:dashboard' %}">
+                                    <i class="bi bi-house-door me-1"></i>
+                                    Dashboard
+                                </a>
+                            </li>
+
+                            <li class="breadcrumb-item active" aria-current="page">
+                                Crew Master
+                            </li>
+                        </ol>
+                    </nav>
+
+                    <h4 class="asset-page-title mb-0">
+                        Crew Master
+                    </h4>
+
                 </div>
+
                 <div class="col-auto">
                     <button class="btn btn-theme collapsed"
                             type="button"
                             data-bs-toggle="collapse"
                             data-bs-target="#addCrewCollapse">
-                        + Add Crew
+                        <i class="bi bi-plus-circle me-1"></i>
+                        Add Crew
                     </button>
                 </div>
+
             </div>
         </div>
 
@@ -99,74 +122,74 @@
 <script src="{% static 'inventory/assets/js/app5724.js' %}"></script>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    loadCrew();
-});
-
-function saveCrew() {
-    const formData = new FormData();
-
-    const crewId = document.getElementById("crew_id").value;
-    const designation = document.getElementById("designation").value.trim();
-
-    if (!designation) {
-        alert("Crew designation is required.");
-        return;
-    }
-
-    formData.append("crew_designation", designation);
-    formData.append("status", "true");
-
-    let url = "{% url 'inventory:add_crew' %}";
-
-    if (crewId) {
-        url = `/update-crew/${crewId}/`;
-    }
-
-    fetch(url, {
-        method: "POST",
-        body: formData,
-        headers: {
-            "X-CSRFToken": getCookie("csrftoken")
-        }
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.message || "Saved successfully");
-
-        if (data.success) {
-            bootstrap.Collapse
-                .getOrCreateInstance(document.getElementById("addCrewCollapse"))
-                .hide();
-
-            resetCrew();
-            loadCrew();
-        }
-    })
-    .catch(error => {
-        console.error("Crew save error:", error);
-        alert("Error while saving crew.");
+    document.addEventListener("DOMContentLoaded", function () {
+        loadCrew();
     });
-}
 
-function loadCrew() {
-    fetch("{% url 'inventory:crew_list' %}")
-    .then(res => res.json())
-    .then(data => {
-        const tbody = document.getElementById("crewTableBody");
-        tbody.innerHTML = "";
+    function saveCrew() {
+        const formData = new FormData();
 
-        if (!data.data || !data.data.length) {
-            tbody.innerHTML = `
+        const crewId = document.getElementById("crew_id").value;
+        const designation = document.getElementById("designation").value.trim();
+
+        if (!designation) {
+            alert("Crew designation is required.");
+            return;
+        }
+
+        formData.append("crew_designation", designation);
+        formData.append("status", "true");
+
+        let url = "{% url 'inventory:add_crew' %}";
+
+        if (crewId) {
+            url = `/update-crew/${crewId}/`;
+        }
+
+        fetch(url, {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken")
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message || "Saved successfully");
+
+                if (data.success) {
+                    bootstrap.Collapse
+                        .getOrCreateInstance(document.getElementById("addCrewCollapse"))
+                        .hide();
+
+                    resetCrew();
+                    loadCrew();
+                }
+            })
+            .catch(error => {
+                console.error("Crew save error:", error);
+                alert("Error while saving crew.");
+            });
+    }
+
+    function loadCrew() {
+        fetch("{% url 'inventory:crew_list' %}")
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById("crewTableBody");
+                tbody.innerHTML = "";
+
+                if (!data.data || !data.data.length) {
+                    tbody.innerHTML = `
                 <tr>
                     <td colspan="5">No data found</td>
                 </tr>
             `;
-            return;
-        }
+                    return;
+                }
 
-        data.data.forEach((item, index) => {
-            tbody.innerHTML += `
+                data.data.forEach((item, index) => {
+                    tbody.innerHTML += `
                 <tr>
                     <td>${index + 1}</td>
                     <td>${item.crew_designation || "-"}</td>
@@ -193,81 +216,81 @@ function loadCrew() {
                     </td>
                 </tr>
             `;
-        });
-    })
-    .catch(error => {
-        console.error("Crew load error:", error);
+                });
+            })
+            .catch(error => {
+                console.error("Crew load error:", error);
 
-        document.getElementById("crewTableBody").innerHTML = `
+                document.getElementById("crewTableBody").innerHTML = `
             <tr>
                 <td colspan="5" class="text-danger">Failed to load crew.</td>
             </tr>
         `;
-    });
-}
-
-function editCrew(id, designation) {
-    document.getElementById("crew_id").value = id;
-    document.getElementById("designation").value = designation;
-    document.getElementById("crewFormTitle").innerText = "Edit Crew";
-
-    bootstrap.Collapse
-        .getOrCreateInstance(document.getElementById("addCrewCollapse"))
-        .show();
-}
-
-function deleteCrew(id) {
-    if (!confirm("Are you sure you want to delete?")) return;
-
-    fetch(`/delete-crew/${id}/`, {
-        method: "POST",
-        headers: {
-            "X-CSRFToken": getCookie("csrftoken")
-        }
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.message || "Deleted successfully");
-
-        if (data.success) {
-            loadCrew();
-        }
-    })
-    .catch(error => {
-        console.error("Crew delete error:", error);
-        alert("Error while deleting crew.");
-    });
-}
-
-function cancelCrewForm() {
-    resetCrew();
-
-    bootstrap.Collapse
-        .getOrCreateInstance(document.getElementById("addCrewCollapse"))
-        .hide();
-}
-
-function resetCrew() {
-    document.getElementById("crew_id").value = "";
-    document.getElementById("designation").value = "";
-    document.getElementById("crewFormTitle").innerText = "Add Crew";
-}
-
-function getCookie(name) {
-    let cookieValue = null;
-
-    if (document.cookie) {
-        document.cookie.split(";").forEach(cookie => {
-            cookie = cookie.trim();
-
-            if (cookie.startsWith(name + "=")) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-            }
-        });
+            });
     }
 
-    return cookieValue;
-}
+    function editCrew(id, designation) {
+        document.getElementById("crew_id").value = id;
+        document.getElementById("designation").value = designation;
+        document.getElementById("crewFormTitle").innerText = "Edit Crew";
+
+        bootstrap.Collapse
+            .getOrCreateInstance(document.getElementById("addCrewCollapse"))
+            .show();
+    }
+
+    function deleteCrew(id) {
+        if (!confirm("Are you sure you want to delete?")) return;
+
+        fetch(`/delete-crew/${id}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken")
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message || "Deleted successfully");
+
+                if (data.success) {
+                    loadCrew();
+                }
+            })
+            .catch(error => {
+                console.error("Crew delete error:", error);
+                alert("Error while deleting crew.");
+            });
+    }
+
+    function cancelCrewForm() {
+        resetCrew();
+
+        bootstrap.Collapse
+            .getOrCreateInstance(document.getElementById("addCrewCollapse"))
+            .hide();
+    }
+
+    function resetCrew() {
+        document.getElementById("crew_id").value = "";
+        document.getElementById("designation").value = "";
+        document.getElementById("crewFormTitle").innerText = "Add Crew";
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+
+        if (document.cookie) {
+            document.cookie.split(";").forEach(cookie => {
+                cookie = cookie.trim();
+
+                if (cookie.startsWith(name + "=")) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                }
+            });
+        }
+
+        return cookieValue;
+    }
 </script>
 
 </body>

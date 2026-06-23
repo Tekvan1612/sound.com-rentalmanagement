@@ -67,20 +67,40 @@
         <div class="container-fluid mt-3">
 
             <!-- PAGE HEADER -->
-            <div class="row align-items-center mb-3">
+        <div class="row align-items-center mb-3">
 
-                <div class="col">
-                    <h4 class="mb-0">Event Creation</h4>
-                </div>
+    <div class="col">
 
-                <div class="col-auto">
-                    <button class="btn btn-theme"
-                            onclick="openEventPanel()">
-                        + Create Event
-                    </button>
-                </div>
+        <nav aria-label="breadcrumb" class="mb-1 asset-breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'inventory:dashboard' %}">
+                        <i class="bi bi-house-door me-1"></i>
+                        Dashboard
+                    </a>
+                </li>
 
-            </div>
+                <li class="breadcrumb-item active" aria-current="page">
+                    Event Creation
+                </li>
+            </ol>
+        </nav>
+
+        <h4 class="asset-page-title mb-0">
+            Event Creation
+        </h4>
+
+    </div>
+
+    <div class="col-auto">
+        <button class="btn btn-theme"
+                onclick="openEventPanel()">
+            <i class="bi bi-plus-circle me-1"></i>
+            Create Event
+        </button>
+    </div>
+
+</div>
 
             <!-- CONTENT -->
             <div class="row g-3">

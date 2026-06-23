@@ -17,15 +17,34 @@
         <div class="container mt-3">
             <div class="row gx-3 align-items-center">
                 <div class="col">
-                    <nav aria-label="breadcrumb" class="mb-1">
+                    <nav aria-label="breadcrumb" class="mb-1 asset-breadcrumb">
                         <ol class="breadcrumb mb-0">
                             <li class="breadcrumb-item">
-                                <a href="#"><i class="bi bi-house-door"></i> Dashboard</a>
+                                <a href="{% url 'inventory:dashboard' %}">
+                                    <i class="bi bi-house-door me-1"></i>
+                                    Dashboard
+                                </a>
                             </li>
-                            <li class="breadcrumb-item active">Employee Master</li>
+
+                            <li class="breadcrumb-item active" aria-current="page">
+                                Employee Master
+                            </li>
                         </ol>
                     </nav>
-                    <h4 class="mb-0">Employee Master</h4>
+
+                    <h4 class="asset-page-title mb-0">
+                        Employee Master
+                    </h4>
+                </div>
+
+                <div class="col-auto">
+                    <button class="btn btn-theme collapsed asset-add-btn"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#addEmployeeCollapse">
+                        <i class="bi bi-plus-circle me-1"></i>
+                        New Employee
+                    </button>
                 </div>
             </div>
         </div>
@@ -40,12 +59,6 @@
                                    placeholder="Search employee...">
                         </div>
 
-                        <button class="btn btn-theme collapsed asset-add-btn"
-                                type="button"
-                                data-bs-toggle="collapse"
-                                data-bs-target="#addEmployeeCollapse">
-                            New Employee
-                        </button>
                     </div>
 
                     <div class="collapse mt-4" id="addEmployeeCollapse">

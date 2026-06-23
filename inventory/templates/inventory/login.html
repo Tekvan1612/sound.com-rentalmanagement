@@ -3,7 +3,15 @@
 <html lang="en">
 <head>
     {% include 'inventory/includes/head.html' %}
+
     <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+
         :root {
             --login-dark: #111315;
             --login-dark-2: #171a1d;
@@ -15,27 +23,28 @@
         }
 
         body.login-page {
-            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
             background: radial-gradient(circle at top left, rgba(135, 171, 118, .18), transparent 30%),
-            radial-gradient(circle at bottom right, rgba(135, 171, 118, .12), transparent 25%),
-            #eef2ec;
+                        radial-gradient(circle at bottom right, rgba(135, 171, 118, .12), transparent 25%),
+                        #eef2ec;
         }
 
         .login-shell {
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
-            align-items: stretch;
+            overflow: hidden;
         }
 
         .login-left {
-            width: 48%;
-            min-height: 100vh;
+            width: 45%;
+            height: 100vh;
             background: linear-gradient(180deg, var(--login-dark), var(--login-dark-2));
             color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 48px;
+            padding: 35px;
             position: relative;
             overflow: hidden;
         }
@@ -69,14 +78,8 @@
             z-index: 2;
         }
 
-        .login-logo {
-            height: 56px;
-            width: auto;
-            margin-bottom: 30px;
-        }
-
         .login-heading {
-            font-size: 44px;
+            font-size: 38px;
             line-height: 1.1;
             font-weight: 700;
             margin-bottom: 10px;
@@ -85,26 +88,26 @@
 
         .login-subheading {
             color: var(--login-text-muted);
-            font-size: 18px;
-            line-height: 1.7;
-            margin-bottom: 30px;
+            font-size: 17px;
+            line-height: 1.6;
+            margin-bottom: 20px;
         }
 
         .login-form-wrap .form-label {
             color: rgba(255, 255, 255, .72);
             font-weight: 500;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .login-form-wrap .form-control {
-            height: 58px;
+            height: 54px;
             border-radius: 14px;
             background: var(--login-card);
             border: 1px solid var(--login-border);
             color: #fff;
             box-shadow: none;
             padding-left: 16px;
-            padding-right: 48px;
+            padding-right: 16px;
         }
 
         .login-form-wrap .form-control:focus {
@@ -118,15 +121,39 @@
             color: rgba(255, 255, 255, .35);
         }
 
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-wrapper .form-control {
+            padding-right: 55px;
+        }
+
         .password-toggle {
             position: absolute;
             top: 50%;
-            right: 14px;
+            right: 16px;
             transform: translateY(-50%);
-            border: 0;
+            border: none;
             background: transparent;
-            color: rgba(255, 255, 255, .55);
-            z-index: 5;
+            color: rgba(255, 255, 255, .60);
+            cursor: pointer;
+            z-index: 10;
+            padding: 0;
+            height: 24px;
+            width: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .password-toggle:hover {
+            color: #ffffff;
+        }
+
+        .password-toggle i {
+            font-size: 18px;
+            line-height: 1;
         }
 
         .login-meta {
@@ -134,7 +161,7 @@
             justify-content: space-between;
             align-items: center;
             gap: 12px;
-            margin: 18px 0 28px;
+            margin: 16px 0 24px;
         }
 
         .login-meta .form-check-label,
@@ -147,12 +174,12 @@
         }
 
         .btn-login {
-            height: 58px;
+            height: 54px;
             border-radius: 14px;
             background: var(--brand-green);
             border: none;
             color: #fff;
-            font-size: 20px;
+            font-size: 19px;
             font-weight: 600;
             transition: .2s ease;
         }
@@ -164,24 +191,25 @@
         }
 
         .login-footer-note {
-            margin-top: 26px;
+            margin-top: 22px;
             color: rgba(255, 255, 255, .42);
             font-size: 13px;
         }
 
         .login-right {
-            width: 52%;
-            min-height: 100vh;
+            width: 55%;
+            height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 56px;
+            padding: 30px;
+            overflow: hidden;
             background: linear-gradient(180deg, rgba(255, 255, 255, .35), rgba(255, 255, 255, .15));
         }
 
         .login-showcase {
             width: 100%;
-            max-width: 700px;
+            max-width: 680px;
             text-align: center;
         }
 
@@ -194,35 +222,35 @@
             background: rgba(135, 171, 118, .12);
             color: #5f7c52;
             font-weight: 600;
-            margin-bottom: 18px;
-        }
-
-        .showcase-title {
-            font-size: 54px;
-            line-height: 1.08;
-            font-weight: 700;
-            color: #243020;
             margin-bottom: 14px;
         }
 
+        .showcase-title {
+            font-size: 42px;
+            line-height: 1.08;
+            font-weight: 700;
+            color: #243020;
+            margin-bottom: 12px;
+        }
+
         .showcase-text {
-            font-size: 18px;
-            line-height: 1.8;
+            font-size: 17px;
+            line-height: 1.6;
             color: #5a6756;
             max-width: 620px;
-            margin: 0 auto 30px;
+            margin: 0 auto 22px;
         }
 
         .showcase-media-wrap {
             border-radius: 28px;
             background: linear-gradient(180deg, #ffffff, #f5f7f2);
-            padding: 20px;
+            padding: 15px;
             box-shadow: 0 24px 60px rgba(34, 46, 38, .12);
         }
 
         .showcase-media {
             width: 100%;
-            max-height: 430px;
+            max-height: 300px;
             object-fit: cover;
             border-radius: 20px;
             display: block;
@@ -235,43 +263,73 @@
 
         @media (max-width: 1199.98px) {
             .showcase-title {
-                font-size: 44px;
+                font-size: 36px;
             }
 
             .login-heading {
-                font-size: 38px;
+                font-size: 34px;
+            }
+
+            .login-left {
+                padding: 28px;
+            }
+
+            .login-right {
+                padding: 24px;
             }
         }
 
         @media (max-width: 991.98px) {
+            html,
+            body {
+                overflow-y: auto;
+            }
+
+            body.login-page {
+                height: auto;
+                overflow-y: auto;
+            }
+
             .login-shell {
+                height: auto;
                 flex-direction: column;
+                overflow: visible;
             }
 
             .login-left,
             .login-right {
                 width: 100%;
+                height: auto;
                 min-height: auto;
             }
 
             .login-left {
-                padding: 32px 22px;
+                padding: 30px 20px;
             }
 
             .login-right {
-                padding: 16px 22px 32px;
+                padding: 20px;
             }
 
             .showcase-title {
-                font-size: 34px;
+                font-size: 30px;
             }
 
             .showcase-text {
-                font-size: 16px;
+                font-size: 15px;
             }
 
             .login-heading {
-                font-size: 34px;
+                font-size: 30px;
+            }
+
+            .showcase-media {
+                max-height: 220px;
+            }
+
+            .login-meta {
+                flex-direction: column;
+                align-items: flex-start;
             }
         }
     </style>
@@ -283,17 +341,13 @@
 
     <section class="login-left">
         <div class="login-form-wrap">
-            <div style="
-background:white;
-display:inline-block;
-padding:10px;
-border-radius:10px;
-margin-bottom:20px;
-">
-                <img src="{% static 'inventory/assets/img/tekvan_logo_hd.png' %}" height="60">
+
+            <div style="background:white; display:inline-block; padding:10px; border-radius:10px; margin-bottom:18px;">
+                <img src="{% static 'inventory/assets/img/tekvan_logo_hd.png' %}" height="56">
             </div>
 
             <h1 class="login-heading">Sign In</h1>
+
             <p class="login-subheading">
                 Sign in to access your rental inventory workspace and manage assets, bookings, and returns.
             </p>
@@ -317,38 +371,54 @@ margin-bottom:20px;
                            required>
                 </div>
 
-                <div class="mb-1 position-relative">
+                <div class="mb-1">
                     <label for="password" class="form-label">Password</label>
-                    <input type="password"
-                           class="form-control"
-                           id="password"
-                           name="password"
-                           placeholder="Enter your password"
-                           required>
-                    <button type="button" class="password-toggle" onclick="togglePassword()">
-                        <i class="bi bi-eye" id="passwordToggleIcon"></i>
-                    </button>
+
+                    <div class="password-wrapper">
+                        <input type="password"
+                               class="form-control"
+                               id="password"
+                               name="password"
+                               placeholder="Enter your password"
+                               required>
+
+                        <button type="button"
+                                class="password-toggle"
+                                onclick="togglePassword()">
+                            <i class="bi bi-eye" id="passwordToggleIcon"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="login-meta">
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="rememberme" name="rememberme">
-                        <label class="form-check-label" for="rememberme">Remember my preference</label>
+                        <input class="form-check-input"
+                               type="checkbox"
+                               id="rememberme"
+                               name="rememberme">
+                        <label class="form-check-label" for="rememberme">
+                            Remember my preference
+                        </label>
                     </div>
+
                     <a href="#">Forgot Password?</a>
                 </div>
 
-                <button type="submit" class="btn btn-login w-100">Sign In</button>
+                <button type="submit" class="btn btn-login w-100">
+                    Sign In
+                </button>
             </form>
 
             <div class="login-footer-note">
                 Rental Inventory Management © 2026
             </div>
+
         </div>
     </section>
 
     <section class="login-right">
         <div class="login-showcase">
+
             <div class="showcase-badge">
                 <i class="bi bi-box-seam"></i>
                 Smart Rental Operations
@@ -368,12 +438,14 @@ margin-bottom:20px;
                     <source src="{% static 'inventory/assets/video/login-bg.mp4' %}" type="video/mp4">
                 </video>
             </div>
+
         </div>
     </section>
 
 </div>
 
 <script src="{% static 'inventory/assets/js/app5724.js' %}"></script>
+
 <script>
     function togglePassword() {
         const passwordInput = document.getElementById('password');
@@ -388,5 +460,6 @@ margin-bottom:20px;
         }
     }
 </script>
+
 </body>
 </html>

@@ -124,7 +124,7 @@
                                 <th>Job No</th>
                                 <th>Title</th>
                                 <th>Status</th>
-                                <th style="width:190px;">Action</th>
+                                <th style="width:130px;">Action</th>
                             </tr>
                             </thead>
                             <tbody id="jobBookTableBody">
@@ -221,7 +221,6 @@
             const title = job.title || "-";
             const status = job.status || "-";
             const id = job.id || job.job_id || "";
-            const downloadBtn = getDownloadButton(id, status);
 
             tbody.innerHTML += `
                 <tr>
@@ -239,21 +238,18 @@
                             ${escapeHtml(status)}
                         </span>
                     </td>
-                   <td>
-    <button type="button"
-            class="btn btn-primary btn-sm me-1"
-            onclick="editJob('${id}', '${escapeJs(status)}')">
-        <i class="bi bi-pencil-fill"></i>
-    </button>
-
-    ${downloadBtn}
-
-    <button type="button"
-            class="btn btn-danger btn-sm ms-1"
-            onclick="deleteJob('${id}', '${escapeJs(jobNo)}', '${escapeJs(status)}')">
-        <i class="bi bi-trash-fill"></i>
-    </button>
-</td>
+                    <td>
+                        <button type="button"
+                                class="btn btn-primary btn-sm me-1"
+                                onclick="editJob('${id}', '${status}')">
+                            <i class="bi bi-pencil-fill"></i>
+                        </button>
+                        <button type="button"
+                                class="btn btn-danger btn-sm"
+                                onclick="deleteJob('${id}', '${escapeJs(jobNo)}')">
+                            <i class="bi bi-trash-fill"></i>
+                        </button>
+                    </td>
                 </tr>
             `;
         });
@@ -288,91 +284,6 @@
         }
         jobTable = null;
     }
-    function getDownloadButton(id, status) {
-    if (!id) return "";
-
-    const statusText = String(status || "").toLowerCase();
-    let options = "";
-
-    if (statusText.includes("quotation")) {
-        options = `
-            <li>
-                <a class="dropdown-item"
-                   href="/quotation-download/${id}/total/"
-                   target="_blank">
-                    Total Quotation
-                </a>
-            </li>
-            <li>
-                <a class="dropdown-item"
-                   href="/quotation-download/${id}/equipment-wise/"
-                   target="_blank">
-                    Equipment Wise Quotation
-                </a>
-            </li>
-        `;
-    }
-
-    else if (statusText.includes("proforma") || statusText.includes("porforma")) {
-        options = `
-            <li>
-                <a class="dropdown-item"
-                   href="/proforma-download/${id}/total/"
-                   target="_blank">
-                    Total Proforma
-                </a>
-            </li>
-            <li>
-                <a class="dropdown-item"
-                   href="/proforma-download/${id}/equipment-wise/"
-                   target="_blank">
-                    Equipment Wise Proforma
-                </a>
-            </li>
-        `;
-    }
-
-    else if (statusText.includes("prepsheet")) {
-        options = `
-            <li>
-                <a class="dropdown-item"
-                   href="/prepsheet-download/${id}/"
-                   target="_blank">
-                    Prepsheet
-                </a>
-            </li>
-        `;
-    }
-
-    else if (statusText.includes("delivery")) {
-        options = `
-            <li>
-                <a class="dropdown-item"
-                   href="/delivery-challan-download/${id}/"
-                   target="_blank">
-                    Delivery Challan
-                </a>
-            </li>
-        `;
-    }
-
-    if (!options) return "";
-
-    return `
-        <div class="btn-group">
-            <button type="button"
-                    class="btn btn-success btn-sm dropdown-toggle"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false">
-                <i class="bi bi-download"></i>
-            </button>
-
-            <ul class="dropdown-menu dropdown-menu-end">
-                ${options}
-            </ul>
-        </div>
-    `;
-}
 
     function getStatusBadgeClass(status) {
         status = String(status || "").toLowerCase();
@@ -387,66 +298,49 @@
 
     function viewJob(id) {
         if (!id) return;
-        window.location.href = `/job-book/add/?edit_type=job&edit_id=${id}`;
+        window.location.href = `/job-details/?job_id=${id}`;
     }
 
-    function editJob(id, status = "") {
+function editJob(id, status = "") {
 
-        if (!id) return;
+    if (!id) return;
 
-        status = String(status || "").toLowerCase();
+    status = String(status || "").toLowerCase();
 
-        // quotation → temp
-        if (status.includes("quotation")) {
-            window.location.href =
-                `/job-book/add/?edit_type=temp&edit_id=${id}`;
-        }
-
-        // proforma/prepsheet/delivery → jobs
-        else {
-            window.location.href =
-                `/job-book/add/?edit_type=job&edit_id=${id}`;
-        }
+    // quotation → temp
+    if (status.includes("quotation")) {
+        window.location.href =
+            `/job-book/add/?edit_type=temp&edit_id=${id}`;
     }
 
-    function deleteJob(id, jobNo, status) {
+    // proforma/prepsheet/delivery → jobs
+    else {
+        window.location.href =
+            `/job-book/add/?edit_type=job&edit_id=${id}`;
+    }
+}
 
+    function deleteJob(id, jobNo) {
         if (!id) return;
 
         if (!confirm(`Delete job "${jobNo}"?`)) return;
 
-        const sourceType =
-            String(status || "").toLowerCase().includes("quotation")
-                ? "temp"
-                : "job";
-
-        fetch("/inactive-job/", {
+        fetch(`/delete_jobs/${id}/`, {
             method: "POST",
             headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
                 "X-CSRFToken": getCookie("csrftoken"),
                 "X-Requested-With": "XMLHttpRequest"
-            },
-            body: new URLSearchParams({
-                id: id,
-                source_type: sourceType
-            })
+            }
         })
             .then(res => res.json())
             .then(data => {
-
-                if (!data.success) {
-                    throw new Error(data.error || "Delete failed");
-                }
-
-                showToast(data.message, "success");
-
+                showToast(data.message || "Job deleted successfully", "success");
                 loadJobs();
                 loadStatusCounts();
             })
             .catch(err => {
-                console.error(err);
-                showToast(err.message, "danger");
+                console.error("Delete job error:", err);
+                showToast("Failed to delete job", "danger");
             });
     }
 

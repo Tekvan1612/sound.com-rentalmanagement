@@ -17,15 +17,24 @@
         <div class="container mt-3">
             <div class="row gx-3 align-items-center">
                 <div class="col">
-                    <nav aria-label="breadcrumb" class="mb-1">
+                    <nav aria-label="breadcrumb" class="mb-1 asset-breadcrumb">
                         <ol class="breadcrumb mb-0">
                             <li class="breadcrumb-item">
-                                <a href="#"><i class="bi bi-house-door"></i> Dashboard</a>
+                                <a href="{% url 'inventory:dashboard' %}">
+                                    <i class="bi bi-house-door me-1"></i>
+                                    Dashboard
+                                </a>
                             </li>
-                            <li class="breadcrumb-item active">User Master</li>
+
+                            <li class="breadcrumb-item active" aria-current="page">
+                                User Master
+                            </li>
                         </ol>
                     </nav>
-                    <h4 class="mb-0">User Master</h4>
+
+                    <h4 class="asset-page-title mb-0">
+                        User Master
+                    </h4>
                 </div>
             </div>
         </div>

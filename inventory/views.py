@@ -4,6 +4,9 @@ import logging
 import os
 import json
 from decimal import Decimal
+from io import BytesIO
+
+
 
 import operation
 from django.contrib import messages
@@ -21,6 +24,18 @@ from django.conf import settings
 from django.core.paginator import Paginator
 from django.db import connection, transaction
 from django.core.files.storage import default_storage
+
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import mm
+from reportlab.platypus import (
+    SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+)
+from reportlab.lib.enums import TA_CENTER, TA_RIGHT
+
+from reportlab.platypus import Image
+from urllib.request import urlopen, Request
 
 logger = logging.getLogger(__name__)
 
@@ -3801,6 +3816,7 @@ def job_sections(request, job_id):
 
     return JsonResponse(data, safe=False)
 
+
 def insert_job_child_rows_direct(
     cursor,
     job_id,
@@ -3827,7 +3843,9 @@ def insert_job_child_rows_direct(
     sub_quantities,
     sub_unit_prices,
     sub_totals,
-    transport_amounts,
+    own_transport_amounts,
+    outside_transport_amounts,
+    transport_type,
     driver_names,
     contact_numbers,
     vehicle_numbers,
@@ -3943,10 +3961,10 @@ def insert_job_child_rows_direct(
             INSERT INTO public.job_sub_vendor (
                 job_id,
                 vendor_name,
-                equipment_name,
-                quantity,
-                unit_price,
-                total
+                sub_equipment_name,
+                sub_quantity,
+                sub_unit_price,
+                sub_total
             )
             VALUES (%s, %s, %s, %s, %s, %s)
         """, [
@@ -3963,7 +3981,8 @@ def insert_job_child_rows_direct(
         len(outside_driver_names),
         len(vehicle_numbers),
         len(outside_vehicle_numbers),
-        len(transport_amounts),
+        len(own_transport_amounts),
+        len(outside_transport_amounts),
         0
     )
 
@@ -3976,9 +3995,26 @@ def insert_job_child_rows_direct(
         outside_contact = outside_contact_numbers[i] if i < len(outside_contact_numbers) else ""
         outside_vehicle = outside_vehicle_numbers[i] if i < len(outside_vehicle_numbers) else ""
 
-        amount = transport_amounts[i] if i < len(transport_amounts) else ""
+        own_amount = (
+            own_transport_amounts[i]
+            if i < len(own_transport_amounts)
+            else ""
+        )
 
-        if not any([driver_name, vehicle_number, outside_driver, outside_vehicle, amount]):
+        outside_amount = (
+            outside_transport_amounts[i]
+            if i < len(outside_transport_amounts)
+            else ""
+        )
+
+        if not any([
+            driver_name,
+            vehicle_number,
+            outside_driver,
+            outside_vehicle,
+            own_amount,
+            outside_amount
+        ]):
             continue
 
         cursor.execute("""
@@ -3990,9 +4026,11 @@ def insert_job_child_rows_direct(
                 outside_driver_name,
                 outside_contact_number,
                 outside_vehicle_number,
-                transport_amount
+                own_transport_amount,
+                outside_transport_amount,
+                transport_type
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, [
             job_id,
             driver_name,
@@ -4001,9 +4039,10 @@ def insert_job_child_rows_direct(
             outside_driver,
             outside_contact,
             outside_vehicle,
-            amount or 0
+            own_amount,
+            outside_amount,
+            transport_type
         ])
-
 
 def add_job(request):
     username = request.session.get("username")
@@ -4079,13 +4118,18 @@ def add_job(request):
             sub_unit_prices = request.POST.getlist("sub_unit_price")
             sub_totals = request.POST.getlist("sub_total")
 
-            transport_amounts = request.POST.getlist("transport_amount[]")
+            own_transport_amounts = request.POST.getlist("own_transport_amount[]")
+            outside_transport_amounts = request.POST.getlist("outside_transport_amount[]")
+
             driver_names = request.POST.getlist("driver_name[]")
             contact_numbers = request.POST.getlist("contact_number[]")
             vehicle_numbers = request.POST.getlist("vehicle_number[]")
+
             outside_driver_names = request.POST.getlist("outside_driver_name[]")
             outside_contact_numbers = request.POST.getlist("outside_contact_number[]")
             outside_vehicle_numbers = request.POST.getlist("outside_vehicle_number[]")
+
+            transport_type = request.POST.get("transport_type", "")
 
             if not title:
                 return JsonResponse({
@@ -4109,35 +4153,168 @@ def add_job(request):
                         edit_id_int = int(edit_id)
 
                         cursor.execute("""
-                            UPDATE public.temp
-                            SET
-                                title = %s,
-                                client_name = %s,
-                                contact_person_name = %s,
-                                contact_person_number = %s,
-                                status = %s,
-                                venue_name = %s,
-                                venue_address = %s,
-                                crew_type = %s,
-                                setup_date = %s,
-                                rehearsal_date = %s,
-                                event_date = %s,
-                                dismantle_date = %s,
-                                total_days = %s,
-                                amount_row = %s,
-                                discount = %s,
-                                amount_after_discount = %s,
-                                total_amount = %s,
-                                notes = %s
+                            SELECT quotation_no
+                            FROM public.temp
                             WHERE id = %s
+                        """, [edit_id_int])
+
+                        quotation_no = cursor.fetchone()[0]
+
+                        # QUOTATION REMAINS QUOTATION
+                        if status == "Quotation":
+                            cursor.execute("""
+                                UPDATE public.temp
+                                SET
+                                    title = %s,
+                                    client_name = %s,
+                                    contact_person_name = %s,
+                                    contact_person_number = %s,
+                                    status = %s,
+                                    venue_name = %s,
+                                    venue_address = %s,
+                                    crew_type = %s,
+                                    setup_date = %s,
+                                    rehearsal_date = %s,
+                                    event_date = %s,
+                                    dismantle_date = %s,
+                                    total_days = %s,
+                                    amount_row = %s,
+                                    discount = %s,
+                                    amount_after_discount = %s,
+                                    total_amount = %s,
+                                    notes = %s
+                                WHERE id = %s
+                            """, [
+                                title,
+                                client_name,
+                                contact_person_name,
+                                contact_person_number,
+                                status,
+                                venue_name,
+                                venue_address,
+                                crew_type,
+                                setup_date,
+                                rehearsal_date,
+                                start_date,
+                                end_date,
+                                total_days,
+                                amount_row,
+                                discount,
+                                discounted_amount,
+                                total_amount,
+                                input_notes,
+                                edit_id_int
+                            ])
+
+                            cursor.execute(
+                                "DELETE FROM public.temp_equipment_details WHERE temp_id = %s",
+                                [edit_id_int]
+                            )
+                            cursor.execute(
+                                "DELETE FROM public.temp_crew_allocation WHERE temp_id = %s",
+                                [edit_id_int]
+                            )
+                            cursor.execute(
+                                "DELETE FROM public.temp_sub_vendor WHERE temp_id = %s",
+                                [edit_id_int]
+                            )
+                            cursor.execute(
+                                "DELETE FROM public.temp_transportation_allocation WHERE temp_id = %s",
+                                [edit_id_int]
+                            )
+
+                            save_temp_child_rows(
+                                cursor,
+                                edit_id_int,
+                                equipment_location,
+                                equipment_incharge,
+                                equipment_event_date,
+                                equipment_rehearsal_date,
+                                equipment_categories,
+                                equipment_ids,
+                                equipment_qtys,
+                                rental_prices,
+                                equipment_totals,
+                                equipment_notes,
+                                crew_types,
+                                crew_days,
+                                perday_charges,
+                                crew_totals,
+                                crew_notes,
+                                vendor_names,
+                                sub_equipment_names,
+                                sub_quantities,
+                                sub_unit_prices,
+                                sub_totals,
+                                own_transport_amounts,
+                                outside_transport_amounts,
+                                transport_type,
+                                driver_names,
+                                contact_numbers,
+                                vehicle_numbers,
+                                outside_driver_names,
+                                outside_contact_numbers,
+                                outside_vehicle_numbers
+                            )
+
+                            return JsonResponse({
+                                "success": True,
+                                "message": "Quotation updated successfully."
+                            })
+
+                        # QUOTATION -> JOB CONVERSION
+
+                        cursor.execute("SELECT public.generate_job_no()")
+                        job_no = cursor.fetchone()[0]
+
+                        cursor.execute("""
+                            INSERT INTO public.jobs (
+                                job_reference_no,
+                                quotation_no,
+                                main_job_no,
+                                job_order_no,
+                                title,
+                                client_name,
+                                contact_person_name,
+                                contact_person_number,
+                                venue_name,
+                                venue_address,
+                                status,
+                                crew_type,
+                                setup_date,
+                                rehearsal_date,
+                                show_start_date,
+                                show_end_date,
+                                total_days,
+                                amount_row,
+                                discount,
+                                amount_after_discount,
+                                total_amount,
+                                created_by,
+                                created_date,
+                                notes
+                            )
+                            VALUES (
+                                %s,%s,%s,%s,
+                                %s,%s,%s,%s,
+                                %s,%s,%s,%s,
+                                %s,%s,%s,%s,
+                                %s,%s,%s,%s,
+                                %s,%s,NOW(),%s
+                            )
+                            RETURNING id
                         """, [
+                            job_no,
+                            quotation_no,
+                            job_no,
+                            job_no,
                             title,
                             client_name,
                             contact_person_name,
                             contact_person_number,
-                            "Quotation",
                             venue_name,
                             venue_address,
+                            status,
                             crew_type,
                             setup_date,
                             rehearsal_date,
@@ -4148,23 +4325,31 @@ def add_job(request):
                             discount,
                             discounted_amount,
                             total_amount,
-                            input_notes,
-                            edit_id_int
+                            created_by,
+                            input_notes
                         ])
 
-                        cursor.execute("DELETE FROM public.temp_equipment_details WHERE temp_id = %s", [edit_id_int])
-                        cursor.execute("DELETE FROM public.temp_crew_allocation WHERE temp_id = %s", [edit_id_int])
-                        cursor.execute("DELETE FROM public.temp_sub_vendor WHERE temp_id = %s", [edit_id_int])
-                        cursor.execute("DELETE FROM public.temp_transportation_allocation WHERE temp_id = %s", [edit_id_int])
+                        job_id = cursor.fetchone()[0]
 
-                        save_temp_child_rows(
+                        split_map = create_co_jobs(
+                            cursor=cursor,
+                            job_id=job_id,
+                            main_job_no=job_no,
+                            created_by=created_by,
+                            co_jobs_json=co_jobs_json
+                        )
+
+                        insert_job_child_rows_direct(
                             cursor,
-                            edit_id_int,
+                            job_id,
+                            split_map,
                             equipment_location,
                             equipment_incharge,
                             equipment_event_date,
                             equipment_rehearsal_date,
+                            equipment_split_ids,
                             equipment_categories,
+                            equipment_sub_categories,
                             equipment_ids,
                             equipment_qtys,
                             rental_prices,
@@ -4180,7 +4365,9 @@ def add_job(request):
                             sub_quantities,
                             sub_unit_prices,
                             sub_totals,
-                            transport_amounts,
+                            own_transport_amounts,
+                            outside_transport_amounts,
+                            transport_type,
                             driver_names,
                             contact_numbers,
                             vehicle_numbers,
@@ -4189,11 +4376,18 @@ def add_job(request):
                             outside_vehicle_numbers
                         )
 
+                        cursor.execute("""
+                            UPDATE public.temp
+                            SET is_active = FALSE
+                            WHERE id = %s
+                        """, [edit_id_int])
+
                         return JsonResponse({
                             "success": True,
-                            "message": "Quotation updated successfully.",
-                            "temp_id": edit_id_int
+                            "message": f"Quotation converted to {status}.",
+                            "job_id": job_id
                         })
+
 
                     # =====================================================
                     # EDIT JOB - PROFORMA/PREPSHEET/DC
@@ -4291,7 +4485,9 @@ def add_job(request):
                             sub_quantities,
                             sub_unit_prices,
                             sub_totals,
-                            transport_amounts,
+                            own_transport_amounts,
+                            outside_transport_amounts,
+                            transport_type,
                             driver_names,
                             contact_numbers,
                             vehicle_numbers,
@@ -4393,7 +4589,9 @@ def add_job(request):
                             sub_quantities,
                             sub_unit_prices,
                             sub_totals,
-                            transport_amounts,
+                            own_transport_amounts,
+                            outside_transport_amounts,
+                            transport_type,
                             driver_names,
                             contact_numbers,
                             vehicle_numbers,
@@ -4512,7 +4710,9 @@ def add_job(request):
                         sub_quantities,
                         sub_unit_prices,
                         sub_totals,
-                        transport_amounts,
+                        own_transport_amounts,
+                        outside_transport_amounts,
+                        transport_type,
                         driver_names,
                         contact_numbers,
                         vehicle_numbers,
@@ -4607,7 +4807,27 @@ def add_job(request):
                     row = cursor.fetchone()
                     job_data = dict(zip(columns, row)) if row else {}
 
-                    cursor.execute("SELECT * FROM public.temp_equipment_details WHERE temp_id = %s ORDER BY id", [edit_id])
+                    cursor.execute("""
+                        SELECT
+                            ted.*,
+                            el.category_type,
+                            sc.name AS sub_category_name,
+                            COALESCE(stock.available_qty, 0) AS available_qty
+                        FROM public.temp_equipment_details ted
+                        LEFT JOIN public.equipment_list el
+                            ON el.id::text = ted.equipment_detail_id
+                        LEFT JOIN public.sub_category sc
+                            ON sc.id = el.sub_category_id
+                        LEFT JOIN (
+                            SELECT equipment_id, COUNT(*) AS available_qty
+                            FROM public.stock_details
+                            GROUP BY equipment_id
+                        ) stock
+                            ON stock.equipment_id = el.id
+                        WHERE ted.temp_id = %s
+                        ORDER BY ted.id
+                    """, [edit_id])
+
                     columns = [col[0] for col in cursor.description]
                     equipment_data = [dict(zip(columns, r)) for r in cursor.fetchall()]
 
@@ -4638,6 +4858,7 @@ def add_job(request):
         "transport_data": json.dumps(transport_data, default=str),
         "split_data": json.dumps(split_data, default=str),
     })
+
 
 
 def get_equipment_meta(request, equipment_id):
@@ -4682,7 +4903,6 @@ def generate_quotation_no():
         return cursor.fetchone()[0]
 
 
-
 def save_temp_child_rows(
     cursor,
     temp_id,
@@ -4706,7 +4926,9 @@ def save_temp_child_rows(
     sub_quantities,
     sub_unit_prices,
     sub_totals,
-    transport_amounts,
+    own_transport_amounts,
+    outside_transport_amounts,
+    transport_type,
     driver_names,
     contact_numbers,
     vehicle_numbers,
@@ -4783,7 +5005,15 @@ def save_temp_child_rows(
             crew_type,
             crew_days[index] if index < len(crew_days) else '',
             perday_charges[index] if index < len(perday_charges) else '',
-            crew_totals[index] if index < len(crew_totals) else '',
+            (
+                str(
+                    float(crew_days[index] or 0) *
+                    float(perday_charges[index] or 0)
+                )
+                if index < len(crew_days) and index < len(perday_charges)
+                else ''
+            )
+            ,
             crew_notes[index] if index < len(crew_notes) else ''
         ])
 
@@ -4827,9 +5057,11 @@ def save_temp_child_rows(
                 outside_driver_name,
                 outside_contact_number,
                 outside_vehicle_number,
-                transport_amount
+                own_transport_amount,
+                outside_transport_amount,
+                transport_type
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, [
             temp_id,
             driver_names[index] if index < len(driver_names) else '',
@@ -4838,8 +5070,11 @@ def save_temp_child_rows(
             outside_driver_names[index] if index < len(outside_driver_names) else '',
             outside_contact_numbers[index] if index < len(outside_contact_numbers) else '',
             outside_vehicle_numbers[index] if index < len(outside_vehicle_numbers) else '',
-            transport_amounts[index] if index < len(transport_amounts) else ''
+            own_transport_amounts[index] if index < len(own_transport_amounts) else '',
+            outside_transport_amounts[index] if index < len(outside_transport_amounts) else '',
+            transport_type
         ])
+
 
 
 def save_job_child_rows(
@@ -4865,7 +5100,9 @@ def save_job_child_rows(
     sub_quantities,
     sub_unit_prices,
     sub_totals,
-    transport_amounts,
+    own_transport_amounts,
+    outside_transport_amounts,
+    transport_type,
     driver_names,
     contact_numbers,
     vehicle_numbers,
@@ -5014,6 +5251,8 @@ def save_job_child_rows(
                 outside_contact_numbers[index] if index < len(outside_contact_numbers) else '',
                 outside_vehicle_numbers[index] if index < len(outside_vehicle_numbers) else ''
             ])
+
+
 def split_jobs_list(request, job_id):
     try:
         with connection.cursor() as cursor:
@@ -5389,7 +5628,6 @@ def get_employee_name(request):
             for row in rows
         ]
     })
-
 
 def jobs_list(request):
     try:
@@ -6984,3 +7222,756 @@ def quick_return_scan_api(request):
             "status": 0,
             "message": str(e)
         }, status=500)
+
+from django.http import HttpResponse
+
+
+def get_document_data(job_id, source_type):
+
+    with connection.cursor() as cursor:
+
+        # ================= QUOTATION / TEMP TABLE =================
+        if source_type == "temp":
+
+            cursor.execute("""
+                SELECT
+                    id,
+                    COALESCE(job_reference_no, quotation_no, '') AS job_no,
+                    COALESCE(quotation_no, '') AS quotation_no,
+                    COALESCE(title, '') AS title,
+                    COALESCE(client_name, '') AS client_name,
+                    COALESCE(contact_person_name, '') AS contact_person_name,
+                    COALESCE(contact_person_number, '') AS contact_person_number,
+                    COALESCE(venue_name, '') AS venue_name,
+                    COALESCE(venue_address, '') AS venue_address,
+                    COALESCE(status, '') AS status,
+
+                    setup_date,
+                    rehearsal_date,
+                    event_date,
+                    dismantle_date,
+
+                    COALESCE(total_days::text, '0') AS total_days,
+                    COALESCE(amount_row::text, '0') AS amount_row,
+                    COALESCE(discount::text, '0') AS discount,
+                    COALESCE(amount_after_discount::text, '0') AS amount_after_discount,
+                    COALESCE(total_amount::text, '0') AS total_amount,
+                    COALESCE(notes, '') AS notes
+
+                FROM public.temp
+                WHERE id = %s
+            """, [job_id])
+
+            job = cursor.fetchone()
+
+            cursor.execute("""
+                SELECT
+                    COALESCE(ted.equipment_name, '') AS equipment_name,
+                    COALESCE(ted.quantity::text, '0') AS quantity,
+
+                    COALESCE(sd.rental_price::text, '0') AS unit_price,
+
+                    (
+                        COALESCE(NULLIF(ted.quantity::text, '')::numeric, 0)
+                        * COALESCE(sd.rental_price::numeric, 0)
+                    )::text AS total,
+
+                    '' AS equipment_notes
+
+                FROM public.temp_equipment_details ted
+
+                LEFT JOIN public.equipment_list el
+                    ON el.id::text = ted.equipment_detail_id::text
+                    OR UPPER(el.equipment_name) = UPPER(ted.equipment_name)
+
+                LEFT JOIN LATERAL (
+                    SELECT rental_price
+                    FROM public.stock_details
+                    WHERE equipment_id = el.id
+                    ORDER BY id DESC
+                    LIMIT 1
+                ) sd ON TRUE
+
+                WHERE ted.temp_id = %s
+                ORDER BY ted.id
+            """, [job_id])
+
+            equipments = cursor.fetchall()
+
+        # ================= JOBS TABLE =================
+        else:
+
+            cursor.execute("""
+                SELECT
+                    id,
+                    COALESCE(job_order_no, main_job_no, job_reference_no, '') AS job_no,
+                    COALESCE(quotation_no, '') AS quotation_no,
+                    COALESCE(title, '') AS title,
+                    COALESCE(client_name, '') AS client_name,
+                    COALESCE(contact_person_name, '') AS contact_person_name,
+                    COALESCE(contact_person_number, '') AS contact_person_number,
+                    COALESCE(venue_name, '') AS venue_name,
+                    COALESCE(venue_address, '') AS venue_address,
+                    COALESCE(status, '') AS status,
+
+                    setup_date,
+                    rehearsal_date,
+                    show_start_date,
+                    show_end_date,
+
+                    COALESCE(total_days::text, '0') AS total_days,
+                    COALESCE(amount_row::text, '0') AS amount_row,
+                    COALESCE(discount::text, '0') AS discount,
+                    COALESCE(amount_after_discount::text, '0') AS amount_after_discount,
+                    COALESCE(total_amount::text, '0') AS total_amount,
+                    COALESCE(notes, '') AS notes
+
+                FROM public.jobs
+                WHERE id = %s
+            """, [job_id])
+
+            job = cursor.fetchone()
+
+            cursor.execute("""
+                SELECT
+                    COALESCE(equipment_name, '') AS equipment_name,
+                    COALESCE(quantity::text, '0') AS quantity,
+                    COALESCE(equipment_unit_price::text, '0') AS unit_price,
+                    COALESCE(equipment_total::text, '0') AS total,
+                    COALESCE(equipment_notes, '') AS equipment_notes
+
+                FROM public.job_equipment_details
+                WHERE job_id = %s
+                ORDER BY id
+            """, [job_id])
+
+            equipments = cursor.fetchall()
+
+    return job, equipments
+
+def get_company_master_data():
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT
+                COALESCE(name, '') AS company_name,
+                COALESCE(gst_no, '') AS gst_no,
+                COALESCE(email, '') AS email,
+                COALESCE(address, '') AS address,
+                COALESCE(company_logo, '') AS company_logo
+            FROM public.company_master
+            ORDER BY id DESC
+            LIMIT 1
+        """)
+        row = cursor.fetchone()
+
+    if not row:
+        return {
+            "company_name": "TEKVAN",
+            "gst_no": "",
+            "email": "",
+            "address": "",
+            "company_logo": ""
+        }
+
+    return {
+        "company_name": row[0],
+        "gst_no": row[1],
+        "email": row[2],
+        "address": row[3],
+        "company_logo": row[4]
+    }
+
+def get_logo_flowable(logo_url, fallback_style):
+    if not logo_url:
+        return Paragraph("", fallback_style)
+
+    try:
+        req = Request(
+            logo_url,
+            headers={"User-Agent": "Mozilla/5.0"}
+        )
+
+        image_bytes = urlopen(req, timeout=15).read()
+        image_buffer = BytesIO(image_bytes)
+
+        return Image(
+            image_buffer,
+            width=32 * mm,
+            height=22 * mm
+        )
+
+    except Exception as e:
+        print("LOGO LOAD ERROR:", str(e))
+        return Paragraph("", fallback_style)
+
+
+def generate_rental_document_pdf(request, job_id, source_type, document_title, download_type="equipment-wise"):
+    job, equipments = get_document_data(job_id, source_type)
+    company = get_company_master_data()
+
+    if not job:
+        return HttpResponse("Record not found", status=404)
+
+    buffer = BytesIO()
+
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = (
+        f'inline; filename="{document_title.replace(" ", "_")}_{job_id}.pdf"'
+    )
+
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=14 * mm,
+        leftMargin=14 * mm,
+        topMargin=10 * mm,
+        bottomMargin=10 * mm
+    )
+
+    styles = getSampleStyleSheet()
+
+    normal = ParagraphStyle(
+        "normal",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=9,
+        leading=13
+    )
+
+    bold = ParagraphStyle(
+        "bold",
+        parent=normal,
+        fontName="Helvetica-Bold"
+    )
+
+    title_style = ParagraphStyle(
+        "title",
+        parent=styles["Title"],
+        fontName="Helvetica",
+        fontSize=24,
+        alignment=TA_CENTER,
+        leading=30
+    )
+
+    company_title_style = ParagraphStyle(
+        "company_title_style",
+        parent=styles["Title"],
+        fontName="Helvetica-Bold",
+        fontSize=18,
+        alignment=TA_CENTER,
+        textColor=colors.HexColor("#b11226"),
+        leading=22
+    )
+
+    story = []
+
+    logo_url = company.get("company_logo", "").strip()
+    logo_element = get_logo_flowable(logo_url, normal)
+
+    registered_address = Paragraph(
+        f"<u><b>Registered Address:</b></u><br/>"
+        f"<b>{company['company_name']}</b><br/>"
+        f"{company['address']}<br/>"
+        f"{company['email']}<br/>"
+        f"<b>GST No: {company['gst_no']}</b>",
+        normal
+    )
+
+    center_header = [
+        [Paragraph(company["company_name"], company_title_style)],
+        [logo_element],
+        [Paragraph(document_title, title_style)]
+    ]
+
+    center_table = Table(center_header, colWidths=[80 * mm])
+    center_table.setStyle(TableStyle([
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+    ]))
+
+    warehouse_address = Paragraph(
+        f"<u><b>Warehouse Address:</b></u><br/>"
+        f"<b>{company['company_name']}</b><br/>"
+        f"{company['address']}",
+        normal
+    )
+
+    header_table = Table(
+        [[registered_address, center_table, warehouse_address]],
+        colWidths=[55 * mm, 80 * mm, 55 * mm]
+    )
+
+    header_table.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("ALIGN", (1, 0), (1, 0), "CENTER"),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+    ]))
+
+    story.append(header_table)
+
+    story.append(Table([[""]], colWidths=[190 * mm], rowHeights=[1.5 * mm], style=[
+        ("BACKGROUND", (0, 0), (-1, -1), colors.black)
+    ]))
+
+    story.append(Spacer(1, 5 * mm))
+
+    job_info = [
+        [
+            Paragraph("<b>Job Title:</b>", bold),
+            Paragraph(str(job[3] or ""), normal),
+            Paragraph("<b>Venue:</b>", bold),
+            Paragraph(str(job[7] or ""), normal),
+        ],
+        [
+            Paragraph("<b>Job Ref:</b>", bold),
+            Paragraph(str(job[1] or ""), normal),
+            Paragraph("", normal),
+            Paragraph(str(job[8] or ""), normal),
+        ],
+        [
+            Paragraph("<b>Client Name:</b>", bold),
+            Paragraph(str(job[4] or ""), normal),
+            Paragraph("<b>Job Date Out:</b>", bold),
+            Paragraph(str(job[10] or ""), normal),
+        ],
+        [
+            Paragraph("<b>Client Contact:</b>", bold),
+            Paragraph(str(job[6] or ""), normal),
+            Paragraph("<b>Job Date Back:</b>", bold),
+            Paragraph(str(job[13] or ""), normal),
+        ],
+    ]
+
+    job_table = Table(job_info, colWidths=[25 * mm, 85 * mm, 35 * mm, 45 * mm])
+    job_table.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("TOPPADDING", (0, 0), (-1, -1), 3),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+    ]))
+
+    story.append(job_table)
+    story.append(Spacer(1, 8 * mm))
+
+    story.append(Table([[""]], colWidths=[190 * mm], rowHeights=[2 * mm], style=[
+        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#d9eadb"))
+    ]))
+
+    section_info = [
+        [
+            Paragraph("<b>Equipment Title:</b>", bold),
+            Paragraph(f"{job[3]}: {job[1]}/01", normal),
+            Paragraph("<b>Show Start Date:</b>", bold),
+            Paragraph(str(job[12] or ""), normal),
+        ],
+        [
+            Paragraph("<b>Equipment Ref:</b>", bold),
+            Paragraph(f"{job[1]}/01", normal),
+            Paragraph("<b>Setup Date:</b>", bold),
+            Paragraph(str(job[10] or ""), normal),
+        ],
+        [
+            Paragraph("<b>Location:</b>", bold),
+            Paragraph(str(job[7] or ""), normal),
+            Paragraph("<b>Show End Date:</b>", bold),
+            Paragraph(str(job[13] or ""), normal),
+        ],
+        [
+            Paragraph("<b>Event Start Date:</b>", bold),
+            Paragraph(str(job[12] or ""), normal),
+            Paragraph("<b>Pack Up Date:</b>", bold),
+            Paragraph(str(job[13] or ""), normal),
+        ],
+        [
+            Paragraph("<b>Event End Date:</b>", bold),
+            Paragraph(str(job[13] or ""), normal),
+            Paragraph("", normal),
+            Paragraph("", normal),
+        ],
+    ]
+
+    section_table = Table(section_info, colWidths=[32 * mm, 75 * mm, 40 * mm, 43 * mm])
+    section_table.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("TOPPADDING", (0, 0), (-1, -1), 3),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+    ]))
+
+    story.append(section_table)
+    story.append(Spacer(1, 8 * mm))
+
+    story.append(Table([["AUDIO EQUIPMENT"]], colWidths=[190 * mm], rowHeights=[10 * mm], style=[
+        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#b9c9d8")),
+        ("TEXTCOLOR", (0, 0), (-1, -1), colors.white),
+        ("FONTNAME", (0, 0), (-1, -1), "Helvetica-Oblique"),
+        ("FONTSIZE", (0, 0), (-1, -1), 18),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("LINEBELOW", (0, 0), (-1, -1), 1, colors.black),
+    ]))
+
+    show_rate = download_type == "equipment-wise"
+
+    if show_rate:
+        table_data = [[
+            Paragraph("<b>Equipment Name</b>", bold),
+            Paragraph("<b>Qty</b>", bold),
+            Paragraph("<b>Per Unit</b>", bold),
+            Paragraph("<b>Days</b>", bold),
+            Paragraph("<b>Total</b>", bold),
+            Paragraph("<b>Notes</b>", bold),
+        ]]
+
+        for eq in equipments:
+            table_data.append([
+                Paragraph(str(eq[0]), normal),
+                Paragraph(str(eq[1]), normal),
+                Paragraph(str(eq[2]), normal),
+                Paragraph(str(job[14]), normal),
+                Paragraph(str(eq[3]), normal),
+                Paragraph(str(eq[4]), normal),
+            ])
+
+        col_widths = [55 * mm, 12 * mm, 22 * mm, 15 * mm, 22 * mm, 64 * mm]
+
+        table_data.append([
+            Paragraph("<b>Section Total Amount:</b>", bold),
+            "",
+            "",
+            "",
+            Paragraph(f"<b>{job[15]}</b>", bold),
+            ""
+        ])
+
+        table_data.append([
+            Paragraph(f"<b>After {job[16]}% Discount:</b>", bold),
+            "",
+            "",
+            "",
+            Paragraph(f"<font color='green'><b>{job[17]}</b></font>", bold),
+            ""
+        ])
+
+    else:
+        table_data = [[
+            Paragraph("<b>Equipment Name</b>", bold),
+            Paragraph("<b>Qty</b>", bold),
+            Paragraph("<b>Notes</b>", bold),
+        ]]
+
+        for eq in equipments:
+            table_data.append([
+                Paragraph(str(eq[0]), normal),
+                Paragraph(str(eq[1]), normal),
+                Paragraph(str(eq[4]), normal),
+            ])
+
+        col_widths = [60 * mm, 15 * mm, 115 * mm]
+
+        table_data.append([
+            Paragraph("<b>Section Total Amount:</b>", bold),
+            "",
+            Paragraph(f"<b>{job[15]}</b>", bold),
+        ])
+
+        table_data.append([
+            Paragraph(f"<b>After {job[16]}% Discount:</b>", bold),
+            "",
+            Paragraph(f"<font color='green'><b>{job[17]}</b></font>", bold),
+        ])
+
+    equipment_table = Table(table_data, colWidths=col_widths, repeatRows=1)
+
+    equipment_table.setStyle(TableStyle([
+        ("GRID", (0, 0), (-1, -1), 0.6, colors.HexColor("#dddddd")),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ("SPAN", (0, -2), (3, -2)) if show_rate else ("SPAN", (0, -2), (1, -2)),
+        ("SPAN", (0, -1), (3, -1)) if show_rate else ("SPAN", (0, -1), (1, -1)),
+        ("ALIGN", (0, -2), (0, -1), "RIGHT"),
+    ]))
+
+    story.append(equipment_table)
+    story.append(Spacer(1, 8 * mm))
+
+    try:
+        amount_after_discount = Decimal(str(job[17] or "0"))
+    except Exception:
+        amount_after_discount = Decimal("0")
+
+    total_with_gst = amount_after_discount * Decimal("1.18")
+
+    story.append(Table(
+        [[Paragraph(f"<b>Total for AUDIO EQUIPMENT INR RS. {int(total_with_gst)}</b>", bold)]],
+        colWidths=[190 * mm],
+        rowHeights=[9 * mm],
+        style=[
+            ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#b9c9d8")),
+            ("ALIGN", (0, 0), (-1, -1), "RIGHT"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ]
+    ))
+
+    summary = [
+        ["", Paragraph("Total INR", normal), Paragraph(f"RS.{job[15]}", normal)],
+        ["", Paragraph("After Discount INR", normal), Paragraph(f"RS.{job[17]}", normal)],
+        ["", Paragraph("Total Amount with 18% GST INR", normal), Paragraph(f"RS.{int(total_with_gst)}", normal)],
+    ]
+
+    summary_table = Table(summary, colWidths=[105 * mm, 65 * mm, 20 * mm])
+    summary_table.setStyle(TableStyle([
+        ("GRID", (0, 0), (-1, -1), 0.6, colors.HexColor("#dddddd")),
+        ("ALIGN", (1, 0), (-1, -1), "RIGHT"),
+        ("TOPPADDING", (0, 0), (-1, -1), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+    ]))
+
+    story.append(summary_table)
+
+    doc.build(story)
+
+    pdf = buffer.getvalue()
+    buffer.close()
+    response.write(pdf)
+
+    return response
+
+def render_document_html(request, job_id, source_type, document_title, download_type="equipment-wise"):
+    job, equipments = get_document_data(job_id, source_type)
+
+    if not job:
+        return HttpResponse("Record not found", status=404)
+
+    show_equipment_rate = download_type == "equipment-wise"
+
+    rows_html = ""
+    sr = 1
+
+    for eq in equipments:
+        equipment_name = eq[0]
+        qty = eq[1]
+        unit_price = eq[2]
+        total = eq[3]
+        notes = eq[4]
+
+        if show_equipment_rate:
+            rows_html += f"""
+                <tr>
+                    <td>{sr}</td>
+                    <td>{equipment_name}</td>
+                    <td>{qty}</td>
+                    <td>{unit_price}</td>
+                    <td>{job[14]}</td>
+                    <td>{total}</td>
+                    <td>{notes}</td>
+                </tr>
+            """
+        else:
+            rows_html += f"""
+                <tr>
+                    <td>{sr}</td>
+                    <td>{equipment_name}</td>
+                    <td>{qty}</td>
+                    <td>{notes}</td>
+                </tr>
+            """
+
+        sr += 1
+
+    if not rows_html:
+        rows_html = """
+            <tr>
+                <td colspan="7" style="text-align:center;">No equipment found</td>
+            </tr>
+        """
+
+    if show_equipment_rate:
+        table_header = """
+            <tr>
+                <th>Sr</th>
+                <th>Equipment</th>
+                <th>Qty</th>
+                <th>Per Unit</th>
+                <th>Days</th>
+                <th>Total</th>
+                <th>Notes</th>
+            </tr>
+        """
+    else:
+        table_header = """
+            <tr>
+                <th>Sr</th>
+                <th>Equipment</th>
+                <th>Qty</th>
+                <th>Notes</th>
+            </tr>
+        """
+
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>{document_title}</title>
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                font-size: 13px;
+                color: #111;
+                margin: 25px;
+            }}
+            .header {{
+                text-align: center;
+                border-bottom: 2px solid #000;
+                padding-bottom: 10px;
+                margin-bottom: 20px;
+            }}
+            .title {{
+                font-size: 22px;
+                font-weight: bold;
+                text-transform: uppercase;
+            }}
+            .info-table, .equipment-table, .summary-table {{
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 15px;
+            }}
+            .info-table td {{
+                padding: 6px;
+            }}
+            .equipment-table th, .equipment-table td,
+            .summary-table th, .summary-table td {{
+                border: 1px solid #000;
+                padding: 7px;
+            }}
+            .equipment-table th {{
+                background: #f2f2f2;
+            }}
+            .right {{
+                text-align: right;
+            }}
+            .print-btn {{
+                margin-bottom: 15px;
+                padding: 8px 14px;
+                background: #198754;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }}
+            @media print {{
+                .print-btn {{
+                    display: none;
+                }}
+            }}
+        </style>
+    </head>
+    <body>
+
+        <button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+
+        <div class="header">
+            <div class="title">{document_title}</div>
+        </div>
+
+        <table class="info-table">
+            <tr>
+                <td><b>Job / Ref No:</b> {job[1]}</td>
+                <td><b>Status:</b> {job[9]}</td>
+            </tr>
+            <tr>
+                <td><b>Title:</b> {job[3]}</td>
+                <td><b>Client:</b> {job[4]}</td>
+            </tr>
+            <tr>
+                <td><b>Contact Person:</b> {job[5]}</td>
+                <td><b>Contact No:</b> {job[6]}</td>
+            </tr>
+            <tr>
+                <td><b>Venue:</b> {job[7]}</td>
+                <td><b>Total Days:</b> {job[14]}</td>
+            </tr>
+            <tr>
+                <td colspan="2"><b>Venue Address:</b> {job[8]}</td>
+            </tr>
+        </table>
+
+        <table class="equipment-table">
+            <thead>
+                {table_header}
+            </thead>
+            <tbody>
+                {rows_html}
+            </tbody>
+        </table>
+
+        <table class="summary-table">
+            <tr>
+                <th class="right">Amount</th>
+                <td class="right">{job[15]}</td>
+            </tr>
+            <tr>
+                <th class="right">Discount</th>
+                <td class="right">{job[16]}</td>
+            </tr>
+            <tr>
+                <th class="right">Amount After Discount</th>
+                <td class="right">{job[17]}</td>
+            </tr>
+            <tr>
+                <th class="right">Total Amount</th>
+                <td class="right"><b>{job[18]}</b></td>
+            </tr>
+        </table>
+
+        <p><b>Notes:</b> {job[19]}</p>
+
+    </body>
+    </html>
+    """
+
+    return HttpResponse(html)
+
+def quotation_download(request, job_id, download_type):
+    if download_type not in ["total", "equipment-wise"]:
+        return JsonResponse({"error": "Invalid quotation download type"}, status=400)
+
+    return generate_rental_document_pdf(
+        request,
+        job_id,
+        "temp",
+        "Quotation",
+        download_type
+    )
+
+
+def proforma_download(request, job_id, download_type):
+    if download_type not in ["total", "equipment-wise"]:
+        return JsonResponse({"error": "Invalid proforma download type"}, status=400)
+
+    return generate_rental_document_pdf(
+        request,
+        job_id,
+        "job",
+        "Proforma",
+        download_type
+    )
+
+
+def prepsheet_download(request, job_id):
+    return generate_rental_document_pdf(
+        request,
+        job_id,
+        "job",
+        "Prepsheet",
+        "total"
+    )
+
+
+def delivery_challan_download(request, job_id):
+    return generate_rental_document_pdf(
+        request,
+        job_id,
+        "job",
+        "Delivery Challan",
+        "total"
+    )

@@ -923,8 +923,8 @@
                                                     <div class="col-lg-3 col-md-6 own-vehicle-field">
                                                         <label class="form-label">Amount</label>
                                                         <input type="number"
-                                                               class="form-control own-transport-amount"
-                                                               name="own_transport_amount[]"
+                                                               class="form-control transport-amount"
+                                                               name="transport_amount[]"
                                                                placeholder="Amount">
                                                     </div>
 
@@ -954,11 +954,11 @@
                                                                placeholder="Enter Vehicle Number">
                                                     </div>
 
-                                                    <div class="col-lg-3 col-md-6 own-vehicle-field">
+                                                    <div class="col-lg-3 col-md-6 outside-vehicle-field d-none">
                                                         <label class="form-label">Amount</label>
                                                         <input type="number"
-                                                               class="form-control own-transport-amount"
-                                                               name="own_transport_amount[]"
+                                                               class="form-control transport-amount"
+                                                               name="transport_amount[]"
                                                                placeholder="Amount">
                                                     </div>
 
@@ -1299,10 +1299,10 @@
             const select = row.querySelector(".equipment_select");
 
             select.innerHTML = `
-            <option value="${item.equipment_id}" selected>
-                ${escapeHtml(item.equipment_name)}
-            </option>
-        `;
+                <option value="${item.equipment_id}" selected>
+                    ${escapeHtml(item.equipment_name)}
+                </option>
+            `;
 
             row.querySelector(".category_name").value = item.category_name;
             row.querySelector(".sub_category_name").value = item.sub_category_name;
@@ -1386,18 +1386,18 @@
 
                 (response.client_names || []).forEach(item => {
                     dropdown.append(`
-                    <li>
-                        <a class="dropdown-item client-item" href="#" data-name="${escapeHtml(item.name)}">
-                            ${escapeHtml(item.name)}
-                        </a>
-                    </li>
-                `);
+                        <li>
+                            <a class="dropdown-item client-item" href="#" data-name="${escapeHtml(item.name)}">
+                                ${escapeHtml(item.name)}
+                            </a>
+                        </li>
+                    `);
                 });
             }
         });
     }
 
-    function fetchContactPersons(clientName, selectedPerson = "") {
+    function fetchContactPersons(clientName) {
         $.ajax({
             url: "{% url 'inventory:fetch_individual_names' %}",
             data: {client_name: clientName},
@@ -1406,16 +1406,8 @@
                 select.empty().append('<option value="">Select Contact Person</option>');
 
                 (response.individual_names || []).forEach(person => {
-
-                    const selected =
-                        person.name === selectedPerson
-                            ? "selected"
-                            : "";
-
                     select.append(`
-                        <option value="${escapeHtml(person.name)}"
-                                data-mobile="${escapeHtml(person.mobile)}"
-                                ${selected}>
+                        <option value="${escapeHtml(person.name)}" data-mobile="${escapeHtml(person.mobile)}">
                             ${escapeHtml(person.name)}
                         </option>
                     `);
@@ -1466,22 +1458,22 @@
 
                     if (!response.venue_names || response.venue_names.length === 0) {
                         dropdown.append(`
-                        <li>
-                            <span class="dropdown-item text-muted">No venue found</span>
-                        </li>
-                    `);
+                            <li>
+                                <span class="dropdown-item text-muted">No venue found</span>
+                            </li>
+                        `);
                         dropdown.addClass("show");
                         return;
                     }
 
                     response.venue_names.forEach(item => {
                         dropdown.append(`
-                        <li>
-                            <a class="dropdown-item venue-item" href="#" data-name="${escapeHtml(item.name)}">
-                                ${escapeHtml(item.name)}
-                            </a>
-                        </li>
-                    `);
+                            <li>
+                                <a class="dropdown-item venue-item" href="#" data-name="${escapeHtml(item.name)}">
+                                    ${escapeHtml(item.name)}
+                                </a>
+                            </li>
+                        `);
                     });
 
                     dropdown.addClass("show");
@@ -1561,11 +1553,11 @@
             subVendorTotal += parseFloat(input.value) || 0;
         });
 
-        document.querySelectorAll(".own-transport-amount").forEach(input => {
-            transportTotal += parseFloat(input.value) || 0;
-        });
+        document.querySelectorAll(".transport-amount").forEach(input => {
+            const parent = input.closest(".own-vehicle-field, .outside-vehicle-field");
 
-        document.querySelectorAll(".outside-transport-amount").forEach(input => {
+            if (parent && parent.classList.contains("d-none")) return;
+
             transportTotal += parseFloat(input.value) || 0;
         });
 
@@ -1634,7 +1626,9 @@
     }
 
     function renderCoJobs() {
+
         const tbody = getEl("splitJobTableBody");
+
         if (!tbody) return;
 
         if (!coJobs.length) {
@@ -1651,11 +1645,20 @@
         tbody.innerHTML = "";
 
         coJobs.forEach((job, index) => {
+
+            const coJobNo =
+                job.split_job_no ||
+                `Draft-${index + 1}`;
+
             tbody.innerHTML += `
             <tr>
-                <td>Draft-${index + 1}</td>
-                <td>${escapeHtml(job.section_name)}</td>
-                <td><span class="badge bg-warning text-dark">${escapeHtml(job.status)}</span></td>
+                <td>${coJobNo}</td>
+                <td>${escapeHtml(job.section_name || "")}</td>
+                <td>
+                    <span class="badge bg-warning text-dark">
+                        ${escapeHtml(job.status || "Draft")}
+                    </span>
+                </td>
                 <td class="text-center">
                     <button type="button"
                             class="btn btn-sm btn-danger"
@@ -1669,15 +1672,23 @@
     }
 
     function renderCoJobDropdown() {
+
         const select = getEl("selected_split_id");
+
         if (!select) return;
 
-        select.innerHTML = `<option value="">Main Job Equipment</option>`;
+        select.innerHTML =
+            `<option value="">Main Job Equipment</option>`;
 
         coJobs.forEach((job, index) => {
+
+            const coJobNo =
+                job.split_job_no ||
+                `Draft-${index + 1}`;
+
             select.innerHTML += `
-            <option value="${job.local_id}">
-                Draft-${index + 1} - ${escapeHtml(job.section_name)}
+            <option value="${job.split_id || job.local_id}">
+                ${coJobNo} - ${escapeHtml(job.section_name)}
             </option>
         `;
         });
@@ -1710,10 +1721,10 @@
                 const job = coJobs.find(item => item.local_id === currentEquipmentSectionKey);
 
                 if (currentEquipmentSectionKey === "main" || !job) {
-                    setVal("equipment_location", "");
+                    setVal("equipment_location", val("venueAddressDropdown"));
                     setVal("equipment_incharge", "");
-                    setVal("equipment_rehearsal_date", "");
-                    setVal("equipment_event_date", "");
+                    setVal("equipment_rehearsal_date", val("outDate"));
+                    setVal("equipment_event_date", val("showStart"));
                 } else {
                     setVal("equipment_location", job.location || "");
                     setVal("equipment_incharge", job.incharge || "");
@@ -1736,28 +1747,28 @@
         const row = document.createElement("tr");
 
         row.innerHTML = `
-        <input type="hidden"
-       class="equipment_split_id"
-       name="equipment_split_id[]"
-       value="">
-        <td><input type="text" class="form-control category_name" name="equipment_category[]" readonly></td>
-        <td><input type="text" class="form-control sub_category_name" name="equipment_sub_category[]" readonly></td>
-        <td>
-            <select class="form-select equipment_select" name="equipment_name[]">
-                <option value="">Select Equipment</option>
-            </select>
-        </td>
-        <td><input type="number" class="form-control available_qty" name="available_qty[]" readonly></td>
-        <td><input type="number" class="form-control equipment_qty" name="equipment_qty[]" min="1" placeholder="Qty"></td>
-        <td><input type="number" class="form-control rental_price" name="rental_price[]" readonly></td>
-        <td><input type="number" class="form-control equipment_total" name="equipment_total[]" readonly></td>
-        <td><input type="text" class="form-control" name="equipment_notes[]" placeholder="Notes"></td>
-        <td class="text-center">
-            <button type="button" class="btn btn-sm btn-danger remove-equipment-row">
-                <i class="bi bi-trash"></i>
-            </button>
-        </td>
-    `;
+            <input type="hidden"
+           class="equipment_split_id"
+           name="equipment_split_id[]"
+           value="">
+            <td><input type="text" class="form-control category_name" name="equipment_category[]" readonly></td>
+            <td><input type="text" class="form-control sub_category_name" name="equipment_sub_category[]" readonly></td>
+            <td>
+                <select class="form-select equipment_select" name="equipment_name[]">
+                    <option value="">Select Equipment</option>
+                </select>
+            </td>
+            <td><input type="number" class="form-control available_qty" name="available_qty[]" readonly></td>
+            <td><input type="number" class="form-control equipment_qty" name="equipment_qty[]" min="1" placeholder="Qty"></td>
+            <td><input type="number" class="form-control rental_price" name="rental_price[]" readonly></td>
+            <td><input type="number" class="form-control equipment_total" name="equipment_total[]" readonly></td>
+            <td><input type="text" class="form-control" name="equipment_notes[]" placeholder="Notes"></td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-danger remove-equipment-row">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        `;
 
         return row;
     }
@@ -1774,15 +1785,15 @@
 
                 list.forEach(item => {
                     options += `
-                    <option value="${item.id}"
-                            data-name="${escapeHtml(item.name)}"
-                            data-qty="${item.available_quantity || item.qty || 0}"
-                            data-rental="${item.rental_price || 0}"
-                            data-category="${escapeHtml(item.category_name || "")}"
-                            data-sub-category="${escapeHtml(item.sub_category_name || "")}">
-                        ${escapeHtml(item.name)} - Available: ${item.available_quantity || item.qty || 0}
-                    </option>
-                `;
+                        <option value="${item.id}"
+                                data-name="${escapeHtml(item.name)}"
+                                data-qty="${item.available_quantity || item.qty || 0}"
+                                data-rental="${item.rental_price || 0}"
+                                data-category="${escapeHtml(item.category_name || "")}"
+                                data-sub-category="${escapeHtml(item.sub_category_name || "")}">
+                            ${escapeHtml(item.name)} - Available: ${item.available_quantity || item.qty || 0}
+                        </option>
+                    `;
                 });
 
                 $(selectBox).html(options);
@@ -1848,10 +1859,10 @@
         equipmentPopupLoading = true;
 
         tbody.innerHTML = `
-        <tr>
-            <td colspan="7" class="text-center text-muted py-4">Loading equipment...</td>
-        </tr>
-    `;
+            <tr>
+                <td colspan="7" class="text-center text-muted py-4">Loading equipment...</td>
+            </tr>
+        `;
 
         fetch("{% url 'inventory:fetch_equipment_names' %}")
             .then(response => response.json())
@@ -1861,10 +1872,10 @@
 
                 if (!equipmentList.length) {
                     tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="text-center text-muted py-4">No equipment found.</td>
-                    </tr>
-                `;
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">No equipment found.</td>
+                        </tr>
+                    `;
                     return;
                 }
 
@@ -1885,14 +1896,14 @@
                     row.dataset.searchText = `${item.name || ""} ${item.category_name || ""} ${item.sub_category_name || ""}`.toLowerCase();
 
                     row.innerHTML = `
-                    <td><input type="checkbox" class="form-check-input bulk-equipment-check"></td>
-                    <td><input type="number" class="form-control bulk-equipment-qty" min="1" placeholder="Qty"></td>
-                    <td>${escapeHtml(item.name || "")}</td>
-                    <td>${escapeHtml(item.category_name || "-")}</td>
-                    <td>${escapeHtml(item.sub_category_name || "-")}</td>
-                    <td>${availableQty}</td>
-                    <td>${item.rental_price || 0}</td>
-                `;
+                        <td><input type="checkbox" class="form-check-input bulk-equipment-check"></td>
+                        <td><input type="number" class="form-control bulk-equipment-qty" min="1" placeholder="Qty"></td>
+                        <td>${escapeHtml(item.name || "")}</td>
+                        <td>${escapeHtml(item.category_name || "-")}</td>
+                        <td>${escapeHtml(item.sub_category_name || "-")}</td>
+                        <td>${availableQty}</td>
+                        <td>${item.rental_price || 0}</td>
+                    `;
 
                     tbody.appendChild(row);
                 });
@@ -1903,10 +1914,10 @@
             .catch(error => {
                 console.error("Bulk equipment load error:", error);
                 tbody.innerHTML = `
-                <tr>
-                    <td colspan="7" class="text-center text-danger py-4">Equipment loading error.</td>
-                </tr>
-            `;
+                    <tr>
+                        <td colspan="7" class="text-center text-danger py-4">Equipment loading error.</td>
+                    </tr>
+                `;
             })
             .finally(() => {
                 equipmentPopupLoading = false;
@@ -1964,10 +1975,10 @@
             const select = row.querySelector(".equipment_select");
 
             select.innerHTML = `
-            <option value="${popupRow.dataset.equipmentId}" selected>
-                ${escapeHtml(popupRow.dataset.equipmentName)}
-            </option>
-        `;
+                <option value="${popupRow.dataset.equipmentId}" selected>
+                    ${escapeHtml(popupRow.dataset.equipmentName)}
+                </option>
+            `;
 
             row.querySelector(".category_name").value = popupRow.dataset.categoryName || "";
             row.querySelector(".sub_category_name").value = popupRow.dataset.subCategoryName || "";
@@ -2154,19 +2165,19 @@
                 if (!tbody) return;
 
                 tbody.insertAdjacentHTML("beforeend", `
-                <tr>
-                    <td><input type="text" name="vendor-name" class="form-control"></td>
-                    <td><input type="text" name="equipment-name" class="form-control"></td>
-                    <td><input type="number" name="quantity" class="form-control"></td>
-                    <td><input type="number" name="sub_unit_price" class="form-control sub-unit-price"></td>
-                    <td><input type="number" name="sub_total" class="form-control sub-total" readonly></td>
-                    <td>
-                        <button type="button" class="btn btn-sm btn-danger remove-sub-vendor-row">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `);
+                    <tr>
+                        <td><input type="text" name="vendor-name" class="form-control"></td>
+                        <td><input type="text" name="equipment-name" class="form-control"></td>
+                        <td><input type="number" name="quantity" class="form-control"></td>
+                        <td><input type="number" name="sub_unit_price" class="form-control sub-unit-price"></td>
+                        <td><input type="number" name="sub_total" class="form-control sub-total" readonly></td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-danger remove-sub-vendor-row">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `);
             });
         }
 
@@ -2246,11 +2257,11 @@
             menu.innerHTML = `<div class="crew-type-empty">No crew type found</div>`;
         } else {
             menu.innerHTML = filtered.map(item => `
-            <div class="crew-type-option" data-value="${escapeHtml(item.name)}">
-                <span>${escapeHtml(item.name)}</span>
-                <small>${escapeHtml(item.group)}</small>
-            </div>
-        `).join("");
+                <div class="crew-type-option" data-value="${escapeHtml(item.name)}">
+                    <span>${escapeHtml(item.name)}</span>
+                    <small>${escapeHtml(item.group)}</small>
+                </div>
+            `).join("");
         }
 
         positionCrewMenu(input);
@@ -2281,27 +2292,27 @@
                 if (!tbody) return;
 
                 tbody.insertAdjacentHTML("beforeend", `
-                <tr>
-                    <td>
-                        <button type="button" class="btn btn-sm btn-danger remove-row">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </td>
-                    <td>
-                        <div class="crew-type-wrapper">
-                            <input type="text"
-                                   class="form-control crew-type-input"
-                                   name="crew_type[]"
-                                   placeholder="Search Crew Type"
-                                   autocomplete="off">
-                        </div>
-                    </td>
-                    <td><input type="number" class="form-control crew-days" name="crew_no_of_days[]" placeholder="Days"></td>
-                    <td><input type="number" class="form-control crew-charge" name="perday_charges[]" placeholder="Per Day"></td>
-                    <td><input type="number" class="form-control crew-total" name="crew_total[]" readonly></td>
-                    <td><input type="text" class="form-control" name="crew_notes[]" placeholder="Notes"></td>
-                </tr>
-            `);
+                    <tr>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-danger remove-row">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                        <td>
+                            <div class="crew-type-wrapper">
+                                <input type="text"
+                                       class="form-control crew-type-input"
+                                       name="crew_type[]"
+                                       placeholder="Search Crew Type"
+                                       autocomplete="off">
+                            </div>
+                        </td>
+                        <td><input type="number" class="form-control crew-days" name="crew_no_of_days[]" placeholder="Days"></td>
+                        <td><input type="number" class="form-control crew-charge" name="perday_charges[]" placeholder="Per Day"></td>
+                        <td><input type="number" class="form-control crew-total" name="crew_total[]" readonly></td>
+                        <td><input type="text" class="form-control" name="crew_notes[]" placeholder="Notes"></td>
+                    </tr>
+                `);
 
                 refreshSmartWizardHeight();
             });
@@ -2419,12 +2430,12 @@
             const selected = String(driver.name) === String(selectedValue) ? "selected" : "";
 
             select.innerHTML += `
-            <option value="${escapeHtml(driver.name)}"
-                    data-mobile="${escapeHtml(driver.mobile_no || "")}"
-                    ${selected}>
-                ${escapeHtml(driver.name)}
-            </option>
-        `;
+                <option value="${escapeHtml(driver.name)}"
+                        data-mobile="${escapeHtml(driver.mobile_no || "")}"
+                        ${selected}>
+                    ${escapeHtml(driver.name)}
+                </option>
+            `;
         });
     }
 
@@ -2439,10 +2450,10 @@
             const selected = String(vehicle.vehicle_no) === String(selectedValue) ? "selected" : "";
 
             select.innerHTML += `
-            <option value="${escapeHtml(vehicle.vehicle_no)}" ${selected}>
-                ${escapeHtml(vehicle.vehicle_no)}
-            </option>
-        `;
+                <option value="${escapeHtml(vehicle.vehicle_no)}" ${selected}>
+                    ${escapeHtml(vehicle.vehicle_no)}
+                </option>
+            `;
         });
     }
 
@@ -2459,62 +2470,56 @@
         row.className = "transport-row row g-3 align-items-end mb-3";
 
         row.innerHTML = `
-        <div class="col-lg-3 col-md-6 own-vehicle-field">
-            <label class="form-label">Driver Name</label>
-            <select class="form-select" name="driver_name[]">
-                <option value="">Select Driver</option>
-            </select>
-        </div>
+            <div class="col-lg-3 col-md-6 own-vehicle-field">
+                <label class="form-label">Driver Name</label>
+                <select class="form-select" name="driver_name[]">
+                    <option value="">Select Driver</option>
+                </select>
+            </div>
 
-        <div class="col-lg-3 col-md-6 own-vehicle-field">
-            <label class="form-label">Contact Number</label>
-            <input type="text" class="form-control" name="contact_number[]" placeholder="Enter Contact Number">
-        </div>
+            <div class="col-lg-3 col-md-6 own-vehicle-field">
+                <label class="form-label">Contact Number</label>
+                <input type="text" class="form-control" name="contact_number[]" placeholder="Enter Contact Number">
+            </div>
 
-        <div class="col-lg-3 col-md-6 own-vehicle-field">
-            <label class="form-label">Vehicle Number</label>
-            <select class="form-select" name="vehicle_number[]">
-                <option value="">Select Vehicle</option>
-            </select>
-        </div>
+            <div class="col-lg-3 col-md-6 own-vehicle-field">
+                <label class="form-label">Vehicle Number</label>
+                <select class="form-select" name="vehicle_number[]">
+                    <option value="">Select Vehicle</option>
+                </select>
+            </div>
 
-        <div class="col-lg-3 col-md-6 own-vehicle-field">
-            <label class="form-label">Amount</label>
-            <input type="number"
-                   class="form-control own-transport-amount"
-                   name="own_transport_amount[]"
-                   placeholder="Amount">
-        </div>
+            <div class="col-lg-3 col-md-6 own-vehicle-field">
+                <label class="form-label">Amount</label>
+                <input type="number" class="form-control transport-amount" name="transport_amount[]" placeholder="Amount">
+            </div>
 
-        <div class="col-lg-3 col-md-6 outside-vehicle-field d-none">
-            <label class="form-label">Outside Driver Name</label>
-            <input type="text" class="form-control" name="outside_driver_name[]" placeholder="Enter Driver Name">
-        </div>
+            <div class="col-lg-3 col-md-6 outside-vehicle-field d-none">
+                <label class="form-label">Outside Driver Name</label>
+                <input type="text" class="form-control" name="outside_driver_name[]" placeholder="Enter Driver Name">
+            </div>
 
-        <div class="col-lg-3 col-md-6 outside-vehicle-field d-none">
-            <label class="form-label">Outside Contact Number</label>
-            <input type="text" class="form-control" name="outside_contact_number[]" placeholder="Enter Contact Number">
-        </div>
+            <div class="col-lg-3 col-md-6 outside-vehicle-field d-none">
+                <label class="form-label">Outside Contact Number</label>
+                <input type="text" class="form-control" name="outside_contact_number[]" placeholder="Enter Contact Number">
+            </div>
 
-        <div class="col-lg-3 col-md-6 outside-vehicle-field d-none">
-            <label class="form-label">Outside Vehicle Number</label>
-            <input type="text" class="form-control" name="outside_vehicle_number[]" placeholder="Enter Vehicle Number">
-        </div>
+            <div class="col-lg-3 col-md-6 outside-vehicle-field d-none">
+                <label class="form-label">Outside Vehicle Number</label>
+                <input type="text" class="form-control" name="outside_vehicle_number[]" placeholder="Enter Vehicle Number">
+            </div>
 
-        <div class="col-lg-3 col-md-6 outside-vehicle-field d-none">
-            <label class="form-label">Amount</label>
-            <input type="number"
-               class="form-control outside-transport-amount"
-               name="outside_transport_amount[]"
-               placeholder="Amount">
-        </div>
+            <div class="col-lg-3 col-md-6 outside-vehicle-field d-none">
+                <label class="form-label">Amount</label>
+                <input type="number" class="form-control transport-amount" name="transport_amount[]" placeholder="Amount">
+            </div>
 
-        <div class="col-auto">
-            <button type="button" class="btn btn-danger remove-transport-row">
-                <i class="bi bi-x-lg"></i>
-            </button>
-        </div>
-    `;
+            <div class="col-auto">
+                <button type="button" class="btn btn-danger remove-transport-row">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        `;
 
         populateDriverDropdown(row.querySelector('select[name="driver_name[]"]'));
         populateVehicleDropdown(row.querySelector('select[name="vehicle_number[]"]'));
@@ -2549,10 +2554,7 @@
         });
 
         document.addEventListener("input", function (event) {
-            if (
-                event.target.classList.contains("own-transport-amount") ||
-                event.target.classList.contains("outside-transport-amount")
-            ) {
+            if (event.target.classList.contains("transport-amount")) {
                 calculateMainAmount();
             }
         });
@@ -2613,10 +2615,10 @@
 
                 const select = row.querySelector(".equipment_select");
                 select.innerHTML = `
-                <option value="${item.equipment_id}" selected>
-                    ${item.equipment_name || ""}
-                </option>
-            `;
+                    <option value="${item.equipment_id}" selected>
+                        ${item.equipment_name || ""}
+                    </option>
+                `;
 
                 tbody.appendChild(row);
             });
@@ -2684,20 +2686,18 @@
             }
 
             equipmentSectionData[sectionKey].push({
-            equipment_id: item.equipment_detail_id || "",
-            equipment_name: item.equipment_name || "",
-            qty: item.quantity || "",
-            rental_price: item.equipment_unit_price || "",
-            total: item.equipment_total || "",
-            notes: item.equipment_notes || "",
-
-            location: item.location || "",
-            incharge: item.incharge || "",
-            rehearsal_date: item.equipment_rehearsal_date || "",
-            setup_date: item.equipment_setup_date || ""
+                equipment_id: item.equipment_id || "",
+                equipment_name: item.equipment_name || "",
+                category_name: item.category_name || "",
+                sub_category_name: item.sub_category_name || "",
+                available_qty: item.available_qty || "",
+                qty: item.equipment_qty || "",
+                rental_price: item.rental_price || "",
+                total: item.equipment_total || "",
+                notes: item.equipment_notes || "",
+                available_dataset: item.available_qty || 0
+            });
         });
-        });
-
 
         renderEquipmentRowsForSection("main");
     }
@@ -2710,29 +2710,29 @@
 
         if (!crewData || !crewData.length) {
             tbody.innerHTML = `
-            <tr>
-                <td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bi bi-trash"></i></button></td>
-                <td><div class="crew-type-wrapper"><input type="text" class="form-control crew-type-input" name="crew_type[]" placeholder="Search Crew Type" autocomplete="off"></div></td>
-                <td><input type="number" class="form-control crew-days" name="crew_no_of_days[]" placeholder="Days"></td>
-                <td><input type="number" class="form-control crew-charge" name="perday_charges[]" placeholder="Per Day"></td>
-                <td><input type="number" class="form-control crew-total" name="crew_total[]" readonly></td>
-                <td><input type="text" class="form-control" name="crew_notes[]" placeholder="Notes"></td>
-            </tr>
-        `;
+                <tr>
+                    <td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bi bi-trash"></i></button></td>
+                    <td><div class="crew-type-wrapper"><input type="text" class="form-control crew-type-input" name="crew_type[]" placeholder="Search Crew Type" autocomplete="off"></div></td>
+                    <td><input type="number" class="form-control crew-days" name="crew_no_of_days[]" placeholder="Days"></td>
+                    <td><input type="number" class="form-control crew-charge" name="perday_charges[]" placeholder="Per Day"></td>
+                    <td><input type="number" class="form-control crew-total" name="crew_total[]" readonly></td>
+                    <td><input type="text" class="form-control" name="crew_notes[]" placeholder="Notes"></td>
+                </tr>
+            `;
             return;
         }
 
         crewData.forEach(item => {
             tbody.insertAdjacentHTML("beforeend", `
-            <tr>
-                <td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bi bi-trash"></i></button></td>
-                <td><div class="crew-type-wrapper"><input type="text" class="form-control crew-type-input" name="crew_type[]" value="${escapeHtml(item.crew_type || "")}" autocomplete="off"></div></td>
-                <td><input type="number" class="form-control crew-days" name="crew_no_of_days[]" value="${item.no_of_days || item.crew_no_of_days || ""}"></td>
-                <td><input type="number" class="form-control crew-charge" name="perday_charges[]" value="${item.perday_charges || item.per_day || ""}"></td>
-                <td><input type="number" class="form-control crew-total" name="crew_total[]" value="${item.total || item.crew_total || ""}" readonly></td>
-                <td><input type="text" class="form-control" name="crew_notes[]" value="${escapeHtml(item.notes || "")}"></td>
-            </tr>
-        `);
+                <tr>
+                    <td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bi bi-trash"></i></button></td>
+                    <td><div class="crew-type-wrapper"><input type="text" class="form-control crew-type-input" name="crew_type[]" value="${escapeHtml(item.crew_type || "")}" autocomplete="off"></div></td>
+                    <td><input type="number" class="form-control crew-days" name="crew_no_of_days[]" value="${item.no_of_days || item.crew_no_of_days || ""}"></td>
+                    <td><input type="number" class="form-control crew-charge" name="perday_charges[]" value="${item.perday_charges || item.per_day || ""}"></td>
+                    <td><input type="number" class="form-control crew-total" name="crew_total[]" value="${item.total || item.crew_total || ""}" readonly></td>
+                    <td><input type="text" class="form-control" name="crew_notes[]" value="${escapeHtml(item.notes || "")}"></td>
+                </tr>
+            `);
         });
     }
 
@@ -2744,40 +2744,29 @@
 
         if (!subVendorData || !subVendorData.length) {
             tbody.innerHTML = `
-            <tr>
-                <td><input type="text" name="vendor-name" class="form-control"></td>
-                <td><input type="text" name="equipment-name" class="form-control"></td>
-                <td><input type="number" name="quantity" class="form-control"></td>
-                <td><input type="number" name="sub_unit_price" class="form-control sub-unit-price"></td>
-                <td><input type="number" name="sub_total" class="form-control sub-total" readonly></td>
-                <td><button type="button" class="btn btn-sm btn-danger remove-sub-vendor-row"><i class="bi bi-trash"></i></button></td>
-            </tr>
-        `;
+                <tr>
+                    <td><input type="text" name="vendor-name" class="form-control"></td>
+                    <td><input type="text" name="equipment-name" class="form-control"></td>
+                    <td><input type="number" name="quantity" class="form-control"></td>
+                    <td><input type="number" name="sub_unit_price" class="form-control sub-unit-price"></td>
+                    <td><input type="number" name="sub_total" class="form-control sub-total" readonly></td>
+                    <td><button type="button" class="btn btn-sm btn-danger remove-sub-vendor-row"><i class="bi bi-trash"></i></button></td>
+                </tr>
+            `;
             return;
         }
 
         subVendorData.forEach(item => {
             tbody.insertAdjacentHTML("beforeend", `
-            <tr>
-                <td><input type="text" name="vendor-name" class="form-control" value="${escapeHtml(item.vendor_name || "")}"></td>
-                <td>
-                    <input type="text"
-                           name="equipment-name"
-                           class="form-control"
-                           value="${escapeHtml(item.sub_equipment_name || item.equipment_name || "")}">
-                </td>
-
-                <td>
-                    <input type="number"
-                           name="quantity"
-                           class="form-control"
-                           value="${item.sub_quantity || item.quantity || ""}">
-                </td>
-                <td><input type="number" name="sub_unit_price" class="form-control sub-unit-price" value="${item.unit_price || item.sub_unit_price || ""}"></td>
-                <td><input type="number" name="sub_total" class="form-control sub-total" value="${item.total || item.sub_total || ""}" readonly></td>
-                <td><button type="button" class="btn btn-sm btn-danger remove-sub-vendor-row"><i class="bi bi-trash"></i></button></td>
-            </tr>
-        `);
+                <tr>
+                    <td><input type="text" name="vendor-name" class="form-control" value="${escapeHtml(item.vendor_name || "")}"></td>
+                    <td><input type="text" name="equipment-name" class="form-control" value="${escapeHtml(item.equipment_name || "")}"></td>
+                    <td><input type="number" name="quantity" class="form-control" value="${item.quantity || ""}"></td>
+                    <td><input type="number" name="sub_unit_price" class="form-control sub-unit-price" value="${item.unit_price || item.sub_unit_price || ""}"></td>
+                    <td><input type="number" name="sub_total" class="form-control sub-total" value="${item.total || item.sub_total || ""}" readonly></td>
+                    <td><button type="button" class="btn btn-sm btn-danger remove-sub-vendor-row"><i class="bi bi-trash"></i></button></td>
+                </tr>
+            `);
         });
     }
 
@@ -2820,53 +2809,22 @@
                 }
 
                 equipmentSectionData[sectionKey].push({
-                equipment_id: item.equipment_id || item.equipment_detail_id || "",
-                equipment_name: item.equipment_name || "",
-                category_name:
-                    item.category_name ||
-                    item.category_type ||
-                    item.equipment_category ||
-                    "",
-                sub_category_name: item.sub_category_name || item.equipment_sub_category || "",
-                available_qty: item.available_qty || "",
-                qty: item.equipment_qty || item.quantity || "",
-                rental_price: item.rental_price || item.equipment_unit_price || "",
-                total: item.equipment_total || item.total || "",
-                notes: item.equipment_notes || item.notes || "",
-                available_dataset: item.available_qty || 0
+                    equipment_id: item.equipment_id || "",
+                    equipment_name: item.equipment_name || "",
+                    category_name: item.category_name || item.equipment_category || "",
+                    sub_category_name: item.sub_category_name || item.equipment_sub_category || "",
+                    available_qty: item.available_qty || "",
+                    qty: item.equipment_qty || item.quantity || "",
+                    rental_price: item.rental_price || "",
+                    total: item.equipment_total || item.total || "",
+                    notes: item.equipment_notes || item.notes || "",
+                    available_dataset: item.available_qty || 0
+                });
             });
-            });
-            // ADD THIS BLOCK HERE
-            if (equipmentData.length) {
-                console.log("FIRST EQUIPMENT ROW:", equipmentData[0]);
-                const firstRow = equipmentData[0];
-
-                setVal("equipment_location", firstRow.location || "");
-                setVal("equipment_incharge", firstRow.incharge || "");
-                setVal("equipment_rehearsal_date", firstRow.equipment_rehearsal_date || "");
-                setVal("equipment_event_date", firstRow.equipment_setup_date || "");
-            }
-
         }
 
-        console.log("equipmentSectionData =", equipmentSectionData);
-        console.log("main rows =", equipmentSectionData["main"]);
-
-        let defaultSection = "main";
-
-        if (
-            equipmentSectionData.main.length === 0 &&
-            Object.keys(equipmentSectionData).length > 1
-        ) {
-            defaultSection = Object.keys(equipmentSectionData)
-                .find(key => key !== "main");
-        }
-
-        currentEquipmentSectionKey = defaultSection;
-
-        console.log("SECTION KEY =", defaultSection);
-
-        renderEquipmentRowsForSection(defaultSection);
+        currentEquipmentSectionKey = "main";
+        renderEquipmentRowsForSection("main");
     }
 
     function bindEditCrewRows(crewData) {
@@ -2877,36 +2835,29 @@
 
         if (!crewData || !crewData.length) {
             tbody.innerHTML = `
-            <tr>
-                <td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bi bi-trash"></i></button></td>
-                <td><div class="crew-type-wrapper"><input type="text" class="form-control crew-type-input" name="crew_type[]" placeholder="Search Crew Type" autocomplete="off"></div></td>
-                <td><input type="number" class="form-control crew-days" name="crew_no_of_days[]" placeholder="Days"></td>
-                <td><input type="number" class="form-control crew-charge" name="perday_charges[]" placeholder="Per Day"></td>
-                <td><input type="number" class="form-control crew-total" name="crew_total[]" readonly></td>
-                <td><input type="text" class="form-control" name="crew_notes[]" placeholder="Notes"></td>
-            </tr>
-        `;
+                <tr>
+                    <td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bi bi-trash"></i></button></td>
+                    <td><div class="crew-type-wrapper"><input type="text" class="form-control crew-type-input" name="crew_type[]" placeholder="Search Crew Type" autocomplete="off"></div></td>
+                    <td><input type="number" class="form-control crew-days" name="crew_no_of_days[]" placeholder="Days"></td>
+                    <td><input type="number" class="form-control crew-charge" name="perday_charges[]" placeholder="Per Day"></td>
+                    <td><input type="number" class="form-control crew-total" name="crew_total[]" readonly></td>
+                    <td><input type="text" class="form-control" name="crew_notes[]" placeholder="Notes"></td>
+                </tr>
+            `;
             return;
         }
 
         crewData.forEach(item => {
-            console.log("CREW ROW:", item);
             tbody.insertAdjacentHTML("beforeend", `
-            <tr>
-                <td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bi bi-trash"></i></button></td>
-                <td><div class="crew-type-wrapper"><input type="text" class="form-control crew-type-input" name="crew_type[]" value="${escapeHtml(item.crew_type || "")}" autocomplete="off"></div></td>
-                <td><input type="number" class="form-control crew-days" name="crew_no_of_days[]" value="${item.crew_no_of_days || ""}"></td>
-                <td><input type="number" class="form-control crew-charge" name="perday_charges[]" value="${item.perday_charges || ""}"></td>
-                <td>
-                    <input type="number"
-                           class="form-control crew-total"
-                           name="crew_total[]"
-                           value="${item.total || item.crew_total || ''}"
-                           readonly>
-                </td>
-                <td><input type="text" class="form-control" name="crew_notes[]" value="${escapeHtml(item.crew_notes || item.notes || "")}"></td>
-            </tr>
-        `);
+                <tr>
+                    <td><button type="button" class="btn btn-sm btn-danger remove-row"><i class="bi bi-trash"></i></button></td>
+                    <td><div class="crew-type-wrapper"><input type="text" class="form-control crew-type-input" name="crew_type[]" value="${escapeHtml(item.crew_type || "")}" autocomplete="off"></div></td>
+                    <td><input type="number" class="form-control crew-days" name="crew_no_of_days[]" value="${item.crew_no_of_days || ""}"></td>
+                    <td><input type="number" class="form-control crew-charge" name="perday_charges[]" value="${item.perday_charges || ""}"></td>
+                    <td><input type="number" class="form-control crew-total" name="crew_total[]" value="${item.crew_total || ""}" readonly></td>
+                    <td><input type="text" class="form-control" name="crew_notes[]" value="${escapeHtml(item.notes || "")}"></td>
+                </tr>
+            `);
         });
     }
 
@@ -2918,40 +2869,29 @@
 
         if (!subVendorData || !subVendorData.length) {
             tbody.innerHTML = `
-            <tr>
-                <td><input type="text" name="vendor-name" class="form-control"></td>
-                <td><input type="text" name="equipment-name" class="form-control"></td>
-                <td><input type="number" name="quantity" class="form-control"></td>
-                <td><input type="number" name="sub_unit_price" class="form-control sub-unit-price"></td>
-                <td><input type="number" name="sub_total" class="form-control sub-total" readonly></td>
-                <td><button type="button" class="btn btn-sm btn-danger remove-sub-vendor-row"><i class="bi bi-trash"></i></button></td>
-            </tr>
-        `;
+                <tr>
+                    <td><input type="text" name="vendor-name" class="form-control"></td>
+                    <td><input type="text" name="equipment-name" class="form-control"></td>
+                    <td><input type="number" name="quantity" class="form-control"></td>
+                    <td><input type="number" name="sub_unit_price" class="form-control sub-unit-price"></td>
+                    <td><input type="number" name="sub_total" class="form-control sub-total" readonly></td>
+                    <td><button type="button" class="btn btn-sm btn-danger remove-sub-vendor-row"><i class="bi bi-trash"></i></button></td>
+                </tr>
+            `;
             return;
         }
 
         subVendorData.forEach(item => {
             tbody.insertAdjacentHTML("beforeend", `
-            <tr>
-                <td><input type="text" name="vendor-name" class="form-control" value="${escapeHtml(item.vendor_name || "")}"></td>
-                <td>
-                    <input type="text"
-                           name="equipment-name"
-                           class="form-control"
-                           value="${escapeHtml(item.sub_equipment_name || item.equipment_name || "")}">
-                </td>
-
-                <td>
-                    <input type="number"
-                           name="quantity"
-                           class="form-control"
-                           value="${item.sub_quantity || item.quantity || ""}">
-                </td>
-                <td><input type="number" name="sub_unit_price" class="form-control sub-unit-price" value="${item.sub_unit_price || ""}"></td>
-                <td><input type="number" name="sub_total" class="form-control sub-total" value="${item.sub_total || ""}" readonly></td>
-                <td><button type="button" class="btn btn-sm btn-danger remove-sub-vendor-row"><i class="bi bi-trash"></i></button></td>
-            </tr>
-        `);
+                <tr>
+                    <td><input type="text" name="vendor-name" class="form-control" value="${escapeHtml(item.vendor_name || "")}"></td>
+                    <td><input type="text" name="equipment-name" class="form-control" value="${escapeHtml(item.equipment_name || "")}"></td>
+                    <td><input type="number" name="quantity" class="form-control" value="${item.quantity || ""}"></td>
+                    <td><input type="number" name="sub_unit_price" class="form-control sub-unit-price" value="${item.sub_unit_price || ""}"></td>
+                    <td><input type="number" name="sub_total" class="form-control sub-total" value="${item.sub_total || ""}" readonly></td>
+                    <td><button type="button" class="btn btn-sm btn-danger remove-sub-vendor-row"><i class="bi bi-trash"></i></button></td>
+                </tr>
+            `);
         });
     }
 
@@ -2995,22 +2935,14 @@
             if (outsideContact) outsideContact.value = item.outside_contact_number || "";
             if (outsideVehicle) outsideVehicle.value = item.outside_vehicle_number || "";
 
-            const ownAmount = row.querySelector(".own-transport-amount");
-            if (ownAmount) {
-                ownAmount.value = item.own_transport_amount || "";
-            }
+            const amountInputs = row.querySelectorAll(".transport-amount");
+            amountInputs.forEach(input => {
+                input.value = item.transport_amount || "";
+            });
 
-            const outsideAmount = row.querySelector(".outside-transport-amount");
-            if (outsideAmount) {
-                outsideAmount.value = item.outside_transport_amount || "";
-            }
-
-            if (item.transport_type === "Outside Vehicle") {
+            if (item.outside_driver_name || item.outside_vehicle_number) {
                 const outsideRadio = document.querySelector('.transport-type[value="Outside Vehicle"]');
                 if (outsideRadio) outsideRadio.checked = true;
-            } else {
-                const ownRadio = document.querySelector('.transport-type[value="Own Vehicle"]');
-                if (ownRadio) ownRadio.checked = true;
             }
         });
 
@@ -3049,19 +2981,8 @@
         setVal("titleInput", getJobValue("title"));
         setVal("venueAddressDropdown", getJobValue("venue_name"));
         setVal("venueAddressInput", getJobValue("venue_address"));
-        const clientName = getJobValue("client_name");
-        const contactPersonName = getJobValue("contact_person_name");
-
-        setVal("clientNameDropdown", clientName);
+        setVal("clientNameDropdown", getJobValue("client_name"));
         setVal("clientContactNumber", getJobValue("contact_person_number"));
-
-        if (clientName) {
-            fetchContactPersons(clientName);
-
-            setTimeout(() => {
-                $("#clientContactName").val(contactPersonName);
-            }, 500);
-        }
         setVal("prepDate", getJobValue("setup_date"));
         setVal("outDate", getJobValue("rehearsal_date"));
         setVal("showStart", getJobValue("show_start_date", "event_date", "start_date"));
@@ -3078,6 +2999,10 @@
         setVal("discount", getJobValue("discount"));
         setVal("discounted_amount", getJobValue("amount_after_discount"));
         setVal("total_amount_cal", getJobValue("total_amount"));
+
+        setVal("equipment_location", val("venueAddressDropdown"));
+        setVal("equipment_rehearsal_date", val("outDate"));
+        setVal("equipment_event_date", val("showStart"));
 
         bindEditSplitJobs(splitData);
         bindEditEquipmentRows(equipmentData);
