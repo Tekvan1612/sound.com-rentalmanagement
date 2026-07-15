@@ -87,79 +87,212 @@
             </div>
         </div>
 
-        <div class="container mt-3">
-            <div class="card asset-master-card">
-                <div class="card-body">
+       <div class="container mt-3">
+    <div class="card asset-master-card">
+        <div class="card-body">
 
-                    <div class="table-responsive">
-                        <table class="table table-bordered align-middle text-center">
-                            <thead>
-                            <tr>
-                                <th>Sr No.</th>
-                                <th>Crew Designation</th>
-                                <th>Created By</th>
-                                <th>Created Date</th>
-                                <th>Action</th>
-                            </tr>
-                            </thead>
+            <div class="table-responsive">
+                <table
+                    class="table asset-table align-middle w-100 nowrap"
+                    id="crewDataTable"
+                >
+                    <thead>
+                        <tr>
+                            <th>Sr No.</th>
+                            <th>Crew Designation</th>
+                            <th>Created By</th>
+                            <th>Created Date</th>
+                            <th style="width: 120px;">Action</th>
+                        </tr>
+                    </thead>
 
-                            <tbody id="crewTableBody">
-                            <tr>
-                                <td colspan="5">Loading...</td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                </div>
+                    <tbody id="crewTableBody">
+                        <tr>
+                            <td colspan="5" class="text-center">
+                                Loading...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
+
         </div>
+    </div>
+</div>
 
     </main>
 </div>
 
 {% include 'inventory/includes/footer.html' %}
+
+<style>
+    #crewDataTable_wrapper .dt-layout-row:first-child {
+        display: none !important;
+    }
+
+    #crewDataTable_wrapper .dt-layout-row:last-child {
+        display: flex;
+        align-items: center;
+        justify-content:end;
+        margin-top: 18px;
+        padding: 0 4px;
+    }
+
+    #crewDataTable_wrapper .dt-info {
+        padding-top: 0 !important;
+        color: #555;
+        font-size: 15px;
+    }
+
+    #crewDataTable_wrapper .dt-paging {
+        margin-left: auto;
+    }
+
+    #crewDataTable_wrapper .dt-paging-button {
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        border-radius: 22px !important;
+        min-width: 42px;
+        height: 42px;
+        padding: 8px 14px !important;
+        margin: 0 3px;
+        color: #777 !important;
+    }
+
+    #crewDataTable_wrapper .dt-paging-button.current {
+        background: #85ad79 !important;
+        color: #ffffff !important;
+        border: none !important;
+    }
+
+    #crewDataTable_wrapper .dt-paging-button:hover:not(.current):not(.disabled) {
+        background: #eef4ea !important;
+        color: #6e9d65 !important;
+    }
+
+    #crewDataTable_wrapper .dt-paging-button.disabled {
+        opacity: 0.45;
+        cursor: not-allowed !important;
+    }
+
+    #crewDataTable {
+        border-collapse: separate !important;
+        border-spacing: 0 8px !important;
+    }
+
+    #crewDataTable thead th {
+        border: none !important;
+        background: transparent !important;
+        color: #7ea873;
+        font-weight: 600;
+        padding: 12px 14px;
+        white-space: nowrap;
+    }
+
+    #crewDataTable tbody td {
+        border: none !important;
+        padding: 11px 14px;
+        vertical-align: middle;
+    }
+
+    #crewDataTable tbody tr {
+        background: #ffffff;
+    }
+
+    #crewDataTable tbody tr:nth-child(even) {
+        background: #f2f7f1;
+    }
+
+    #crewDataTable tbody tr td:first-child {
+        border-radius: 18px 0 0 18px;
+    }
+
+    #crewDataTable tbody tr td:last-child {
+        border-radius: 0 18px 18px 0;
+    }
+
+    #crewDataTable tbody tr:hover {
+        background: #edf4ea;
+    }
+
+    #crewDataTable .crew-action-btn {
+        width: 39px;
+        height: 39px;
+        border-radius: 50%;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0;
+    }
+
+    @media (max-width: 767px) {
+        #crewDataTable_wrapper .dt-layout-row:last-child {
+            flex-direction: column;
+            gap: 12px;
+            text-align: center;
+        }
+
+        #crewDataTable_wrapper .dt-paging {
+            margin-left: 0;
+        }
+    }
+</style>
 <script src="{% static 'inventory/assets/js/app5724.js' %}"></script>
 
 <script>
+    let crewTable = null;
+
     document.addEventListener("DOMContentLoaded", function () {
         loadCrew();
     });
 
     function saveCrew() {
-        const formData = new FormData();
-
         const crewId = document.getElementById("crew_id").value;
-        const designation = document.getElementById("designation").value.trim();
+        const designation = document
+            .getElementById("designation")
+            .value
+            .trim();
 
         if (!designation) {
             alert("Crew designation is required.");
             return;
         }
 
-        formData.append("crew_designation", designation);
+        const formData = new FormData();
+        formData.append("designation", designation);
+        formData.append("id", crewId);
         formData.append("status", "true");
 
-        let url = "{% url 'inventory:add_crew' %}";
-
-        if (crewId) {
-            url = `/update-crew/${crewId}/`;
-        }
-
-        fetch(url, {
+        fetch("{% url 'inventory:add_crew' %}", {
             method: "POST",
             body: formData,
             headers: {
-                "X-CSRFToken": getCookie("csrftoken")
+                "X-CSRFToken": getCookie("csrftoken"),
+                "X-Requested-With": "XMLHttpRequest"
             }
         })
-            .then(res => res.json())
+            .then(async response => {
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.message || "Unable to save crew."
+                    );
+                }
+
+                return data;
+            })
             .then(data => {
                 alert(data.message || "Saved successfully");
 
                 if (data.success) {
                     bootstrap.Collapse
-                        .getOrCreateInstance(document.getElementById("addCrewCollapse"))
+                        .getOrCreateInstance(
+                            document.getElementById(
+                                "addCrewCollapse"
+                            )
+                        )
                         .hide();
 
                     resetCrew();
@@ -168,97 +301,286 @@
             })
             .catch(error => {
                 console.error("Crew save error:", error);
-                alert("Error while saving crew.");
+                alert(
+                    error.message || "Error while saving crew."
+                );
             });
     }
 
     function loadCrew() {
-        fetch("{% url 'inventory:crew_list' %}")
-            .then(res => res.json())
+        fetch("{% url 'inventory:crew_list' %}", {
+            method: "GET",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+            .then(async response => {
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.error || "Failed to load crew."
+                    );
+                }
+
+                return data;
+            })
             .then(data => {
-                const tbody = document.getElementById("crewTableBody");
+                destroyCrewTable();
+
+                const tbody =
+                    document.getElementById("crewTableBody");
+
                 tbody.innerHTML = "";
 
-                if (!data.data || !data.data.length) {
+                if (!data.data || data.data.length === 0) {
                     tbody.innerHTML = `
-                <tr>
-                    <td colspan="5">No data found</td>
-                </tr>
-            `;
+                        <tr>
+                            <td colspan="5"
+                                class="text-center">
+                                No data found
+                            </td>
+                        </tr>
+                    `;
+
                     return;
                 }
 
                 data.data.forEach((item, index) => {
-                    tbody.innerHTML += `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td>${item.crew_designation || "-"}</td>
-                    <td>${item.created_by || "-"}</td>
-                    <td>${item.created_date || "-"}</td>
-                    <td>
-                        <div class="d-flex justify-content-center gap-2">
+                    const safeDesignation = escapeHtml(
+                        item.crew_designation || "-"
+                    );
 
-                            <button type="button"
-                                    class="btn btn-sm btn-outline-primary"
-                                    title="Edit"
-                                    onclick='editCrew(${item.crew_id}, ${JSON.stringify(item.crew_designation || "")})'>
-                                <i class="bi bi-pencil-square"></i>
-                            </button>
+                    const safeCreatedBy = escapeHtml(
+                        item.created_by || "-"
+                    );
 
-                            <button type="button"
-                                    class="btn btn-sm btn-outline-danger"
-                                    title="Delete"
-                                    onclick="deleteCrew(${item.crew_id})">
-                                <i class="bi bi-trash"></i>
-                            </button>
+                    const safeCreatedDate = escapeHtml(
+                        item.created_date || "-"
+                    );
 
-                        </div>
-                    </td>
-                </tr>
-            `;
+                    tbody.insertAdjacentHTML(
+                        "beforeend",
+                        `
+                        <tr>
+                            <td>${index + 1}</td>
+
+                            <td>${safeDesignation}</td>
+
+                            <td>${safeCreatedBy}</td>
+
+                            <td>${safeCreatedDate}</td>
+
+                            <td>
+                                <div class="d-flex
+                                            justify-content-center
+                                            gap-2">
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-primary
+                                               btn-sm crew-action-btn"
+                                        title="Edit"
+                                        onclick='editCrew(
+                                            ${Number(item.crew_id)},
+                                            ${JSON.stringify(
+                                                item.crew_designation || ""
+                                            )}
+                                        )'
+                                    >
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-danger
+                                               btn-sm crew-action-btn"
+                                        title="Delete"
+                                        onclick="deleteCrew(
+                                            ${Number(item.crew_id)}
+                                        )"
+                                    >
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+
+                                </div>
+                            </td>
+                        </tr>
+                        `
+                    );
                 });
+
+                initCrewTable();
             })
             .catch(error => {
                 console.error("Crew load error:", error);
 
-                document.getElementById("crewTableBody").innerHTML = `
-            <tr>
-                <td colspan="5" class="text-danger">Failed to load crew.</td>
-            </tr>
-        `;
+                destroyCrewTable();
+
+                document.getElementById(
+                    "crewTableBody"
+                ).innerHTML = `
+                    <tr>
+                        <td colspan="5"
+                            class="text-danger text-center">
+                            ${escapeHtml(
+                                error.message ||
+                                "Failed to load crew."
+                            )}
+                        </td>
+                    </tr>
+                `;
             });
+    }
+
+    function initCrewTable() {
+        if (
+            !window.jQuery ||
+            !$.fn.DataTable ||
+            !$("#crewDataTable").length
+        ) {
+            console.error(
+                "DataTables library is not loaded."
+            );
+            return;
+        }
+
+        crewTable = $("#crewDataTable").DataTable({
+            searching: false,
+            lengthChange: false,
+            autoWidth: false,
+            pageLength: 25,
+            responsive: true,
+
+            order: [[0, "asc"]],
+
+            columnDefs: [
+                {
+                    orderable: false,
+                    searchable: false,
+                    targets: 4
+                }
+            ],
+
+            dom:
+                'rt' +
+                '<"d-flex justify-content-between ' +
+                'align-items-center mt-3"ip>',
+
+            language: {
+                emptyTable: "Data not available",
+                zeroRecords: "Data not available",
+
+                info:
+                    "Showing _START_ to _END_ of " +
+                    "_TOTAL_ entries",
+
+                infoEmpty:
+                    "Showing 0 to 0 of 0 entries",
+
+                paginate: {
+                    first: "«",
+                    previous: "Previous",
+                    next: "Next",
+                    last: "»"
+                }
+            },
+
+           pagingType: "simple_numbers",
+        });
+    }
+
+    function destroyCrewTable() {
+        if (
+            window.jQuery &&
+            $.fn.DataTable &&
+            $.fn.DataTable.isDataTable(
+                "#crewDataTable"
+            )
+        ) {
+            $("#crewDataTable")
+                .DataTable()
+                .clear()
+                .destroy();
+        }
+
+        crewTable = null;
     }
 
     function editCrew(id, designation) {
         document.getElementById("crew_id").value = id;
-        document.getElementById("designation").value = designation;
-        document.getElementById("crewFormTitle").innerText = "Edit Crew";
+
+        document.getElementById(
+            "designation"
+        ).value = designation;
+
+        document.getElementById(
+            "crewFormTitle"
+        ).innerText = "Edit Crew";
 
         bootstrap.Collapse
-            .getOrCreateInstance(document.getElementById("addCrewCollapse"))
+            .getOrCreateInstance(
+                document.getElementById(
+                    "addCrewCollapse"
+                )
+            )
             .show();
+
+        document.getElementById(
+            "addCrewCollapse"
+        ).scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
     }
 
     function deleteCrew(id) {
-        if (!confirm("Are you sure you want to delete?")) return;
+        if (
+            !confirm(
+                "Are you sure you want to delete this crew?"
+            )
+        ) {
+            return;
+        }
 
         fetch(`/delete-crew/${id}/`, {
             method: "POST",
             headers: {
-                "X-CSRFToken": getCookie("csrftoken")
+                "X-CSRFToken": getCookie("csrftoken"),
+                "X-Requested-With": "XMLHttpRequest"
             }
         })
-            .then(res => res.json())
+            .then(async response => {
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.message ||
+                        "Unable to delete crew."
+                    );
+                }
+
+                return data;
+            })
             .then(data => {
-                alert(data.message || "Deleted successfully");
+                alert(
+                    data.message || "Deleted successfully"
+                );
 
                 if (data.success) {
                     loadCrew();
                 }
             })
             .catch(error => {
-                console.error("Crew delete error:", error);
-                alert("Error while deleting crew.");
+                console.error(
+                    "Crew delete error:",
+                    error
+                );
+
+                alert(
+                    error.message ||
+                    "Error while deleting crew."
+                );
             });
     }
 
@@ -266,30 +588,60 @@
         resetCrew();
 
         bootstrap.Collapse
-            .getOrCreateInstance(document.getElementById("addCrewCollapse"))
+            .getOrCreateInstance(
+                document.getElementById(
+                    "addCrewCollapse"
+                )
+            )
             .hide();
     }
 
     function resetCrew() {
-        document.getElementById("crew_id").value = "";
-        document.getElementById("designation").value = "";
-        document.getElementById("crewFormTitle").innerText = "Add Crew";
+        document.getElementById(
+            "crew_id"
+        ).value = "";
+
+        document.getElementById(
+            "designation"
+        ).value = "";
+
+        document.getElementById(
+            "crewFormTitle"
+        ).innerText = "Add Crew";
     }
 
     function getCookie(name) {
         let cookieValue = null;
 
         if (document.cookie) {
-            document.cookie.split(";").forEach(cookie => {
-                cookie = cookie.trim();
+            document.cookie
+                .split(";")
+                .forEach(cookie => {
+                    cookie = cookie.trim();
 
-                if (cookie.startsWith(name + "=")) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                }
-            });
+                    if (
+                        cookie.startsWith(name + "=")
+                    ) {
+                        cookieValue =
+                            decodeURIComponent(
+                                cookie.substring(
+                                    name.length + 1
+                                )
+                            );
+                    }
+                });
         }
 
         return cookieValue;
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
     }
 </script>
 

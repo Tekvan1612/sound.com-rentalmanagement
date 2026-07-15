@@ -1,232 +1,300 @@
 <div class="adminuiux-sidebar">
     <div class="adminuiux-sidebar-inner">
+
         <div class="px-3 not-iconic mt-3">
             <h6 class="fw-medium small text-uppercase opacity-50">Main</h6>
-
         </div>
+
         <ul class="nav flex-column menu-active-line mt-3">
-            <!-- ecommerce sidebar -->
+
             <li class="nav-item">
-                <a href="{% url 'inventory:dashboard' %}" class="nav-link">
-                    <i class="menu-icon bi bi-columns-gap"></i>
+                <a href="{% url 'inventory:dashboard' %}"
+                   class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i class="menu-icon bi bi-grid-1x2-fill"></i>
                     <span class="menu-name">Dashboard</span>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a href="{% url 'inventory:asset_entry' %}" class="nav-link">
+                <a href="{% url 'inventory:asset_entry' %}"
+                   class="nav-link {% if request.resolver_match.url_name == 'asset_entry' %}active{% endif %}">
                     <i class="menu-icon bi bi-boxes"></i>
                     <span class="menu-name">Asset Master</span>
                 </a>
             </li>
+
             <li class="nav-item">
-                <a href="{% url 'inventory:Stock_list' %}" class="nav-link">
-                    <i class="menu-icon bi bi-box-seam"></i>
+                <a href="{% url 'inventory:Stock_list' %}"
+                   class="nav-link {% if request.resolver_match.url_name == 'Stock_list' %}active{% endif %}">
+                    <i class="menu-icon bi bi-box-seam-fill"></i>
                     <span class="menu-name">Inventory</span>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a href="{% url 'inventory:connects' %}" class="nav-link">
-                    <i class="menu-icon bi bi-people"></i>
+                <a href="{% url 'inventory:connects' %}"
+                   class="nav-link {% if request.resolver_match.url_name == 'connects' %}active{% endif %}">
+                    <i class="menu-icon bi bi-diagram-3-fill"></i>
                     <span class="menu-name">Connects</span>
                 </a>
             </li>
-            <li class="nav-item dropdown">
-                <a href="javascript:void(0)" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
-                   aria-expanded="false">
-                    <i class="menu-icon bi bi-cash-stack"></i>
+
+            <!-- HR MASTER -->
+            {% with current_url=request.resolver_match.url_name %}
+            <li class="nav-item">
+                <a href="#hrMasterMenu"
+                   class="nav-link dropdown-toggle {% if current_url == 'add_employee' or current_url == 'add_user' or current_url == 'company_warehouse_master_page' or current_url == 'transport_master' or current_url == 'crew_master' %}active{% endif %}"
+                   data-bs-toggle="collapse"
+                   role="button"
+                   aria-expanded="{% if current_url == 'add_employee' or current_url == 'add_user' or current_url == 'company_warehouse_master_page' or current_url == 'transport_master' or current_url == 'crew_master' %}true{% else %}false{% endif %}"
+                   aria-controls="hrMasterMenu">
+                    <i class="menu-icon bi bi-person-vcard-fill"></i>
                     <span class="menu-name">HR Master</span>
                 </a>
-                <div class="dropdown-menu">
+
+                <div class="collapse {% if current_url == 'add_employee' or current_url == 'add_user' or current_url == 'company_warehouse_master_page' or current_url == 'transport_master' or current_url == 'crew_master' %}show{% endif %}"
+                     id="hrMasterMenu">
+
                     <div class="nav-item">
-                        <a href="{% url 'inventory:add_employee' %}" class="nav-link">
-                            <i class="menu-icon bi bi-person-badge"></i>
+                        <a href="{% url 'inventory:add_employee' %}"
+                           class="nav-link {% if current_url == 'add_employee' %}active{% endif %}">
+                            <i class="menu-icon bi bi-person-badge-fill"></i>
                             <span class="menu-name">Employees</span>
                         </a>
                     </div>
+
                     <div class="nav-item">
-                        <a href="{% url 'inventory:add_user' %}" class="nav-link">
-                            <i class="menu-icon bi bi-people-fill"></i>
+                        <a href="{% url 'inventory:add_user' %}"
+                           class="nav-link {% if current_url == 'add_user' %}active{% endif %}">
+                            <i class="menu-icon bi bi-person-gear"></i>
                             <span class="menu-name">Users</span>
                         </a>
                     </div>
+
                     <div class="nav-item">
-                        <a href="{% url 'inventory:company_warehouse_master_page' %}" class="nav-link">
-                            <i class="menu-icon bi bi-tags"></i>
+                        <a href="{% url 'inventory:company_warehouse_master_page' %}"
+                           class="nav-link {% if current_url == 'company_warehouse_master_page' %}active{% endif %}">
+                            <i class="menu-icon bi bi-buildings-fill"></i>
                             <span class="menu-name">Company/Warehouses</span>
                         </a>
                     </div>
+
                     <div class="nav-item">
-                        <a href="{% url 'inventory:transport_master' %}" class="nav-link">
-                            <i class="menu-icon bi bi-truck"></i>
+                        <a href="{% url 'inventory:transport_master' %}"
+                           class="nav-link {% if current_url == 'transport_master' %}active{% endif %}">
+                            <i class="menu-icon bi bi-truck-front-fill"></i>
                             <span class="menu-name">Transports</span>
                         </a>
                     </div>
 
                     <div class="nav-item">
-                        <a href="{% url 'inventory:crew_master' %}" class="nav-link">
-                            <i class="menu-icon bi bi-tags"></i>
+                        <a href="{% url 'inventory:crew_master' %}"
+                           class="nav-link {% if current_url == 'crew_master' %}active{% endif %}">
+                            <i class="menu-icon bi bi-people-fill"></i>
                             <span class="menu-name">Crews</span>
                         </a>
                     </div>
+
                 </div>
             </li>
+            {% endwith %}
 
-            <li class="nav-item dropdown">
-                <a href="javascript:void(0)" class="nav-link dropdown-toggle" data-bs-toggle="collapse"
-                   data-bs-target="#projectMenu">
-                    <i class="menu-icon bi bi-kanban"></i>
+            <!-- PROJECT MANAGEMENT -->
+            {% with current_url=request.resolver_match.url_name %}
+            <li class="nav-item">
+                <a href="#projectMenu"
+                   class="nav-link dropdown-toggle {% if current_url == 'event_creation' or current_url == 'crew_allocation' %}active{% endif %}"
+                   data-bs-toggle="collapse"
+                   role="button"
+                   aria-expanded="{% if current_url == 'event_creation' or current_url == 'crew_allocation' %}true{% else %}false{% endif %}"
+                   aria-controls="projectMenu">
+                    <i class="menu-icon bi bi-kanban-fill"></i>
                     <span class="menu-name">Project Management</span>
                 </a>
 
-                <div class="collapse" id="projectMenu">
+                <div class="collapse {% if current_url == 'event_creation' or current_url == 'crew_allocation' %}show{% endif %}"
+                     id="projectMenu">
 
                     <div class="nav-item">
-                        <a href="{% url 'inventory:event_creation' %}" class="nav-link">
-                            <i class="menu-icon bi bi-calendar-event"></i>
+                        <a href="{% url 'inventory:event_creation' %}"
+                           class="nav-link {% if current_url == 'event_creation' %}active{% endif %}">
+                            <i class="menu-icon bi bi-calendar-event-fill"></i>
                             <span class="menu-name">Event Creation</span>
                         </a>
                     </div>
 
                     <div class="nav-item">
-                        <a href="{% url 'inventory:crew_allocation' %}" class="nav-link">
-                            <i class="menu-icon bi bi-diagram-3"></i>
+                        <a href="{% url 'inventory:crew_allocation' %}"
+                           class="nav-link {% if current_url == 'crew_allocation' %}active{% endif %}">
+                            <i class="menu-icon bi bi-person-check-fill"></i>
                             <span class="menu-name">Crew Allocation</span>
                         </a>
                     </div>
 
                 </div>
             </li>
+            {% endwith %}
 
-            <li class="nav-item dropdown">
-                <a href="javascript:void(0)"
-                   class="nav-link dropdown-toggle"
+            <!-- ORDER BOOK -->
+            {% with current_url=request.resolver_match.url_name %}
+            <li class="nav-item">
+                <a href="#orderBookMenu"
+                   class="nav-link dropdown-toggle {% if current_url == 'job_book' or current_url == 'job_summary' %}active{% endif %}"
                    data-bs-toggle="collapse"
-                   data-bs-target="#orderBookMenu"
-                   aria-expanded="false">
-                    <i class="menu-icon bi bi-bag"></i>
+                   role="button"
+                   aria-expanded="{% if current_url == 'job_book' or current_url == 'job_summary' %}true{% else %}false{% endif %}"
+                   aria-controls="orderBookMenu">
+                    <i class="menu-icon bi bi-journal-bookmark-fill"></i>
                     <span class="menu-name">Order Book</span>
                 </a>
 
-                <div class="collapse" id="orderBookMenu">
+                <div class="collapse {% if current_url == 'job_book' or current_url == 'job_summary' %}show{% endif %}"
+                     id="orderBookMenu">
+
                     <div class="nav-item">
                         <a href="{% url 'inventory:job_book' %}"
-                           class="nav-link">
-                            <span class="menu-name ms-4">- Job Book</span>
+                           class="nav-link {% if current_url == 'job_book' %}active{% endif %}">
+                            <i class="menu-icon bi bi-journal-text"></i>
+                            <span class="menu-name">Job Book</span>
                         </a>
                     </div>
 
                     <div class="nav-item">
                         <a href="{% url 'inventory:job_summary' %}"
-                           class="nav-link">
-                            <span class="menu-name ms-4">- Job Summary</span>
+                           class="nav-link {% if current_url == 'job_summary' %}active{% endif %}">
+                            <i class="menu-icon bi bi-bar-chart-fill"></i>
+                            <span class="menu-name">Job Summary</span>
                         </a>
                     </div>
+
                 </div>
             </li>
+            {% endwith %}
 
-               <li class="nav-item dropdown">
-    <a href="javascript:void(0)"
-       class="nav-link dropdown-toggle"
-       data-bs-toggle="collapse"
-       data-bs-target="#inventoryMovementMenu"
-       aria-expanded="false">
+            <!-- INVENTORY MOVEMENT -->
+            {% with current_url=request.resolver_match.url_name %}
+            <li class="nav-item">
+                <a href="#inventoryMovementMenu"
+                   class="nav-link dropdown-toggle {% if current_url == 'dispatch_loading' or current_url == 'job_return' or current_url == 'quick_return' or current_url == 'warehouse_transfer' or current_url == 'maintenance_out' or current_url == 'maintenance_return' or current_url == 'damage_missing' %}active{% endif %}"
+                   data-bs-toggle="collapse"
+                   role="button"
+                   aria-expanded="{% if current_url == 'dispatch_loading' or current_url == 'job_return' or current_url == 'quick_return' or current_url == 'warehouse_transfer' or current_url == 'maintenance_out' or current_url == 'maintenance_return' or current_url == 'damage_missing' %}true{% else %}false{% endif %}"
+                   aria-controls="inventoryMovementMenu">
+                    <i class="menu-icon bi bi-arrow-left-right"></i>
+                    <span class="menu-name">Inventory Movement</span>
+                </a>
 
-        <i class="menu-icon bi bi-upc-scan"></i>
-        <span class="menu-name">Inventory Movement</span>
-    </a>
+                <div class="collapse {% if current_url == 'dispatch_loading' or current_url == 'job_return' or current_url == 'quick_return' or current_url == 'warehouse_transfer' or current_url == 'maintenance_out' or current_url == 'maintenance_return' or current_url == 'damage_missing' %}show{% endif %}"
+                     id="inventoryMovementMenu">
 
-    <div class="collapse" id="inventoryMovementMenu">
+                    <div class="nav-item">
+                        <a href="{% url 'inventory:dispatch_loading' %}"
+                           class="nav-link {% if current_url == 'dispatch_loading' %}active{% endif %}">
+                            <i class="menu-icon bi bi-truck"></i>
+                            <span class="menu-name">Dispatch Loading</span>
+                        </a>
+                    </div>
 
-        <div class="nav-item">
-            <a href="{% url 'inventory:dispatch_loading' %}" class="nav-link">
-                <i class="menu-icon bi bi-truck"></i>
-                <span class="menu-name">Dispatch Loading</span>
-            </a>
-        </div>
+                    <div class="nav-item">
+                        <a href="{% url 'inventory:job_return' %}"
+                           class="nav-link {% if current_url == 'job_return' %}active{% endif %}">
+                            <i class="menu-icon bi bi-box-arrow-in-left"></i>
+                            <span class="menu-name">Job Return</span>
+                        </a>
+                    </div>
 
-        <div class="nav-item">
-            <a href="{% url 'inventory:job_return' %}" class="nav-link">
-                <i class="menu-icon bi bi-box-arrow-in-left"></i>
-                <span class="menu-name">Job Return</span>
-            </a>
-        </div>
+                    <div class="nav-item">
+                        <a href="{% url 'inventory:quick_return' %}"
+                           class="nav-link {% if current_url == 'quick_return' %}active{% endif %}">
+                            <i class="menu-icon bi bi-arrow-repeat"></i>
+                            <span class="menu-name">Quick Return</span>
+                        </a>
+                    </div>
 
-        <div class="nav-item">
-            <a href="{% url 'inventory:quick_return' %}" class="nav-link">
-                <i class="menu-icon bi bi-arrow-repeat"></i>
-                <span class="menu-name">Quick Return</span>
-            </a>
-        </div>
+                    <div class="nav-item">
+                        <a href="{% url 'inventory:warehouse_transfer' %}"
+                           class="nav-link {% if current_url == 'warehouse_transfer' %}active{% endif %}">
+                            <i class="menu-icon bi bi-arrow-left-right"></i>
+                            <span class="menu-name">Warehouse Transfer</span>
+                        </a>
+                    </div>
 
-        <div class="nav-item">
-            <a href="{% url 'inventory:warehouse_transfer' %}" class="nav-link">
-                <i class="menu-icon bi bi-arrow-left-right"></i>
-                <span class="menu-name">Warehouse Transfer</span>
-            </a>
-        </div>
+                    <div class="nav-item">
+                        <a href="{% url 'inventory:maintenance_out' %}"
+                           class="nav-link {% if current_url == 'maintenance_out' %}active{% endif %}">
+                            <i class="menu-icon bi bi-tools"></i>
+                            <span class="menu-name">Maintenance Out</span>
+                        </a>
+                    </div>
 
-        <div class="nav-item">
-            <a href="{% url 'inventory:maintenance_out' %}" class="nav-link">
-                <i class="menu-icon bi bi-tools"></i>
-                <span class="menu-name">Maintenance Out</span>
-            </a>
-        </div>
+                    <div class="nav-item">
+                        <a href="{% url 'inventory:maintenance_return' %}"
+                           class="nav-link {% if current_url == 'maintenance_return' %}active{% endif %}">
+                            <i class="menu-icon bi bi-wrench-adjustable-circle"></i>
+                            <span class="menu-name">Maintenance Return</span>
+                        </a>
+                    </div>
 
-        <div class="nav-item">
-            <a href="{% url 'inventory:maintenance_return' %}" class="nav-link">
-                <i class="menu-icon bi bi-wrench-adjustable"></i>
-                <span class="menu-name">Maintenance Return</span>
-            </a>
-        </div>
+                    <div class="nav-item">
+                        <a href="{% url 'inventory:damage_missing' %}"
+                           class="nav-link {% if current_url == 'damage_missing' %}active{% endif %}">
+                            <i class="menu-icon bi bi-exclamation-triangle-fill"></i>
+                            <span class="menu-name">Missing / Damage Entry</span>
+                        </a>
+                    </div>
 
-        <div class="nav-item">
-            <a href="{% url 'inventory:damage_missing' %}" class="nav-link">
-                <i class="menu-icon bi bi-exclamation-triangle"></i>
-                <span class="menu-name">Missing / Damage Entry</span>
-            </a>
-        </div>
+                </div>
+            </li>
+            {% endwith %}
 
-    </div>
-</li>
         </ul>
-        <div class="px-3 not-iconic">
+
+        <div class="px-3 not-iconic mt-3">
             <h6 class="fw-medium small text-uppercase opacity-50">Other</h6>
         </div>
+
         <ul class="nav flex-column menu-active-line mt-3">
-
-
             <li class="nav-item">
                 <a href="ecommerce-personalization.html" class="nav-link">
-                    <i class="menu-icon bi bi-palette h4"></i>
-                    <span class="menu-name">Personalize <small
-                            class="fs-14 bi bi-heart-fill text-danger"></small></span>
+                    <i class="menu-icon bi bi-palette-fill"></i>
+                    <span class="menu-name">
+                        Personalize
+                        <small class="fs-14 bi bi-heart-fill text-danger"></small>
+                    </span>
                 </a>
             </li>
-
         </ul>
-        <div class=" mt-auto "></div>
+
+        <div class="mt-auto"></div>
+
         <div class="px-3 not-iconic">
             <div class="card adminuiux-card shadow-sm border-0">
                 <div class="card-body p-2">
                     <div class="row gx-2">
                         <div class="col-12 d-flex justify-content-between">
-                            <a href="#" class="btn btn-square btn-link">
+                            <a href="#" class="btn btn-square btn-link" title="Packages">
                                 <span class="position-relative">
                                     <i data-feather="package"></i>
-                                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-warning rounded-circle"><span
-                                            class="visually-hidden">New alerts</span> </span></span>
+                                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-warning rounded-circle">
+                                        <span class="visually-hidden">New alerts</span>
+                                    </span>
+                                </span>
                             </a>
-                            <a href="#" class="btn btn-square btn-link"><span class="position-relative">
+
+                            <a href="#" class="btn btn-square btn-link" title="Calendar">
+                                <span class="position-relative">
                                     <i data-feather="calendar"></i>
-                                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger rounded-circle"><span
-                                            class="visually-hidden">New alerts</span> </span></span>
+                                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger rounded-circle">
+                                        <span class="visually-hidden">New alerts</span>
+                                    </span>
+                                </span>
                             </a>
-                            <a href="#" class="btn btn-square btn-link">
+
+                            <a href="#" class="btn btn-square btn-link" title="Inbox">
                                 <i data-feather="inbox"></i>
                             </a>
-                            <a href="#" class="btn btn-square btn-link">
+
+                            <a href="#" class="btn btn-square btn-link" title="Help">
                                 <i data-feather="help-circle"></i>
                             </a>
                         </div>
@@ -234,5 +302,6 @@
                 </div>
             </div>
         </div>
+
     </div>
 </div>

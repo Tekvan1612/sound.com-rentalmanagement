@@ -2964,23 +2964,130 @@ def delete_transport_document(request):
 def crew_master_page(request):
     return render(request, 'inventory/crew_master.html')
 
-
 def add_crew(request):
-    designation = request.POST.get("designation")
+    if request.method != "POST":
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Invalid request method."
+            },
+            status=405
+        )
+
+    designation = request.POST.get("designation", "").strip()
     crew_id = request.POST.get("id")
     created_by = request.session.get("user_id")
 
-    with connection.cursor() as cursor:
-        cursor.execute(
-            "SELECT manage_crew(%s, %s, %s, %s)",
-            ['update' if crew_id else 'create', crew_id, designation, created_by]
+    if not designation:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Crew designation is required."
+            },
+            status=400
         )
 
-    return JsonResponse({"success": True, "message": "Saved successfully"})
+    if not created_by:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Session expired. Please log in again."
+            },
+            status=401
+        )
+
+    try:
+        crew_id = int(crew_id) if crew_id else None
+        operation = "update" if crew_id else "add"
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT *
+                FROM public.manage_crew(
+                    %s::text,
+                    %s::integer,
+                    %s::text,
+                    %s::boolean,
+                    %s::integer
+                )
+                """,
+                [
+                    operation,
+                    crew_id,
+                    designation,
+                    True,
+                    int(created_by)
+                ]
+            )
+
+            result = cursor.fetchone()
+
+        if not result:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": "No response received from database."
+                },
+                status=500
+            )
+
+        return JsonResponse(
+            {
+                "success": bool(result[6]),
+                "message": result[5],
+                "crew_id": result[0],
+                "crew_designation": result[1]
+            },
+            status=200 if result[6] else 400
+        )
+
+    except Exception as e:
+        print("ADD CREW ERROR:", str(e))
+
+        return JsonResponse(
+            {
+                "success": False,
+                "message": str(e)
+            },
+            status=500
+        )
 
 def crew_list(request):
     try:
+        page = request.GET.get("page", 1)
+        page_size = request.GET.get("page_size", 10)
+
+        try:
+            page = int(page)
+        except (TypeError, ValueError):
+            page = 1
+
+        try:
+            page_size = int(page_size)
+        except (TypeError, ValueError):
+            page_size = 10
+
+        if page < 1:
+            page = 1
+
+        if page_size not in [10, 25, 50, 100]:
+            page_size = 10
+
+        offset = (page - 1) * page_size
+
         with connection.cursor() as cursor:
+
+            # Total active crew count
+            cursor.execute("""
+                SELECT COUNT(*)
+                FROM public.crew_master
+                WHERE status = true
+            """)
+
+            total_records = cursor.fetchone()[0]
+
+            # Paginated crew list
             cursor.execute("""
                 SELECT
                     cm.crew_id,
@@ -2993,9 +3100,20 @@ def crew_list(request):
                     ON um.user_id = cm.created_by
                 WHERE cm.status = true
                 ORDER BY cm.crew_id DESC
-            """)
+                LIMIT %s OFFSET %s
+            """, [page_size, offset])
 
             rows = cursor.fetchall()
+
+        total_pages = (
+            (total_records + page_size - 1) // page_size
+            if total_records > 0
+            else 1
+        )
+
+        # Prevent invalid pages
+        if page > total_pages:
+            page = total_pages
 
         data = []
 
@@ -3005,25 +3123,116 @@ def crew_list(request):
                 "crew_designation": row[1],
                 "status": row[2],
                 "created_by": row[3],
-                "created_date": row[4].strftime("%Y-%m-%d %H:%M:%S") if row[4] else ""
+                "created_date": (
+                    row[4].strftime("%Y-%m-%d %H:%M:%S")
+                    if row[4]
+                    else ""
+                )
             })
 
-        return JsonResponse({"data": data})
+        return JsonResponse({
+            "success": True,
+            "data": data,
+            "pagination": {
+                "current_page": page,
+                "page_size": page_size,
+                "total_records": total_records,
+                "total_pages": total_pages,
+                "has_previous": page > 1,
+                "has_next": page < total_pages
+            }
+        })
 
     except Exception as e:
         print("CREW LIST ERROR:", str(e))
-        return JsonResponse({"data": [], "error": str(e)}, status=500)
+
+        return JsonResponse({
+            "success": False,
+            "data": [],
+            "message": str(e),
+            "pagination": {
+                "current_page": 1,
+                "page_size": 10,
+                "total_records": 0,
+                "total_pages": 1,
+                "has_previous": False,
+                "has_next": False
+            }
+        }, status=500)
 
 
 def delete_crew(request, id):
+    if request.method not in ["POST", "DELETE"]:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Invalid request method."
+            },
+            status=405,
+        )
+
+    user_id = request.session.get("user_id")
+
+    if not user_id:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "User session expired. Please log in again."
+            },
+            status=401,
+        )
+
     try:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT delete_crew(%s)", [id])
+            cursor.execute(
+                """
+                SELECT *
+                FROM public.manage_crew(
+                    %s::text,
+                    %s::integer,
+                    %s::text,
+                    %s::boolean,
+                    %s::integer
+                )
+                """,
+                [
+                    "delete",
+                    int(id),
+                    None,
+                    False,
+                    int(user_id),
+                ],
+            )
 
-        return JsonResponse({"success": True, "message": "Deleted successfully"})
+            result = cursor.fetchone()
+
+        if not result:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": "Crew record not found."
+                },
+                status=404,
+            )
+
+        return JsonResponse(
+            {
+                "success": result[6],
+                "message": result[5],
+            },
+            status=200 if result[6] else 400,
+        )
 
     except Exception as e:
-        return JsonResponse({"success": False, "message": str(e)})
+        print("DELETE CREW ERROR:", str(e))
+
+        return JsonResponse(
+            {
+                "success": False,
+                "message": str(e)
+            },
+            status=500,
+        )
 
 
 def event_creation(request):
