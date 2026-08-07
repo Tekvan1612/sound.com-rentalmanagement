@@ -4253,6 +4253,35 @@ def insert_job_child_rows_direct(
             transport_type
         ])
 
+JOB_STATUS_ORDER = {
+    "Quotation": 1,
+    "Proforma": 2,
+    "Prepsheet": 3,
+    "Delivery Challan": 4,
+}
+
+
+def validate_forward_job_status(current_status, requested_status):
+    """Allow the same status or a forward status; reject backward movement."""
+    current_status = str(current_status or "").strip()
+    requested_status = str(requested_status or "").strip()
+
+    current_level = JOB_STATUS_ORDER.get(current_status)
+    requested_level = JOB_STATUS_ORDER.get(requested_status)
+
+    if current_level is None:
+        raise ValueError(f"Invalid existing job status: {current_status or 'blank'}.")
+
+    if requested_level is None:
+        raise ValueError(f"Invalid requested job status: {requested_status or 'blank'}.")
+
+    if requested_level < current_level:
+        raise ValueError(
+            f"Status cannot be changed backward from {current_status} "
+            f"to {requested_status}."
+        )
+
+
 def add_job(request):
     username = request.session.get("username")
 
@@ -4268,13 +4297,11 @@ def add_job(request):
 
     if request.method == "POST":
         try:
-            print("=" * 120)
-            print("ADD JOB POST DATA")
-            print("=" * 120)
-            for key, value in request.POST.lists():
-                for item in value:
-                    print(f"{key} => {item}")
-            print("=" * 120)
+            logger.info(
+                "ADD JOB request received: edit_type=%s edit_id=%s",
+                edit_type,
+                edit_id,
+            )
 
             title = request.POST.get("title", "").strip()
             venue_name = request.POST.get("venue_name", "").strip()
@@ -4362,12 +4389,20 @@ def add_job(request):
                         edit_id_int = int(edit_id)
 
                         cursor.execute("""
-                            SELECT quotation_no
+                            SELECT quotation_no, COALESCE(status, 'Quotation')
                             FROM public.temp
                             WHERE id = %s
+                            FOR UPDATE
                         """, [edit_id_int])
 
-                        quotation_no = cursor.fetchone()[0]
+                        temp_row = cursor.fetchone()
+                        if temp_row is None:
+                            raise ValueError(
+                                f"Quotation record not found for edit_id={edit_id_int}."
+                            )
+
+                        quotation_no, current_status = temp_row
+                        validate_forward_job_status(current_status, status)
 
                         # QUOTATION REMAINS QUOTATION
                         if status == "Quotation":
@@ -4604,6 +4639,26 @@ def add_job(request):
                     if edit_id and edit_type == "job":
                         job_id = int(edit_id)
 
+                        # Read and lock the existing row before updating it.
+                        # The browser-submitted status is never trusted by itself.
+                        cursor.execute("""
+                            SELECT
+                                COALESCE(main_job_no, job_order_no, job_reference_no),
+                                status
+                            FROM public.jobs
+                            WHERE id = %s
+                            FOR UPDATE
+                        """, [job_id])
+
+                        existing_job = cursor.fetchone()
+                        if existing_job is None:
+                            raise ValueError(
+                                f"Job record not found for edit_id={job_id}."
+                            )
+
+                        main_job_no, current_status = existing_job
+                        validate_forward_job_status(current_status, status)
+
                         cursor.execute("""
                             UPDATE public.jobs
                             SET
@@ -4647,13 +4702,6 @@ def add_job(request):
                             input_notes,
                             job_id
                         ])
-
-                        cursor.execute("""
-                            SELECT COALESCE(main_job_no, job_order_no, job_reference_no)
-                            FROM public.jobs
-                            WHERE id = %s
-                        """, [job_id])
-                        main_job_no = cursor.fetchone()[0]
 
                         split_map = create_co_jobs(
                             cursor=cursor,
@@ -4937,8 +4985,15 @@ def add_job(request):
                         "job_no": job_no
                     })
 
+        except ValueError as e:
+            logger.warning("ADD_JOB validation rejected: %s", str(e))
+            return JsonResponse({
+                "success": False,
+                "error": str(e)
+            }, status=400)
+
         except Exception as e:
-            print("ADD_JOB ERROR:", str(e))
+            logger.exception("ADD_JOB ERROR")
             return JsonResponse({
                 "success": False,
                 "error": str(e)
