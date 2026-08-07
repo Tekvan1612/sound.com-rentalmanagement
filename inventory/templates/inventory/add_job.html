@@ -2581,11 +2581,58 @@
     /* =====================================================
        SAVE JOB
     ===================================================== */
+    const JOB_STATUS_ORDER = Object.freeze({
+        "Quotation": 1,
+        "Proforma": 2,
+        "Prepsheet": 3,
+        "Delivery Challan": 4
+    });
+
+    function applyForwardOnlyStatusRule(currentStatus) {
+        const statusSelect = getEl("status");
+        const currentLevel = JOB_STATUS_ORDER[currentStatus];
+
+        if (!statusSelect || !currentLevel) return;
+
+        statusSelect.dataset.originalStatus = currentStatus;
+
+        Array.from(statusSelect.options).forEach(option => {
+            const optionLevel = JOB_STATUS_ORDER[option.value];
+            option.disabled = Boolean(optionLevel && optionLevel < currentLevel);
+        });
+
+        statusSelect.value = currentStatus;
+    }
+
     function saveJobAjax(event) {
         event.preventDefault();
 
         const jobForm = getEl("jobForm");
         const tbody = getEl("equipmentTableBody");
+        const statusSelect = getEl("status");
+
+        if (statusSelect && statusSelect.dataset.originalStatus) {
+            const originalStatus = statusSelect.dataset.originalStatus;
+            const selectedStatus = statusSelect.value;
+            const originalLevel = JOB_STATUS_ORDER[originalStatus];
+            const selectedLevel = JOB_STATUS_ORDER[selectedStatus];
+
+            if (!selectedLevel) {
+                alert("Please select a valid status.");
+                statusSelect.focus();
+                return;
+            }
+
+            if (originalLevel && selectedLevel < originalLevel) {
+                alert(
+                    `Status cannot be changed backward from ` +
+                    `${originalStatus} to ${selectedStatus}.`
+                );
+                statusSelect.value = originalStatus;
+                statusSelect.focus();
+                return;
+            }
+        }
 
         collectEquipmentRowsBySection(currentEquipmentSectionKey);
         syncCoJobsJson();
@@ -3066,7 +3113,9 @@
         setVal("outDate", getJobValue("rehearsal_date"));
         setVal("showStart", getJobValue("show_start_date", "event_date", "start_date"));
         setVal("showEnd", getJobValue("show_end_date", "dismantle_date", "end_date"));
-        setVal("status", getJobValue("status"));
+        const currentStatus = getJobValue("status");
+        setVal("status", currentStatus);
+        applyForwardOnlyStatusRule(currentStatus);
         setVal("crewQuantity", getJobValue("crew_type"));
         setVal("inputNotes", getJobValue("notes"));
         setVal("number_of_days", getJobValue("total_days"));
